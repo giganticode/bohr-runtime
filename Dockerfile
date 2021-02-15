@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-WORKDIR /usr/src/bohr
+WORKDIR /usr/src/bohr-framework
 
 MAINTAINER hlib <hlibbabii@gmail.com>
 
@@ -45,13 +45,13 @@ ENV PATH="/root/.pyenv/bin:$PATH"
 
 RUN pyenv install 3.8.0
 
-COPY ../bohr .
+COPY . .
 
 RUN curl -fsSL https://get.docker.com -o get-docker.sh
 RUN sh get-docker.sh
 RUN docker --version
 
-ENV PYTHONPATH="/usr/src/bohr/:$PYTHONPATH"
+ENV PYTHONPATH="/usr/src/bohr-framework/:$PYTHONPATH"
 
 RUN echo "$(ls)"
 RUN /root/.pyenv/versions/3.8.0/bin/pip install Cython==0.29.21
@@ -63,3 +63,5 @@ ENV SOFTWARE_DIR /usr/src/tools
 
 RUN pyenv global 3.8.0
 RUN echo 'eval "$(pyenv init -)"' >> /etc/profile
+RUN echo "echo \"image built on $(date)\"" >> /etc/profile
+
