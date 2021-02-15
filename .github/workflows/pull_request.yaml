@@ -12,7 +12,7 @@ jobs:
       repo_token: ${{ secrets.GITHUB_TOKEN }}
       DVC_IRONSPEED_USERNAME: ${{ secrets.DVC_IRONSPEED_USERNAME }}
       DVC_IRONSPEED_PASSWORD: ${{ secrets.DVC_IRONSPEED_PASSWORD }}
-      PYTHONPATH: /usr/src/bohr-framework
+      PYTHONPATH: /usr/src/bohr-framework:/usr/src/bohr-framework/test-b2b/scenario1
       HOME: /root
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
