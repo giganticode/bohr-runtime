@@ -36,7 +36,7 @@ def find_project_root() -> Path:
 
 def read_project_config(project_root) -> Dict[str, str]:
     # TODO this is a stub
-    return {"software_path": "/Users/hlib/dev/bohr-software"}
+    return {"software_path": "/usr/src/tools"}
 
 
 class Config:
