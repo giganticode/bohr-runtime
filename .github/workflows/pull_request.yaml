@@ -53,4 +53,4 @@ jobs:
           git fetch --prune
           cd /usr/src/bohr-framework/test-b2b/scenario1
           dvc metrics diff master
-          [ -z "$(dvc metrics diff master)"]
+          [ -z "$(dvc metrics diff master)" ]
