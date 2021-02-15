@@ -9,7 +9,7 @@ DEFAULT_GENERATED_DIR = "generated"
 DEFAULT_LABELED_DATA_DIR = "labeled-data"
 DEFAULT_DATA_DIR = "data"
 DEFAULT_LABELS_DIR = "labels"
-DEFAULT_SOFTWARE_DIR = '../bohr-software'
+DEFAULT_SOFTWARE_DIR = "../bohr-software"
 
 
 DEFAULT_ARTIFACT_PACKAGE = "bohr.artifacts"
@@ -19,20 +19,25 @@ DEFAULT_TASK_PACKAGE = "tasks"
 
 
 def find_project_root() -> Path:
-    current_path = Path('.').resolve()
+    path = Path(".").resolve()
+    current_path = path
     while True:
-        lst = list(current_path.glob('.bohr'))
+        lst = list(current_path.glob(".bohr"))
         if len(lst) > 0 and lst[0].is_dir():
             return current_path
-        elif current_path == Path('/'):
-            raise ValueError('Not a bohr directory')
+        elif current_path == Path("/"):
+            raise ValueError(
+                f"Not a bohr directory: {path}. "
+                f"Bohr config dir is not found in this or any parent directory"
+            )
         else:
             current_path = current_path.parent
 
 
 def read_project_config(project_root) -> Dict[str, str]:
-    #TODO this is a stub
-    return {'software_path': '/Users/hlib/dev/bohr-software'}
+    # TODO this is a stub
+    return {"software_path": "/Users/hlib/dev/bohr-software"}
+
 
 class Config:
     def __init__(self):
@@ -61,7 +66,7 @@ class Config:
         self.artifact_package = DEFAULT_ARTIFACT_PACKAGE
         self.dataset_package = DEFAULT_DATASET_PACKAGE
         self.task_package = DEFAULT_TASK_PACKAGE
-        self.software_path = project_config['software_path']
+        self.software_path = project_config["software_path"]
 
 
 def load_config() -> Config:
