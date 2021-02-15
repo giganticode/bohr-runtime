@@ -6,13 +6,14 @@ jobs:
     defaults:
       run:
         shell: bash -lieo pipefail {0}
-        working-directory: /usr/src/bohr
+        working-directory: /usr/src/bohr-framework
     container: giganticode/bohr-cml-base:latest
     env:
       repo_token: ${{ secrets.GITHUB_TOKEN }}
       DVC_IRONSPEED_USERNAME: ${{ secrets.DVC_IRONSPEED_USERNAME }}
       DVC_IRONSPEED_PASSWORD: ${{ secrets.DVC_IRONSPEED_PASSWORD }}
-      PYTHONPATH: /usr/src/bohr/
+      PYTHONPATH: /usr/src/bohr-framework:/usr/src/bohr-framework/test-b2b/scenario1
+      HOME: /root
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
@@ -34,20 +35,22 @@ jobs:
         run: |
           pip install "dvc[ssh]==$(cat DVC_VERSION)"
           dvc --version
-          dvc remote modify --local ironspeed user $DVC_IRONSPEED_USERNAME
-          dvc remote modify --local ironspeed password $DVC_IRONSPEED_PASSWORD
+          cd /usr/src/bohr-framework/test-b2b/scenario1
+          dvc remote modify --local ironspeed-test user $DVC_IRONSPEED_USERNAME
+          dvc remote modify --local ironspeed-test password $DVC_IRONSPEED_PASSWORD
       - name: reproduce-bugginess
         run: |
-          cd test-b2b
-          dvc pull -r ironspeed downloaded-data/bugginess_train.7z downloaded-data/berger.csv downloaded-data/herzig.csv downloaded-data/1151-commits.csv
+          cd /usr/src/bohr-framework/test-b2b/scenario1
+          dvc pull -r ironspeed-test downloaded-data/bugginess_train.7z downloaded-data/berger.csv downloaded-data/herzig.csv downloaded-data/1151-commits.csv
           dvc repro bugginess-1k_label_dataset
       - name: reproduce-smells
         run: |
-          cd test-b2b
-          dvc pull -r ironspeed downloaded-data/smells-madeyski.csv
+          cd /usr/src/bohr-framework/test-b2b/scenario1
+          dvc pull -r ironspeed-test downloaded-data/smells-madeyski.csv
           dvc repro smells_10_label_dataset smells_10_train_label_model
       - name: report-metrics
         run: |
           git fetch --prune
+          cd /usr/src/bohr-framework/test-b2b/scenario1
           dvc metrics diff master
-          [ -z "$(dvc metrics diff master)"]
+          [ -z "$(dvc metrics diff master)" ]
