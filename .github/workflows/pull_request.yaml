@@ -36,17 +36,17 @@ jobs:
           pip install "dvc[ssh]==$(cat DVC_VERSION)"
           dvc --version
           cd /usr/src/bohr-framework/test-b2b/scenario1
-          dvc remote modify --local ironspeed user $DVC_IRONSPEED_USERNAME
-          dvc remote modify --local ironspeed password $DVC_IRONSPEED_PASSWORD
+          dvc remote modify --local ironspeed-test user $DVC_IRONSPEED_USERNAME
+          dvc remote modify --local ironspeed-test password $DVC_IRONSPEED_PASSWORD
       - name: reproduce-bugginess
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
-          dvc pull -r ironspeed downloaded-data/bugginess_train.7z downloaded-data/berger.csv downloaded-data/herzig.csv downloaded-data/1151-commits.csv
+          dvc pull -r ironspeed-test downloaded-data/bugginess_train.7z downloaded-data/berger.csv downloaded-data/herzig.csv downloaded-data/1151-commits.csv
           dvc repro bugginess-1k_label_dataset
       - name: reproduce-smells
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
-          dvc pull -r ironspeed downloaded-data/smells-madeyski.csv
+          dvc pull -r ironspeed-test downloaded-data/smells-madeyski.csv
           dvc repro smells_10_label_dataset smells_10_train_label_model
       - name: report-metrics
         run: |
