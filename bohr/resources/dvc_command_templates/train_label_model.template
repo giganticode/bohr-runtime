@@ -1,0 +1,13 @@
+-n {{task.name}}_train_label_model
+
+-d {{config.generated_dir}}/{{task.name}}/heuristic_matrix_train.pkl
+{% for test_dataset in task.test_datasets %} -d {{config.generated_dir}}/{{task.name}}/heuristic_matrix_{{test_dataset.name}}.pkl {% endfor %}
+{% for datapath in task.test_datapaths %} -d {{datapath}}{% endfor %}
+{% for dataloader in task.test_datasets %} -d {{config.dataset_dir}}/{{dataloader.name}}.py{% endfor %}
+-d {{config.task_dir}}/{{task.name}}.py
+
+-o {{config.generated_dir}}/{{task.name}}/label_model.pkl
+
+-M {{config.metrics_dir}}/{{task.name}}/label_model_metrics.json
+
+bohr train-label-model {{task.name}}
