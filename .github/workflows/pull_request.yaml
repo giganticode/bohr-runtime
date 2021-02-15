@@ -6,13 +6,13 @@ jobs:
     defaults:
       run:
         shell: bash -lieo pipefail {0}
-        working-directory: /usr/src/bohr
+        working-directory: /usr/src/bohr-framework
     container: giganticode/bohr-cml-base:latest
     env:
       repo_token: ${{ secrets.GITHUB_TOKEN }}
       DVC_IRONSPEED_USERNAME: ${{ secrets.DVC_IRONSPEED_USERNAME }}
       DVC_IRONSPEED_PASSWORD: ${{ secrets.DVC_IRONSPEED_PASSWORD }}
-      PYTHONPATH: /usr/src/bohr/
+      PYTHONPATH: /usr/src/bohr-framework
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
