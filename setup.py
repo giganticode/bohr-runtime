@@ -1,8 +1,18 @@
+import os
+
 from setuptools import find_packages, setup
+
+root_package_name = "bohr"
+
+
+def version():
+    with open(os.path.join(root_package_name, "VERSION")) as version_file:
+        return version_file.read().strip()
+
 
 setup(
     name="bohr",
-    version="0.1",
+    version=version(),
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
