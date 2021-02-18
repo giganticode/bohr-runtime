@@ -1,14 +1,6 @@
-import os
-
 from setuptools import find_packages, setup
 
-root_package_name = "bohr"
-
-
-def version():
-    with open(os.path.join(root_package_name, "VERSION")) as version_file:
-        return version_file.read().strip()
-
+from bohr import version
 
 setup(
     name="bohr",
@@ -27,6 +19,7 @@ setup(
         "numpy>=1.19.4, <2",
         "numpyencoder>=0.3.0, <0.4",
         "pandas>=1.2.0, <2",
+        "PyYAML>=5.4.1, <5.5",
         "requests>=2.25.1, <3",
         "rich>=9.6.1, <10",
         "snorkel>=0.9.6, <0.10",

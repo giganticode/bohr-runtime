@@ -46,6 +46,9 @@ stages:
     - tasks/bugginess-1k.py
     outs:
     - labeled-data/bugginess-1k.csv
+    params:
+    - .bohr/config.yaml:
+      - bohr-framework-version
   smells_10_label_dataset:
     cmd: bohr label-dataset smells_10 smells-train_10
     deps:
@@ -55,6 +58,9 @@ stages:
     - tasks/smells_10.py
     outs:
     - labeled-data/smells_10.csv
+    params:
+    - .bohr/config.yaml:
+      - bohr-framework-version
   bugginess-1k_apply_heuristics:
     cmd: bohr apply-heuristics bugginess-1k
     deps:
@@ -88,6 +94,9 @@ stages:
         cache: false
     - metrics/bugginess-1k/heuristic_metrics.json:
         cache: false
+    params:
+    - .bohr/config.yaml:
+      - bohr-framework-version
   bugginess-1k_train_label_model:
     cmd: bohr train-label-model bugginess-1k
     deps:
@@ -104,6 +113,9 @@ stages:
     metrics:
     - metrics/bugginess-1k/label_model_metrics.json:
         cache: false
+    params:
+    - .bohr/config.yaml:
+      - bohr-framework-version
   smells_10_apply_heuristics:
     cmd: bohr apply-heuristics smells_10
     deps:
@@ -128,6 +140,9 @@ stages:
         cache: false
     - metrics/smells_10/heuristic_metrics.json:
         cache: false
+    params:
+    - .bohr/config.yaml:
+      - bohr-framework-version
   smells_10_train_label_model:
     cmd: bohr train-label-model smells_10
     deps:
@@ -141,3 +156,6 @@ stages:
     metrics:
     - metrics/smells_10/label_model_metrics.json:
         cache: false
+    params:
+    - .bohr/config.yaml:
+      - bohr-framework-version

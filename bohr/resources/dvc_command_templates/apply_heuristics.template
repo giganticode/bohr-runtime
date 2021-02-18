@@ -8,6 +8,8 @@
 {% for dataloader in task.datasets %}
 -d {{config.dataset_dir}}/{{dataloader.name}}.py{% endfor %}
 
+-p .bohr/config.yaml:bohr-framework-version
+
 -o {{config.generated_dir}}/{{task.name}}/heuristic_matrix_train.pkl
 {% for test_dataset in task.test_datasets %} -o {{config.generated_dir}}/{{task.name}}/heuristic_matrix_{{test_dataset.name}}.pkl {% endfor %}
 -O {{config.generated_dir}}/{{task.name}}/analysis_train.csv

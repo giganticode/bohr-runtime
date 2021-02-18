@@ -1,6 +1,10 @@
 from pathlib import Path
 from typing import Dict
 
+import yaml
+
+from bohr import version
+
 DEFAULT_HEURISTICS_DIR = "heuristics"
 DEFAULT_DATASET_DIR = "dataloaders"
 DEFAULT_TASK_DIR = "tasks"
@@ -69,5 +73,19 @@ class Config:
         self.software_path = project_config["software_path"]
 
 
+def get_version_from_config() -> str:
+    config_file = find_project_root() / ".bohr" / "config.yaml"
+    with open(config_file, "r") as f:
+        dct = yaml.safe_load(f)
+        return str(dct["bohr-framework-version"])
+
+
 def load_config() -> Config:
+    version_from_config = get_version_from_config()
+    version_installed = version()
+    if version_from_config != version_installed:
+        raise EnvironmentError(
+            f"Version of bohr framework from config: {version_from_config}. "
+            f"Version of bohr installed: {version_installed}"
+        )
     return Config()
