@@ -5,6 +5,8 @@
 {% for dataloader in task.train_datasets %} -d {{config.dataset_dir}}/{{dataloader.name}}.py{% endfor %}
 -d tasks/{{task.name}}.py
 
+-p .bohr/config.yaml:bohr-framework-version
+
 -o {{config.labeled_data_dir}}/{{task.name}}.csv
 
 bohr label-dataset {{task.name}} {{task.train_datasets[0].name}}

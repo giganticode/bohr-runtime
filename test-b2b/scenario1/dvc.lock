@@ -100,6 +100,9 @@ bugginess-1k_apply_heuristics:
   - path: tasks/bugginess-1k.py
     md5: 2b464fc6d99f50404ee38d5abc795e04
     size: 207
+  params:
+    .bohr/config.yaml:
+      bohr-framework-version: '0.1'
   outs:
   - path: generated/bugginess-1k/analysis_1151-commits.csv
     md5: 5669f61ca873de063461b47c7eef448b
@@ -152,6 +155,9 @@ bugginess-1k_label_dataset:
   - path: tasks/bugginess-1k.py
     md5: 2b464fc6d99f50404ee38d5abc795e04
     size: 207
+  params:
+    .bohr/config.yaml:
+      bohr-framework-version: '0.1'
   outs:
   - path: labeled-data/bugginess-1k.csv
     md5: 35c6d7472e26cd2751b98ee8881a6c41
@@ -183,9 +189,12 @@ bugginess-1k_train_label_model:
   - path: tasks/bugginess-1k.py
     md5: 2b464fc6d99f50404ee38d5abc795e04
     size: 207
+  params:
+    .bohr/config.yaml:
+      bohr-framework-version: '0.1'
   outs:
   - path: generated/bugginess-1k/label_model.pkl
-    md5: 4f71bd3e7d2230573974bcc47b019f5f
+    md5: 9386691e78aa65185c221d3a384097bf
     size: 1912346
   - path: metrics/bugginess-1k/label_model_metrics.json
     md5: 13ac2978db63469029b6186a12b17525
@@ -215,6 +224,9 @@ smells_10_apply_heuristics:
   - path: tasks/smells_10.py
     md5: 9e1124bf234a05de58240ad6596d5232
     size: 201
+  params:
+    .bohr/config.yaml:
+      bohr-framework-version: '0.1'
   outs:
   - path: generated/smells_10/analysis_smells-test_10.csv
     md5: 9d0a63323e2d0380f35bed4d72fa8c29
@@ -255,9 +267,12 @@ smells_10_train_label_model:
   - path: tasks/smells_10.py
     md5: 9e1124bf234a05de58240ad6596d5232
     size: 201
+  params:
+    .bohr/config.yaml:
+      bohr-framework-version: '0.1'
   outs:
   - path: generated/smells_10/label_model.pkl
-    md5: 3dfee21c5d23e32ea87e19b7b7888ec2
+    md5: 24d7d158a348197d0f8a5d94e9ae7011
     size: 4889
   - path: metrics/smells_10/label_model_metrics.json
     md5: f1d3984f2a0802a5fb42ad0828c3a6b7
@@ -277,6 +292,9 @@ smells_10_label_dataset:
   - path: tasks/smells_10.py
     md5: 9e1124bf234a05de58240ad6596d5232
     size: 201
+  params:
+    .bohr/config.yaml:
+      bohr-framework-version: '0.1'
   outs:
   - path: labeled-data/smells_10.csv
     md5: f9fb7ce3c9ff8c412b038378a4d6f2d3

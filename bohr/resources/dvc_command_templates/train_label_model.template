@@ -6,6 +6,8 @@
 {% for dataloader in task.test_datasets %} -d {{config.dataset_dir}}/{{dataloader.name}}.py{% endfor %}
 -d {{config.task_dir}}/{{task.name}}.py
 
+-p .bohr/config.yaml:bohr-framework-version
+
 -o {{config.generated_dir}}/{{task.name}}/label_model.pkl
 
 -M {{config.metrics_dir}}/{{task.name}}/label_model_metrics.json
