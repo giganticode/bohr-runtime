@@ -1,6 +1,8 @@
+import logging
 from dataclasses import dataclass, field
 from functools import cached_property, lru_cache
-from typing import List, Set
+from pathlib import Path
+from typing import List, Optional, Set
 
 import pandas as pd
 
@@ -8,15 +10,77 @@ from bohr.artifacts.commit_file import CommitFile
 from bohr.artifacts.commit_message import CommitMessage
 from bohr.artifacts.core import Artifact
 from bohr.artifacts.issue import Issue
-from bohr.config import load_config
 from bohr.nlp_utils import NgramSet
 
+logger = logging.getLogger(__name__)
 
-config = load_config()
-BUGGINESS_TRAIN = config.data_path / "bugginess" / "train"
-ISSUES_FILE = BUGGINESS_TRAIN / "bug_sample_issues.csv"
-CHANGES_FILE = BUGGINESS_TRAIN / "bug_sample_files.csv"
-COMMITS_FILE = BUGGINESS_TRAIN / "bug_sample.csv"
+
+class Cache:
+    def __init__(self):
+        self.project_root = None
+
+    @property
+    def bugginess_train(self):
+        return self.project_root / "data" / "bugginess" / "train"
+
+    @property
+    def issues_file(self):
+        return self.bugginess_train / "bug_sample_issues.csv"
+
+    @property
+    def changes_file(self):
+        return self.bugginess_train / "bug_sample_files.csv"
+
+    @property
+    def commits_file(self):
+        return self.bugginess_train / "bug_sample.csv"
+
+    @lru_cache(maxsize=8)
+    def __load_df(self, type: str, owner: str, repository: str):
+        path = self.bugginess_train / type / owner / f"{repository}.csv"
+        if path.is_file():
+            return pd.read_csv(
+                path,
+                index_col=["sha"],
+                keep_default_na=False,
+                dtype={"labels": "str"},
+            )
+        else:
+            return None
+
+    @cached_property
+    def __issues_df(self):
+        logger.debug("Reading and caching bug reports...")
+        return pd.read_csv(
+            self.issues_file,
+            index_col=["owner", "repository", "sha"],
+            keep_default_na=False,
+            dtype={"labels": "str"},
+        )
+
+    @cached_property
+    def __files_df(self):
+        logger.debug("Reading and caching commit files...")
+        return pd.read_csv(self.changes_file, index_col=["owner", "repository", "sha"])
+
+    def get_resources_from_file(self, type: str, owner: str, repository: str, sha: str):
+        if type == "issues":
+            df = self.__issues_df
+        elif type == "files":
+            df = self.__files_df
+        else:
+            raise ValueError("invalid resources type")
+
+        try:
+            return df.loc[[(owner, repository, sha)]]
+        except KeyError:
+            return None
+
+    def get_files(self, owner: str, repository: str, sha: str):
+        return self.get_resources_from_file("files", owner, repository, sha)
+
+    def get_issues(self, owner: str, repository: str, sha: str):
+        return self.get_resources_from_file("issues", owner, repository, sha)
 
 
 @dataclass
@@ -26,73 +90,12 @@ class Commit(Artifact):
     repository: str
     sha: str
     raw_message: str
+    project_root: Optional[Path] = None
     message: CommitMessage = field(init=False)
 
     def __post_init__(self):
         self.message = CommitMessage(self.raw_message)
-
-    class Cache:
-        @lru_cache(maxsize=8)
-        def __load_df(self, type: str, owner: str, repository: str):
-            path = BUGGINESS_TRAIN / type / owner / f"{repository}.csv"
-            if path.is_file():
-                return pd.read_csv(
-                    path,
-                    index_col=["sha"],
-                    keep_default_na=False,
-                    dtype={"labels": "str"},
-                )
-            else:
-                return None
-
-        @cached_property
-        def __issues_df(self):
-            return pd.read_csv(
-                ISSUES_FILE,
-                index_col=["owner", "repository", "sha"],
-                keep_default_na=False,
-                dtype={"labels": "str"},
-            )
-
-        @cached_property
-        def __files_df(self):
-            return pd.read_csv(CHANGES_FILE, index_col=["owner", "repository", "sha"])
-
-        def get_resources_from_file(
-            self, type: str, owner: str, repository: str, sha: str
-        ):
-            if type == "issues":
-                df = self.__issues_df
-            elif type == "files":
-                df = self.__files_df
-            else:
-                raise ValueError("invalid resources type")
-
-            try:
-                return df.loc[[(owner, repository, sha)]]
-            except KeyError:
-                return None
-
-        def get_resources_from_dir(
-            self, type: str, owner: str, repository: str, sha: str
-        ):
-            df = self.__load_df(type, owner, repository)
-            try:
-                return df.loc[[sha]]
-            except KeyError:
-                return None
-
-        def get_files(self, owner: str, repository: str, sha: str):
-            if CHANGES_FILE:
-                return self.get_resources_from_file("files", owner, repository, sha)
-            else:
-                return self.get_resources_from_dir("files", owner, repository, sha)
-
-        def get_issues(self, owner: str, repository: str, sha: str):
-            if ISSUES_FILE:
-                return self.get_resources_from_file("issues", owner, repository, sha)
-            else:
-                return self.get_resources_from_dir("issues", owner, repository, sha)
+        self._cache.project_root = self.project_root
 
     _cache = Cache()
 

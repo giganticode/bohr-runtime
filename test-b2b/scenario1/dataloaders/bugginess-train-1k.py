@@ -1,10 +1,11 @@
+from pathlib import Path
+
 from bohr.templates.dataloaders.from_csv import CsvDatasetLoader
 from bohr.templates.datamappers.commit import CommitMapper
 
 dataset_loader = CsvDatasetLoader(
-    "bugginess-train-1k",
     path_to_file="data/bugginess/train/bug_sample.csv",
-    mapper=CommitMapper(),
+    mapper=CommitMapper(Path(__file__).parent.parent),
     n_rows=1000,
     test_set=False,
     additional_data_files=[
@@ -12,3 +13,5 @@ dataset_loader = CsvDatasetLoader(
         "data/bugginess/train/bug_sample_files.csv",
     ],
 )
+
+__all__ = [dataset_loader]

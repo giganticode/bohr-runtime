@@ -1,4 +1,3 @@
-import argparse
 import json
 from pathlib import Path
 from pprint import pprint
@@ -12,9 +11,9 @@ from snorkel.labeling import LFAnalysis, PandasLFApplier
 from snorkel.labeling.apply.dask import PandasParallelLFApplier
 from snorkel.labeling.model import MajorityLabelVoter
 
-from bohr.config import load_config, Config
-from bohr.core import Task, load_heuristics, to_labeling_functions
-from bohr.pipeline.profiler import Profiler
+from bohr.config import Config
+from bohr.core import load_heuristics, to_labeling_functions
+from bohr.datamodel import Task
 
 
 def majority_acc(line: np.ndarray, df: DataFrame, label_column_name: str) -> float:
@@ -81,8 +80,8 @@ def apply_lfs_to_test_set(
 
 
 def create_dirs_if_necessary(task: Task, config: Config) -> Tuple[Path, Path]:
-    task_dir_generated = config.generated_path / task.name
-    task_dir_metrics = config.metrics_path / task.name
+    task_dir_generated = config.paths.generated / task.name
+    task_dir_metrics = config.paths.metrics / task.name
     for dir in [task_dir_generated, task_dir_metrics]:
         if not dir.exists():
             dir.mkdir(parents=True)
@@ -90,14 +89,14 @@ def create_dirs_if_necessary(task: Task, config: Config) -> Tuple[Path, Path]:
 
 
 def apply_heuristics(task_name: str, n_parallel: int, config: Config) -> None:
-    task = Task.load(task_name, config)
+    task = config.tasks[task_name]
     all_stats: Dict[str, Any] = {}
 
     task_dir_generated, task_dir_metrics = create_dirs_if_necessary(task, config)
     heuristics = load_heuristics(task.top_artifact, config)
     if not heuristics:
         raise ValueError(f"Heuristics not found for artifact: {task.top_artifact}")
-    for dataset_loader in task.train_datasets:
+    for dataset_loader in task.train_datasets.values():
         labeling_functions = to_labeling_functions(
             heuristics, dataset_loader.get_mapper(), task.labels
         )
@@ -110,14 +109,14 @@ def apply_heuristics(task_name: str, n_parallel: int, config: Config) -> None:
         )
         all_stats.update(**stats)
 
-    for dataset_loader in task.test_datasets:
+    for dataset_loader_name, dataset_loader in task.test_datasets.items():
         labeling_functions = to_labeling_functions(
             heuristics, dataset_loader.get_mapper(), task.labels
         )
         stats = apply_lfs_to_test_set(
             labeling_functions,
             artifact_df=dataset_loader.load(config.project_root),
-            test_set_name=dataset_loader.name,
+            test_set_name=dataset_loader_name,
             save_generated_to=task_dir_generated,
             save_metrics_to=task_dir_metrics,
             label_column_name=task.label_column_name,

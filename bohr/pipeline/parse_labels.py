@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 from jinja2 import FileSystemLoader
 
-from bohr.config import load_config, Config
+from bohr.config import Config
 from bohr.labels.hierarchies import LabelHierarchy
 
 logger = logging.getLogger(__name__)
@@ -72,8 +72,8 @@ def build_label_tree(path_to_labels: Path) -> LabelHierarchy:
 
 
 def parse_label(config: Config) -> None:
-    label_tree = build_label_tree(config.labels_path)
-    from jinja2 import Environment, PackageLoader
+    label_tree = build_label_tree(config.paths.labels)
+    from jinja2 import Environment
 
     env = Environment(loader=FileSystemLoader(Path(__file__).parent.parent))
     template = env.get_template("resources/labels.template")

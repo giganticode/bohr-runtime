@@ -17,7 +17,7 @@ class KeywordHeuristics(Heuristic):
     ):
         super().__init__(artifact_type_applied_to)
         config = load_config()
-        file = config.heuristics_path / "keywords" / f"{keyword_list_name}.kwords"
+        file = config.paths.heuristics / "keywords" / f"{keyword_list_name}.kwords"
         self.keyword_list = load_keywords_from_file(file)
         self.name_pattern = name_pattern
         self.resources = resources
