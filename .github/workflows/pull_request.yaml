@@ -39,6 +39,7 @@ jobs:
           cd /usr/src/bohr-framework/test-b2b/scenario1
           dvc remote modify --local ironspeed-test user $DVC_IRONSPEED_USERNAME
           dvc remote modify --local ironspeed-test password $DVC_IRONSPEED_PASSWORD
+          dvc config core.check_update false
       - name: reproduce-bugginess
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
