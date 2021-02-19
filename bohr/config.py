@@ -30,7 +30,7 @@ def find_project_root() -> Path:
 class PathsConfig:
     """
     >>> jsons.loads('{}', PathsConfig, project_root='/')
-    PathsConfig(project_root='/', metrics_dir='metrics', generated_dir='generated', heuristics_dir='heuristics',\
+    PathsConfig(project_root='/', metrics_dir='metrics', generated_dir='generated', heuristics_dir='heuristics', \
 dataset_dir='dataloaders', labeled_data_dir='labeled-data', data_dir='data', labels_dir='labels')
     """
 
@@ -83,12 +83,11 @@ dataset_dir='dataloaders', labeled_data_dir='labeled-data', data_dir='data', lab
 @dataclass(frozen=True)
 class Config:
     """
-    >>> jsons.loads('{"bohr_framework_version": 0.1, "tasks": []}', Config, project_root=Path('/'))
-    Config(project_root=PosixPath('/'), bohr_framework_version=0.1, tasks=[],\
-paths=PathsConfig(project_root=PosixPath('/'), metrics_dir='metrics', generated_dir='generated',\
-heuristics_dir='heuristics', dataset_dir='dataloaders', labeled_data_dir='labeled-data', data_dir='data',\
-labels_dir='labels'), packages=PackagesConfig(heuristics='heuristics', artifact='bohr.artifacts',\
-dataset='dataloaders'))
+    >>> jsons.loads('{"bohr_framework_version": 0.1, "tasks": {}}', Config, project_root=Path('/'))
+    Config(project_root=PosixPath('/'), bohr_framework_version=0.1, tasks={}, \
+paths=PathsConfig(project_root=PosixPath('/'), metrics_dir='metrics', generated_dir='generated', \
+heuristics_dir='heuristics', dataset_dir='dataloaders', labeled_data_dir='labeled-data', data_dir='data', \
+labels_dir='labels'))
     """
 
     project_root: Path
