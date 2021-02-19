@@ -1,26 +1,20 @@
-import argparse
-
 import numpy as np
 import pandas as pd
 from snorkel.labeling.model import LabelModel
 
-from bohr.core import (
-    Task,
-    get_dataset_loader,
-    load_heuristics,
-    to_labeling_functions,
-)
-
-from bohr.config import load_config, Config
+from bohr.config import Config, get_dataset_loader
+from bohr.core import load_heuristics, to_labeling_functions
 
 
-def label_dataset(task_name: str, dataset_name: str, config: Config, debug: bool = False):
-    task = Task.load(task_name, config)
-    dataset_loader = get_dataset_loader(dataset_name, config.dataset_package)
+def label_dataset(
+    task_name: str, dataset_name: str, config: Config, debug: bool = False
+):
+    task = config.tasks[task_name]
+    dataset_loader = get_dataset_loader(dataset_name)
     df = dataset_loader.load(config.project_root)
 
     lines_train = np.load(
-        config.generated_path / task.name / "heuristic_matrix_train.pkl",
+        config.paths.generated / task.name / "heuristic_matrix_train.pkl",
         allow_pickle=True,
     )
 
@@ -50,7 +44,7 @@ def label_dataset(task_name: str, dataset_name: str, config: Config, debug: bool
         col_lfs = df_lfs.apply(lambda c: ";".join([v for v in c if v]), axis=1)
         df_labeled["lfs"] = col_lfs
 
-    labeled_data_path = config.labeled_data_path
+    labeled_data_path = config.paths.labeled_data
     if not labeled_data_path.exists():
         labeled_data_path.mkdir(parents=True)
     target_file = labeled_data_path / f"{task_name}.csv"

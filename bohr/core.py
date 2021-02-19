@@ -3,17 +3,12 @@ import importlib
 import inspect
 import logging
 import os
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from pathlib import Path
 from subprocess import CalledProcessError
 from typing import Callable, List, Optional, Set, Type
 
-from dask.dataframe import DataFrame
-from snorkel.map import BaseMapper
-
 from bohr.artifacts.core import Artifact
 from bohr.config import Config
+from bohr.datamodel import ArtifactMapper
 from bohr.labels.cache import CategoryMappingCache
 from bohr.labels.labelset import Label, Labels
 from bohr.snorkel_util import SnorkelLabelingFunction, to_snorkel_label
@@ -22,12 +17,6 @@ KEYWORD_GROUP_SEPARATOR = "|"
 
 
 logger = logging.getLogger(__name__)
-
-
-class ArtifactMapper(BaseMapper, ABC):
-    @abstractmethod
-    def get_artifact(self) -> Type:
-        pass
 
 
 class _Heuristic:
@@ -118,61 +107,16 @@ def load_heuristics(
     artifact_type: Type, config: Config, limited_to_modules: Optional[Set[str]] = None
 ) -> List[_Heuristic]:
     heuristics: List[_Heuristic] = []
-    for heuristic_file in next(os.walk(config.heuristics_path))[2]:
+    for heuristic_file in next(os.walk(config.paths.heuristics))[2]:
         heuristic_module_name = ".".join(heuristic_file.split(".")[:-1])
         if limited_to_modules is None or heuristic_module_name in limited_to_modules:
             heuristics.extend(
-                load_heuristics_from_module(artifact_type, heuristic_module_name, config.heuristics_package)
+                load_heuristics_from_module(
+                    artifact_type, heuristic_module_name, config.paths.heuristics_dir
+                )
             )
     check_names_unique(heuristics)
     return heuristics
-
-
-@dataclass
-class DatasetLoader(ABC):
-    name: str
-    test_set: bool
-    mapper: ArtifactMapper
-
-    def get_artifact(self) -> Type:
-        return self.get_mapper().get_artifact()
-
-    @abstractmethod
-    def load(self, project_root: Path) -> DataFrame:
-        pass
-
-    @abstractmethod
-    def get_paths(self, project_root: Path) -> List[Path]:
-        pass
-
-    def get_mapper(self) -> ArtifactMapper:
-        return self.mapper
-
-    def is_test_set(self):
-        return self.test_set
-
-
-def get_dataset_loader(name: str, dataset_package) -> DatasetLoader:
-    try:
-        module = importlib.import_module(f"{dataset_package}.{name}")
-        obj = getattr(module, "dataset_loader")
-        return obj
-    except AttributeError as e:
-        raise ValueError("The dataset loader is defined incorrectly.") from e
-    except ModuleNotFoundError as e:
-        raise ValueError(f"Dataset {name} not defined.") from e
-
-
-def get_all_dataset_loaders(config: Config) -> Set:
-    res = set()
-    for dataset_file in next(os.walk(config.dataset_path))[2]:
-        dataset_name = ".".join(dataset_file.split(".")[:-1])
-        try:
-            loader = get_dataset_loader(dataset_name, config.dataset_package)
-            res.add(loader)
-        except ValueError:
-            pass
-    return res
 
 
 def apply_heuristic_and_convert_to_snorkel_label(
@@ -199,115 +143,3 @@ def to_labeling_functions(
         )
     )
     return labeling_functions
-
-
-@dataclass
-class Task:
-    name: str
-    top_artifact: Type
-    labels: List[str]
-    train_datasets: List[DatasetLoader]
-    test_datasets: List[DatasetLoader]
-    label_column_name: str
-    project_root: Path
-
-    @property
-    def datasets(self) -> List[DatasetLoader]:
-        return self.train_datasets + self.test_datasets
-
-    def _datapaths(self, datasets: List[DatasetLoader]) -> List[Path]:
-        return [p for dataset in datasets for p in dataset.get_paths(self.project_root)]
-
-    @property
-    def datapaths(self) -> List[Path]:
-        return self.train_datapaths + self.test_datapaths
-
-    @property
-    def train_datapaths(self) -> List[Path]:
-        return self._datapaths(self.train_datasets)
-
-    @property
-    def test_datapaths(self) -> List[Path]:
-        return self._datapaths(self.test_datasets)
-
-    def __post_init__(self):
-        for test_dataset in self.train_datasets + self.test_datasets:
-            if test_dataset.get_artifact() != self.top_artifact:
-                raise ValueError(
-                    f"Dataset {test_dataset} is a dataset of {test_dataset.get_artifact()}, "
-                    f"but this task works on {self.top_artifact}"
-                )
-
-    @classmethod
-    def load(cls, name: str, config: Config) -> "Task":
-        try:
-            module = importlib.import_module(f"{config.task_package}.{name}")
-            top_artifact_str = getattr(module, "top_artifact")
-            top_artifact = load_artifact_by_name(top_artifact_str, config.artifact_package)
-            label_categories = getattr(module, "label_categories")
-            test_dataset_names = getattr(module, "test_datasets")
-            test_datasets = list(map(lambda x: get_dataset_loader(x, config.dataset_package), test_dataset_names))
-            try:
-                train_dataset_names = getattr(module, "train_datasets")
-                train_datasets = list(map(lambda x: get_dataset_loader(x, config.dataset_package), train_dataset_names))
-            except AttributeError:
-                all_dataset_loaders = get_dataset_loaders(top_artifact, config.dataset_path)
-                train_datasets = list(
-                    filter(
-                        lambda d: d.name not in test_dataset_names, all_dataset_loaders
-                    )
-                )
-            try:
-                label_column_name = getattr(module, "label_column_name")
-            except AttributeError:
-                label_column_name = name
-            return cls(
-                name,
-                top_artifact,
-                label_categories,
-                train_datasets=train_datasets,
-                test_datasets=test_datasets,
-                label_column_name=label_column_name,
-                project_root=config.project_root
-            )
-        except AttributeError as e:
-            raise ValueError("The task is defined incorrectly.") from e
-        except ModuleNotFoundError as e:
-            raise ValueError(f"Task {name} not defined.") from e
-
-
-def load_artifact_by_name(artifact_name: str, artifact_package: str) -> Type:
-    *path, name = artifact_name.split(".")
-    try:
-        module = importlib.import_module(f"{artifact_package}.{'.'.join(path)}")
-    except ModuleNotFoundError as e:
-        raise ValueError(f'Module {".".join(path)} not defined.') from e
-
-    try:
-        artifact_type = getattr(module, name)
-        return artifact_type
-    except AttributeError as e:
-        raise ValueError(f"Artifact {name} not found in module {module}") from e
-
-
-def load_all_tasks(config: Config) -> List[Task]:
-    res = []
-    print(config.task_path)
-    for file in next(os.walk(config.task_path))[2]:
-        task_name = ".".join(file.split(".")[:-1])
-        try:
-            task = Task.load(task_name, config)
-            res.append(task)
-        except ValueError:
-            pass
-    res = sorted(res, key=lambda x: x.name)
-    return res
-
-
-def get_dataset_loaders(artifact_type: Type, config: Config) -> Set[DatasetLoader]:
-    return set(
-        filter(
-            lambda d: d.get_mapper().get_artifact() == artifact_type,
-            get_all_dataset_loaders(config),
-        )
-    )

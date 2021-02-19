@@ -32,9 +32,9 @@ def parse_labels():
 
 
 @bohr.command()
-@click.argument('task')
-@click.argument('dataset')
-@click.option('--debug', is_flag=True)
+@click.argument("task")
+@click.argument("dataset")
+@click.option("--debug", is_flag=True)
 def label_dataset(task: str, dataset: str, debug: bool):
     config = load_config()
     pipeline.label_dataset(task, dataset, config, debug)
@@ -58,8 +58,6 @@ def train_label_model(task: str):
     config = load_config()
 
     stats = pipeline.train_label_model(task, config)
-    with open(
-            config.metrics_path / task / "label_model_metrics.json", "w"
-    ) as f:
+    with open(config.paths.metrics / task / "label_model_metrics.json", "w") as f:
         json.dump(stats, f)
     pprint(stats)

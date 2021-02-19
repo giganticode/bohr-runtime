@@ -39,7 +39,9 @@ class RefactoringMiner(Tool):
         url = get_full_github_url(commit.owner, commit.repository)
         cmd = ["./RefactoringMiner", "-gc", url, commit.sha, "1000"]
 
-        refactoring_miner_path = Path(self.config.software_path) / "RefactoringMiner-2.0.3" / "bin"
+        refactoring_miner_path = (
+            Path(self.config.paths.software_path) / "RefactoringMiner-2.0.3" / "bin"
+        )
         result = subprocess.run(
             cmd, cwd=refactoring_miner_path, capture_output=True, check=True
         )
