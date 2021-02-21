@@ -113,7 +113,7 @@ def load_config() -> Config:
     config = Config.load(project_root, "bohr.json")
 
     version_installed = version()
-    if config.bohr_framework_version != version_installed:
+    if str(config.bohr_framework_version) != version_installed:
         raise EnvironmentError(
             f"Version of bohr framework from config: {config.bohr_framework_version}. "
             f"Version of bohr installed: {version_installed}"
