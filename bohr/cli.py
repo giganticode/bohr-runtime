@@ -5,7 +5,7 @@ from pprint import pprint
 import click
 
 from bohr import pipeline
-from bohr.config import load_config
+from bohr.config import add_to_local_config, load_config
 from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline
 from bohr.pipeline.parse_labels import parse_label
 from bohr.pipeline.profiler import Profiler
@@ -23,6 +23,13 @@ def repro():
     config = load_config()
     add_all_tasks_to_dvc_pipeline(config)
     subprocess.run(["dvc", "repro"], cwd=config.project_root)
+
+
+@bohr.command()
+@click.argument("key")
+@click.argument("value")
+def config(key: str, value: str):
+    add_to_local_config("core", key, value)
 
 
 @bohr.command()

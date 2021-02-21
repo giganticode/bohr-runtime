@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Type
 
 import jsons
+import toml
 
 from bohr import version
 from bohr.artifacts.core import Artifact
@@ -29,12 +30,13 @@ def find_project_root() -> Path:
 @dataclass(frozen=True)
 class PathsConfig:
     """
-    >>> jsons.loads('{}', PathsConfig, project_root='/')
+    >>> jsons.loads('{}', PathsConfig, project_root=Path('/'), software_path='/software')
     PathsConfig(project_root='/', metrics_dir='metrics', generated_dir='generated', heuristics_dir='heuristics', \
 dataset_dir='dataloaders', labeled_data_dir='labeled-data', data_dir='data', labels_dir='labels')
     """
 
     project_root: Path
+    software_path: Path
     metrics_dir: str = "metrics"
     generated_dir: str = "generated"
     heuristics_dir: str = "heuristics"
@@ -42,10 +44,6 @@ dataset_dir='dataloaders', labeled_data_dir='labeled-data', data_dir='data', lab
     labeled_data_dir: str = "labeled-data"
     data_dir: str = "data"
     labels_dir: str = "labels"
-
-    @property
-    def software_path(self) -> Path:
-        return Path("/usr/src/tools")
 
     @property
     def metrics(self) -> Path:
@@ -76,8 +74,28 @@ dataset_dir='dataloaders', labeled_data_dir='labeled-data', data_dir='data', lab
         return self.project_root / self.labels_dir
 
     @staticmethod
-    def deserialize(dct, cls, project_root, **kwargs) -> "PathsConfig":
-        return PathsConfig(project_root, **dct)
+    def deserialize(
+        dct, cls, project_root: Path, software_path: str, **kwargs
+    ) -> "PathsConfig":
+        return PathsConfig(project_root, Path(software_path), **dct)
+
+
+def add_to_local_config(section: str, key: str, value: str) -> None:
+    project_root = find_project_root()
+    local_dir_path = project_root / ".bohr"
+    local_dir_path.mkdir()
+    local_config_path = local_dir_path / "local.config"
+    if local_config_path.exists():
+        with open(local_config_path) as f:
+            dct = toml.load(f)
+    else:
+        local_config_path.touch()
+        dct = {}
+    if section not in dct:
+        dct[section] = {}
+    dct[section][key] = value
+    with open(local_config_path, "w") as f:
+        toml.dump(dct, f)
 
 
 @dataclass(frozen=True)
@@ -96,9 +114,13 @@ labels_dir='labels'))
     paths: PathsConfig
 
     @staticmethod
-    def load(project_root: Path, config_file: str) -> "Config":
-        with open(project_root / config_file) as f:
-            return jsons.loads(f.read(), Config, project_root=project_root)
+    def load(project_root: Path) -> "Config":
+        with open(project_root / ".bohr" / "local.config") as f:
+            software_path = toml.load(f)["core"]["software_path"]
+        with open(project_root / "bohr.json") as f:
+            return jsons.loads(
+                f.read(), Config, project_root=project_root, software_path=software_path
+            )
 
 
 def get_version_from_config() -> str:
@@ -110,7 +132,7 @@ def get_version_from_config() -> str:
 
 def load_config() -> Config:
     project_root = find_project_root()
-    config = Config.load(project_root, "bohr.json")
+    config = Config.load(project_root)
 
     version_installed = version()
     if str(config.bohr_framework_version) != version_installed:
@@ -173,14 +195,18 @@ def deserialize_task(
     )
 
 
-def deserialize_config(dct, cls, project_root: Path, **kwargs) -> Config:
+def deserialize_config(
+    dct, cls, project_root: Path, software_path: str, **kwargs
+) -> Config:
     if not isinstance(project_root, Path):
         raise ValueError(
             f"Project root must be a path object but is: {type(project_root)}"
         )
 
     paths_json = dct["paths"] if "paths" in dct else {}
-    paths: PathsConfig = jsons.load(paths_json, PathsConfig, project_root=project_root)
+    paths: PathsConfig = jsons.load(
+        paths_json, PathsConfig, project_root=project_root, software_path=software_path
+    )
     tasks = dict()
     for task_name, task_json in dct["tasks"].items():
         tasks[task_name] = jsons.load(

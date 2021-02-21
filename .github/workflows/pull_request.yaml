@@ -29,7 +29,7 @@ jobs:
           pip install Cython==0.29.21
           pip install -r requirements.txt
           pip install -e .
-          bohr -h
+          bohr config software_path /usr/src/tools
       - name: build-image
         run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && bash bin/update-docker.sh "origin/$GITHUB_BASE_REF"
       - name: install-dvc

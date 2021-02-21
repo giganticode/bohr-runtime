@@ -41,6 +41,7 @@ snorkel==0.9.6
 sortedcontainers==2.3.0
 tblib==1.7.0
 tensorboard==1.15.0
+toml==0.10.2
 toolz==0.11.1
 torch==1.7.1
 tornado==6.1

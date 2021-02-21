@@ -22,6 +22,7 @@ setup(
         "requests>=2.25.1, <3",
         "rich>=9.6.1, <10",
         "snorkel>=0.9.6, <0.10",
+        "toml>=0.10.2, <0.11",
         "toolz>=0.11.1, <0.12",
     ],
     entry_points="""
