@@ -1,6 +1,15 @@
+import os
+from pathlib import Path
+
 from setuptools import find_packages, setup
 
-from bohr import version
+bohr_framework_root = Path(__file__).parent
+
+
+def version() -> str:
+    with open(os.path.join(bohr_framework_root, "VERSION")) as version_file:
+        return version_file.read().strip()
+
 
 setup(
     name="bohr",
