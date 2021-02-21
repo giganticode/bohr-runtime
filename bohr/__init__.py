@@ -15,6 +15,6 @@ logger = logging.getLogger("bohr")
 bohr_framework_root = Path(__file__).parent
 
 
-def version():
+def version() -> str:
     with open(os.path.join(bohr_framework_root, "VERSION")) as version_file:
         return version_file.read().strip()
