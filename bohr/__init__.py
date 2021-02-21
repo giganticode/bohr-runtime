@@ -12,9 +12,9 @@ logging.basicConfig(
 logger = logging.getLogger("bohr")
 
 
-bohr_framewrok_root = Path(__file__).parent.parent
+bohr_framework_root = Path(__file__).parent
 
 
 def version():
-    with open(os.path.join(bohr_framewrok_root, "VERSION")) as version_file:
+    with open(os.path.join(bohr_framework_root, "VERSION")) as version_file:
         return version_file.read().strip()
