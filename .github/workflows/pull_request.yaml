@@ -28,8 +28,11 @@ jobs:
           git checkout pr/$PR_NUMBER
           pip install Cython==0.29.21
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
           pip install -e .
           bohr -h
+      - name: unit-tests
+        run: pytest --doctest-modules --ignore=test-b2b
       - name: build-image
         run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && bash bin/update-docker.sh "origin/$GITHUB_BASE_REF"
       - name: install-dvc
