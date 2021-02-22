@@ -44,6 +44,7 @@ jobs:
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
           bohr config software_path /usr/src/tools
+          sudo bash tools/install-refactoring-miner /usr/src/tools
           dvc pull -r ironspeed-test downloaded-data/bugginess_train.7z downloaded-data/berger.csv downloaded-data/herzig.csv downloaded-data/1151-commits.csv
           dvc repro bugginess-1k_label_dataset
       - name: reproduce-smells
