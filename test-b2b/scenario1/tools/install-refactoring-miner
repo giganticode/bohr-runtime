@@ -30,6 +30,6 @@ cd RefactoringMiner
 ./gradlew distZip
 ZIP_NAME="$(ls build/distributions)"
 cd ..
-unzip "RefactoringMiner/build/distributions/$ZIP_NAME" -y
+unzip -o "RefactoringMiner/build/distributions/$ZIP_NAME"
 ls
 rm -rf "RefactoringMiner"
