@@ -38,5 +38,4 @@ setup(
         [console_scripts]
         bohr=bohr.cli:bohr
     """,
-    scripts=["bohr/tools/install-refactoring-miner"],
 )
