@@ -53,7 +53,7 @@ RUN docker --version
 
 ENV PYTHONPATH="/usr/src/bohr-framework/:$PYTHONPATH"
 
-RUN echo "$(ls)"
+RUN /root/.pyenv/versions/3.8.0/bin/pip install --upgrade pip wheel setuptools
 RUN /root/.pyenv/versions/3.8.0/bin/pip install -r requirements.txt
 
 RUN bash tools/install-refactoring-miner.sh /usr/src/tools/
