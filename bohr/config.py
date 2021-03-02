@@ -81,11 +81,50 @@ data_dir='data', labels_dir='labels')
         return PathsConfig(project_root, Path(software_path), **dct)
 
 
+def gitignore_file(dir: Path, filename: str):
+    """
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     gitignore_file(Path(tmpdirname), 'file')
+    ...     with open(Path(tmpdirname) / '.gitignore') as f:
+    ...         print(f.readlines())
+    ['file\\n']
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     (Path(tmpdirname) / '.gitignore').touch()
+    ...     gitignore_file(Path(tmpdirname), 'file')
+    ...     with open(Path(tmpdirname) / '.gitignore') as f:
+    ...         print(f.readlines())
+    ['file\\n']
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     with open(Path(tmpdirname) / '.gitignore', 'w') as f:
+    ...         n = f.write("file\\n")
+    ...     gitignore_file(Path(tmpdirname), 'file')
+    ...     with open(Path(tmpdirname) / '.gitignore') as f:
+    ...         print(f.readlines())
+    ['file\\n']
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     with open(Path(tmpdirname) / '.gitignore', 'w') as f:
+    ...         n = f.write('file\\n')
+    ...     gitignore_file(Path(tmpdirname), 'file2')
+    ...     with open(Path(tmpdirname) / '.gitignore') as f:
+    ...         print(f.readlines())
+    ['file\\n', 'file2\\n']
+    """
+    path_to_gitignore = dir / ".gitignore"
+    path_to_gitignore.touch(exist_ok=True)
+    with open(path_to_gitignore, "r") as f:
+        lines = list(map(lambda l: l.rstrip("\n"), f.readlines()))
+        if filename not in lines:
+            with open(path_to_gitignore, "a") as a:
+                a.write(f"{filename}\n")
+
+
 def add_to_local_config(section: str, key: str, value: str) -> None:
     project_root = find_project_root()
     local_dir_path = project_root / ".bohr"
     local_dir_path.mkdir()
-    local_config_path = local_dir_path / "local.config"
+    LOCAL_CONFIG_FILE = "local.config"
+    local_config_path = local_dir_path / LOCAL_CONFIG_FILE
     if local_config_path.exists():
         with open(local_config_path) as f:
             dct = toml.load(f)
@@ -97,6 +136,7 @@ def add_to_local_config(section: str, key: str, value: str) -> None:
     dct[section][key] = value
     with open(local_config_path, "w") as f:
         toml.dump(dct, f)
+    gitignore_file(local_dir_path, LOCAL_CONFIG_FILE)
 
 
 @dataclass(frozen=True)
