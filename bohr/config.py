@@ -122,7 +122,7 @@ def gitignore_file(dir: Path, filename: str):
 def add_to_local_config(section: str, key: str, value: str) -> None:
     project_root = find_project_root()
     local_dir_path = project_root / ".bohr"
-    local_dir_path.mkdir()
+    local_dir_path.mkdir(exist_ok=True)
     LOCAL_CONFIG_FILE = "local.config"
     local_config_path = local_dir_path / LOCAL_CONFIG_FILE
     if local_config_path.exists():
