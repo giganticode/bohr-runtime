@@ -34,11 +34,9 @@ def extract_subset(matrix: np.ndarray, df: DataFrame) -> Tuple[np.ndarray, DataF
     indices_to_extract = [
         i for i in range(len(matrix)) if i % n_datapoints_to_extract == 0
     ]
-    new_df = (
-        df.iloc[indices_to_extract][["owner", "repository", "sha", "message", "bug"]]
-        .copy()
-        .reset_index(drop=True)
-    )
+    new_df = df.iloc[indices_to_extract].copy().reset_index(drop=True)
+    # TODO for bugginess task only select columns: [["owner", "repository", "sha", "message", "bug"]]
+    # TODO in the fututre the list of columns shoudl depend on the task
     return matrix[indices_to_extract], new_df
 
 
