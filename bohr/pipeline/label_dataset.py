@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
-from snorkel.labeling.model import LabelModel
 
 from bohr.config import Config, get_dataset_loader
 from bohr.core import load_heuristics, to_labeling_functions
+from bohr.pipeline.core import label, train_lmodel
 
 
 def label_dataset(
@@ -11,29 +11,20 @@ def label_dataset(
 ):
     task = config.tasks[task_name]
     dataset_loader = get_dataset_loader(dataset_name)
-    df = dataset_loader.load(config.project_root)
 
     lines_train = np.load(
-        config.paths.generated / task.name / "heuristic_matrix_train.pkl",
+        str(config.paths.generated / task.name / "heuristic_matrix_train.pkl"),
         allow_pickle=True,
     )
-
-    print(lines_train.shape)
-    print(df.shape)
 
     heuristics = load_heuristics(task.top_artifact, config)
     labeling_functions = to_labeling_functions(
         heuristics, dataset_loader.get_mapper(), task.labels
     )
 
-    label_model = LabelModel(cardinality=2, verbose=True)
-    label_model.fit(lines_train, n_epochs=100, log_freq=100, seed=123)
-
-    labels, probs = label_model.predict(L=lines_train, return_probs=True)
-    df_labeled = df.assign(bug=labels)
-
-    df_probs = pd.DataFrame(probs, columns=["prob_bugless", "prob_bug"])
-    df_labeled = pd.concat([df_labeled, df_probs], axis=1)
+    label_model = train_lmodel(lines_train)
+    df = dataset_loader.load(config.project_root)
+    df_labeled = label(label_model, lines_train, df)
 
     if debug:
         df_lfs = pd.DataFrame(

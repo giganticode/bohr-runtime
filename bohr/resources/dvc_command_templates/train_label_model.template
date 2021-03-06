@@ -8,6 +8,7 @@
 -p bohr.json:bohr_framework_version
 
 -o {{config.paths.generated_dir}}/{{task.name}}/label_model.pkl
+{% for test_dataset in task.test_datasets %} -o {{config.paths.generated_dir}}/{{task.name}}/labeled_test_subset_{{test_dataset}}.pkl {% endfor %}
 
 -M {{config.paths.metrics_dir}}/{{task.name}}/label_model_metrics.json
 
