@@ -1,0 +1,42 @@
+owner,repository,sha,message,bug,bug_predicted,prob_bugless,prob_bug
+0x43,DesignPatternsPHP,007a2d61711c334887b3eae65c9f0b5a087e3bff,changing interface to improve rendering,0,0,0.8256516275334805,0.1743483724665194
+0x43,DesignPatternsPHP,ceb6a3eeb958576c5229a057be802cca976031ec,fixed typo in Singleton,0,1,0.00871348217443218,0.9912865178255678
+AlexMeliq,less.js,22c5bd77c43e796a86aceeff3450c3583718cd7c,Fix global variable leaks,1,1,0.0034780047974861767,0.9965219952025138
+Arcank,nimbus,1b54f1fb166ab532be0975a84ffd56193068813e,Fix implicit float/double conversion,1,1,0.00871348217443218,0.9912865178255678
+AutoMapper,AutoMapper,0a5b47f497789dfb239af0966c90c845fb8f5532,Integrating patch to fix ambiguous match exceptions on multiple IEnumerable implementors,1,1,0.000463136440266106,0.9995368635597339
+Chenkaiang,XVim,032a1abe48bd2b92645876f986a70724196c93f9,Fix color for static text field,0,1,0.00871348217443218,0.9912865178255678
+GeertJohan,gorp,07474efb5d95a0869da5aaa079fc5534c4d2125b,"Adds support for SAVEPOINT, ROLLBACK TO SAVEPOINT, and RELEASE SAVEPOINT",0,0,0.9169033377332468,0.08309666226675322
+GeertJohan,gorp,d66806cf5ce4950440f30e03698ab92762cc0220,remove debug print,1,0,0.8035769051283124,0.19642309487168758
+K2InformaticsGmBH,proper,42f74303f4a11e785b50c0790355b327883d4195,minor fixes to unit tests,1,1,0.02323357340070142,0.9767664265992986
+MerlinDMC,gocode,633e5ad362943a6eb043fa68da2963929466b796,Fix sneaky package parser rewrite regression.,1,1,0.015580746217109953,0.9844192537828901
+MythTV,mythtv,00611261c9eff0eb3280217ed570dbe03d8c59e4,"This simplifies and documents the two AddAudioData()
+methods in the NVP. 
+
+More importantanly this also prevents AddAudioData(char*...)
+from crashing the frontend if ""audio_channels"" is <= 0...
+This happens when we transition from a stream with audio
+to one without it and a frame is decoded while the audio
+params are still being reset.
+
+
+
+git-svn-id: http://svn.mythtv.org/svn/trunk@7213 7dbf422c-18fa-0310-86e9-fd20926502f2",0,1,0.13419411903723122,0.8658058809627688
+alibaba,tengine,28672dc2b4419582cd4a6dfc9b2dfd06f3f12c92,"review url:http://rb.corp.taobao.com/r/25219/
+
+changelog:
+1 merge了 liseen.wan@gmail.com提的patch.
+
+
+
+git-svn-id: http://code.taobao.org/svn/tengine/trunk@40 8a6cbc4f-5610-49f6-9325-3f9afe71ff98",0,0,0.7019398660748429,0.29806013392515707
+clojure,core.logic,02912b2be77ab4fce58efbcc96784f36d69a0898,* project.clj: can unify all core datatypes,0,0,0.7958114641827378,0.20418853581726212
+docpad,docpad,07cbaebd9d79670f32918a4d43cfb612f4b08fcd,0.9.7. added maxAge option,0,0,0.9337199220995319,0.06628007790046805
+faylang,fay,004677c4fe512e89b111a88556e2aadf3e5995ad,Replace gname2Qname with origName2QName,0,0,0.783787788084236,0.21621221191576404
+faylang,fay,d7340a55f0c5ee903ae19bc3a733907127eb4d99,Fix TODO,0,1,0.009271194263481003,0.990728805736519
+lfe,lfe,81b48ac826176b9899d0d34f672390d29bf657a9,Extend ? macro to handle optional timeout and default value.,0,0,0.7933350917573423,0.2066649082426576
+magicalpanda,MagicalRecord,161674bc2271df5dff314e6eb01e0438eaa4f874,Added Unit test for string to number conversion,0,0,0.9651327750438112,0.034867224956188866
+mpeltonen,sbt-idea,13c545f1fb61b1dbdffab0ec35acead09b556356,Use 0.2-SNAPSHOT,0,0,0.7958114641827378,0.20418853581726212
+plumatic,plumbing,30fec17901216753cfd6af1c8142592fce2644f1,Add a test for positional-fnks via positional-fn,0,0,0.9322666165263019,0.06773338347369809
+sinclairzx81,typescript.api,01f784a733007f24fe7e4d162d985b1a4d460af8,update to register(),0,0,0.9133139057378318,0.08668609426216824
+yu19930123,ngrok,01eb8eefb36665c1736ac830beaf98d70aea8714,client initiates heartbeats and detects when connections are stale,0,0,0.7958114641827378,0.20418853581726212
+yu19930123,ngrok,d2f3fc844007b54e4caf6a896e273988b27a01b9,fix a race condition handling new proxy connections by passing the connection variable into the goroutine instead of closing over it,1,1,0.0007657990949216453,0.9992342009050784

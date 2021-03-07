@@ -106,6 +106,10 @@ stages:
     - generated/bugginess-1k/heuristic_matrix_train.pkl
     outs:
     - generated/bugginess-1k/label_model.pkl
+    - generated/bugginess-1k/labeled_test_subset_dataloaders.1151-commits.csv:
+        cache: false
+    - generated/bugginess-1k/labeled_test_subset_dataloaders.berger.csv:
+        cache: false
     metrics:
     - metrics/bugginess-1k/label_model_metrics.json:
         cache: false
@@ -147,6 +151,8 @@ stages:
     - generated/smells_10/heuristic_matrix_train.pkl
     outs:
     - generated/smells_10/label_model.pkl
+    - generated/smells_10/labeled_test_subset_dataloaders.smells-test_10.csv:
+        cache: false
     metrics:
     - metrics/smells_10/label_model_metrics.json:
         cache: false
