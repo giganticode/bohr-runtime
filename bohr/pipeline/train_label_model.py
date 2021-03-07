@@ -1,4 +1,3 @@
-import math
 from math import log
 from pathlib import Path
 from typing import Any, Dict, Tuple
@@ -8,23 +7,35 @@ from dask.dataframe import DataFrame
 from snorkel.labeling.model import LabelModel
 
 from bohr.config import Config, load_config
-from bohr.datamodel import DatasetLoader
 from bohr.pipeline.core import label, train_lmodel
 
 
-def get_test_set_accuracy(
+def get_test_set_metrics(
     label_model: LabelModel,
     test_set_name: str,
-    df: DataFrame,
+    true_labels: np.ndarray,
     save_to: Path,
-    label_column_name: str,
-) -> float:
+) -> Dict[str, float]:
     lines = np.load(
         str(save_to / f"heuristic_matrix_{test_set_name}.pkl"), allow_pickle=True
     )
-    return label_model.score(
-        L=lines, Y=df[label_column_name], tie_break_policy="random"
-    )["accuracy"]
+
+    tie_break_policy = "random"
+
+    Y_pred, Y_prob = label_model.predict(
+        lines, return_probs=True, tie_break_policy=tie_break_policy
+    )
+
+    accuracy = sum(Y_pred == true_labels) / float(len(Y_pred))
+    neg_log_loss = np.mean(
+        -np.log2(Y_prob[:, 1]) * true_labels
+        - np.log2(1 - Y_prob[:, 0]) * (1 - true_labels)
+    )
+
+    return {
+        f"label_model_acc_{test_set_name}": accuracy,
+        f"label_model_neg_log_loss_{test_set_name}": neg_log_loss,
+    }
 
 
 def extract_subset(matrix: np.ndarray, df: DataFrame) -> Tuple[np.ndarray, DataFrame]:
@@ -75,14 +86,16 @@ def train_label_model(task_name: str, config: Config) -> Dict[str, Any]:
     label_model.eval()
 
     task = config.tasks[task_name]
+    stats = {}
     for test_set_name, test_set in task.test_datasets.items():
         df = test_set.load(config.project_root)
-        stats[f"label_model_acc_{test_set_name}"] = get_test_set_accuracy(
-            label_model,
-            test_set_name,
-            df,
-            save_to=task_dir_generated,
-            label_column_name=task.label_column_name,
+        stats.update(
+            get_test_set_metrics(
+                label_model,
+                test_set_name,
+                df[task.label_column_name].values,
+                save_to=task_dir_generated,
+            )
         )
 
         label_subset(label_model, test_set_name, df, task_dir_generated)
@@ -91,4 +104,4 @@ def train_label_model(task_name: str, config: Config) -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
-    train_label_model("bugginess", load_config())
+    train_label_model("bugginess-1k", load_config())
