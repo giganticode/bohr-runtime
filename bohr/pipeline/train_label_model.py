@@ -65,7 +65,7 @@ def label_subset(
     )
 
     applied_heuristics_matrix_part, df_part = extract_subset(
-        applied_heuristics_matrix, df, lambda ln: int(log(ln) * 3)
+        applied_heuristics_matrix, df, lambda ln: ln
     )
     df_labeled = label(label_model, applied_heuristics_matrix_part, df_part)
     target_file = task_generated_path / f"labeled_test_subset_{test_set_name}.csv"
