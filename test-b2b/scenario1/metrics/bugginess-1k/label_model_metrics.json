@@ -1,1 +1,1 @@
-{"label_model_acc_dataloaders.1151-commits": 0.77, "label_model_neg_log_loss_dataloaders.1151-commits": 1.915, "label_model_acc_dataloaders.berger": 0.8, "label_model_neg_log_loss_dataloaders.berger": 1.689}
+{"label_model_acc_dataloaders.1151-commits": 0.77, "label_model_neg_log_loss_dataloaders.1151-commits": 0.824, "label_model_acc_dataloaders.berger": 0.8, "label_model_neg_log_loss_dataloaders.berger": 1.073}
