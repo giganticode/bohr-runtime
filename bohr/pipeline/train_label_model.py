@@ -1,4 +1,4 @@
-from math import log
+import random
 from pathlib import Path
 from typing import Any, Callable, Dict, Tuple
 
@@ -8,6 +8,8 @@ from snorkel.labeling.model import LabelModel
 
 from bohr.config import Config, load_config
 from bohr.pipeline.core import label, train_lmodel
+
+random.seed(13)
 
 
 def get_test_set_metrics(
@@ -44,9 +46,7 @@ def extract_subset(
     if len(matrix) != len(df):
         raise AssertionError
     n_datapoints_to_extract = fraction_fn(len(matrix))
-    indices_to_extract = [
-        i for i in range(len(matrix)) if i % n_datapoints_to_extract == 0
-    ]
+    indices_to_extract = random.sample(range(len(matrix)), n_datapoints_to_extract)
     new_df = df.iloc[indices_to_extract].copy().reset_index(drop=True)
     # TODO for bugginess task only select columns: [["owner", "repository", "sha", "message", "bug"]]
     # TODO in the fututre the list of columns shoudl depend on the task
