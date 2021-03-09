@@ -14,6 +14,7 @@ def label(
     label_model: LabelModel, matrix: np.ndarray, df: pd.DataFrame
 ) -> pd.DataFrame:
     labels, probs = label_model.predict(L=matrix, return_probs=True)
+    probs = np.around(probs, decimals=2)
     df_labeled = df.assign(bug_predicted=Series(labels))
 
     df_labeled["prob_bugless"] = Series(probs[:, 0])
