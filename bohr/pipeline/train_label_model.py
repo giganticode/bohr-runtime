@@ -1,6 +1,6 @@
-from math import log
+import random
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Callable, Dict, Tuple
 
 import numpy as np
 from dask.dataframe import DataFrame
@@ -8,6 +8,8 @@ from snorkel.labeling.model import LabelModel
 
 from bohr.config import Config, load_config
 from bohr.pipeline.core import label, train_lmodel
+
+random.seed(13)
 
 
 def get_test_set_metrics(
@@ -33,18 +35,18 @@ def get_test_set_metrics(
     )
 
     return {
-        f"label_model_acc_{test_set_name}": accuracy,
-        f"label_model_neg_log_loss_{test_set_name}": neg_log_loss,
+        f"label_model_acc_{test_set_name}": round(accuracy, 2),
+        f"label_model_neg_log_loss_{test_set_name}": round(neg_log_loss, 3),
     }
 
 
-def extract_subset(matrix: np.ndarray, df: DataFrame) -> Tuple[np.ndarray, DataFrame]:
+def extract_subset(
+    matrix: np.ndarray, df: DataFrame, fraction_fn: Callable[[int], int]
+) -> Tuple[np.ndarray, DataFrame]:
     if len(matrix) != len(df):
         raise AssertionError
-    n_datapoints_to_extract = int(log(len(matrix)) * 3)
-    indices_to_extract = [
-        i for i in range(len(matrix)) if i % n_datapoints_to_extract == 0
-    ]
+    n_datapoints_to_extract = fraction_fn(len(matrix))
+    indices_to_extract = random.sample(range(len(matrix)), n_datapoints_to_extract)
     new_df = df.iloc[indices_to_extract].copy().reset_index(drop=True)
     # TODO for bugginess task only select columns: [["owner", "repository", "sha", "message", "bug"]]
     # TODO in the fututre the list of columns shoudl depend on the task
@@ -63,7 +65,7 @@ def label_subset(
     )
 
     applied_heuristics_matrix_part, df_part = extract_subset(
-        applied_heuristics_matrix, df
+        applied_heuristics_matrix, df, lambda ln: ln
     )
     df_labeled = label(label_model, applied_heuristics_matrix_part, df_part)
     target_file = task_generated_path / f"labeled_test_subset_{test_set_name}.csv"
