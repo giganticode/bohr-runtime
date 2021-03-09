@@ -33,8 +33,8 @@ def get_test_set_metrics(
     )
 
     return {
-        f"label_model_acc_{test_set_name}": accuracy,
-        f"label_model_neg_log_loss_{test_set_name}": neg_log_loss,
+        f"label_model_acc_{test_set_name}": f"{accuracy:.2}",
+        f"label_model_neg_log_loss_{test_set_name}": f"{neg_log_loss:.3}",
     }
 
 
