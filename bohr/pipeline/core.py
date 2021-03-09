@@ -19,4 +19,5 @@ def label(
 
     df_labeled["prob_bugless"] = Series(probs[:, 0])
     df_labeled["prob_bug"] = Series(probs[:, 1])
+    df_labeled["bug_class"] = Series(np.around(np.copy(probs[:, 1]), decimals=1))
     return df_labeled
