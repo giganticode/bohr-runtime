@@ -1,6 +1,6 @@
 from math import log
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Callable, Dict, Tuple
 
 import numpy as np
 from dask.dataframe import DataFrame
@@ -38,10 +38,12 @@ def get_test_set_metrics(
     }
 
 
-def extract_subset(matrix: np.ndarray, df: DataFrame) -> Tuple[np.ndarray, DataFrame]:
+def extract_subset(
+    matrix: np.ndarray, df: DataFrame, fraction_fn: Callable[[int], int]
+) -> Tuple[np.ndarray, DataFrame]:
     if len(matrix) != len(df):
         raise AssertionError
-    n_datapoints_to_extract = int(log(len(matrix)) * 3)
+    n_datapoints_to_extract = fraction_fn(len(matrix))
     indices_to_extract = [
         i for i in range(len(matrix)) if i % n_datapoints_to_extract == 0
     ]
@@ -63,7 +65,7 @@ def label_subset(
     )
 
     applied_heuristics_matrix_part, df_part = extract_subset(
-        applied_heuristics_matrix, df
+        applied_heuristics_matrix, df, lambda ln: int(log(ln) * 3)
     )
     df_labeled = label(label_model, applied_heuristics_matrix_part, df_part)
     target_file = task_generated_path / f"labeled_test_subset_{test_set_name}.csv"
