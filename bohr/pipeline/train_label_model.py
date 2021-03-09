@@ -19,6 +19,15 @@ def get_test_set_metrics(
     true_labels: np.ndarray,
     save_to: Path,
 ) -> Dict[str, float]:
+    """
+    >>> from collections import namedtuple; import tempfile
+    >>> def mocked_predictions(l,return_probs,tie_break_policy): return np.array([1, 0, 1]), np.array([[0.1, 0.9], [0.8, 0.2], [0.25, 0.75]])
+    >>> lm = namedtuple('LM', 'predict')(mocked_predictions)
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     np.ndarray([]).dump(f"{tmpdirname}/heuristic_matrix_test_set.pkl")
+    ...     get_test_set_metrics(lm, "test_set", np.array([1, 1, 0]), Path(tmpdirname))
+    {'label_model_acc_test_set': 0.33, 'label_model_neg_log_loss_test_set': 1.491}
+    """
     lines = np.load(
         str(save_to / f"heuristic_matrix_{test_set_name}.pkl"), allow_pickle=True
     )
@@ -31,8 +40,7 @@ def get_test_set_metrics(
 
     accuracy = sum(Y_pred == true_labels) / float(len(Y_pred))
     neg_log_loss = np.mean(
-        -np.log2(Y_prob[:, 1]) * true_labels
-        - np.log2(1 - Y_prob[:, 0]) * (1 - true_labels)
+        -np.log2(np.take_along_axis(Y_prob, true_labels[:, None], axis=1))[:, 0]
     )
 
     return {
