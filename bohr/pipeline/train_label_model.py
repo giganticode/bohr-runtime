@@ -1,12 +1,13 @@
 import random
 from pathlib import Path
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
 import numpy as np
 from dask.dataframe import DataFrame
 from snorkel.labeling.model import LabelModel
 
 from bohr.config import Config, load_config
+from bohr.labels.labelset import Label
 from bohr.pipeline.core import label, train_lmodel
 
 random.seed(13)
@@ -58,6 +59,7 @@ def label_subset(
     test_set_name: str,
     df: DataFrame,
     task_generated_path: Path,
+    labels: List[str],
 ):
     applied_heuristics_matrix = np.load(
         str(task_generated_path / f"heuristic_matrix_{test_set_name}.pkl"),
@@ -67,7 +69,7 @@ def label_subset(
     applied_heuristics_matrix_part, df_part = extract_subset(
         applied_heuristics_matrix, df, lambda ln: ln
     )
-    df_labeled = label(label_model, applied_heuristics_matrix_part, df_part)
+    df_labeled = label(label_model, applied_heuristics_matrix_part, df_part, labels)
     target_file = task_generated_path / f"labeled_test_subset_{test_set_name}.csv"
     df_labeled.to_csv(target_file, index=False)
     print(f"Labeled dataset has been written to {target_file}.")
@@ -100,7 +102,7 @@ def train_label_model(task_name: str, config: Config) -> Dict[str, Any]:
             )
         )
 
-        label_subset(label_model, test_set_name, df, task_dir_generated)
+        label_subset(label_model, test_set_name, df, task_dir_generated, task.labels)
 
     return stats
 

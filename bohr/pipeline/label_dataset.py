@@ -24,7 +24,7 @@ def label_dataset(
 
     label_model = train_lmodel(lines_train)
     df = dataset_loader.load(config.project_root)
-    df_labeled = label(label_model, lines_train, df)
+    df_labeled = label(label_model, lines_train, df, task.labels)
 
     if debug:
         df_lfs = pd.DataFrame(
