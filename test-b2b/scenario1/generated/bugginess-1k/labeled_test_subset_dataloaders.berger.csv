@@ -1,4 +1,4 @@
-owner,repository,sha,message,bug,bug_predicted,prob_bugless,prob_bug,bug_class
+owner,repository,sha,message,bug,predicted,prob_CommitLabel.NonBugFix,prob_CommitLabel.BugFix,prob_class
 docpad,docpad,0b0c7711803709aa338468856924ca6037e7c033,Minor code standards enforncement,0,0,0.84,0.16,0.2
 faylang,fay,01ab6fef7b8bd8546bddc5c3c189d47e22e7b23d,Add Maybe hack to compiler until order is sorted out.,1,0,0.9,0.1,0.1
 MerlinDMC,gocode,8b34e461970723c63275268fa12ba9dcc8fca33a,"Fix win32 build, due to package renames in one of the latest weeklies.",1,1,0.02,0.98,1.0
