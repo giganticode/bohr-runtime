@@ -232,17 +232,17 @@ bugginess-1k_train_label_model:
       bohr_framework_version: 0.2.8-rc
   outs:
   - path: generated/bugginess-1k/label_model.pkl
-    md5: 622d8fe2a23391acb930f749a2dc4af5
+    md5: faf3194ae335a7d1b76d056ccde2bb14
     size: 1912346
   - path: generated/bugginess-1k/labeled_test_subset_dataloaders.1151-commits.csv
-    md5: 4fe0eb128af7ffa02bef04fec2a64a8f
-    size: 18425
+    md5: 738dab589540dd51fc393cd35e48311d
+    size: 1332
   - path: generated/bugginess-1k/labeled_test_subset_dataloaders.berger.csv
-    md5: eb7400b2f3d7e5044cb027a783a58390
-    size: 3977
+    md5: 7bd6350a5e4a69d7f5fb732f7cb5b1bc
+    size: 215
   - path: metrics/bugginess-1k/label_model_metrics.json
-    md5: 6ffade7c120250c273e17057923c6d4a
-    size: 262
+    md5: d6ae80bb85ad2c1dd3909b96fa78b731
+    size: 207
 smells_10_label_dataset:
   cmd: bohr label-dataset smells_10 dataloaders.smells-train_10
   deps:
@@ -282,11 +282,11 @@ smells_10_train_label_model:
       bohr_framework_version: 0.2.8-rc
   outs:
   - path: generated/smells_10/label_model.pkl
-    md5: 20fc63e37c95f0a76c29c5aa2ddd855f
+    md5: b3de5af835771c99d8a40653830cf635
     size: 4889
   - path: generated/smells_10/labeled_test_subset_dataloaders.smells-test_10.csv
-    md5: c37f019209a27953c882972697d764ef
-    size: 1299
+    md5: 78dc091cd11eec62e6b4c188b2744e55
+    size: 657
   - path: metrics/smells_10/label_model_metrics.json
-    md5: 227e9fc53f5cbe03e011bb29378f0480
-    size: 126
+    md5: 2678d573a2a1388c89a2f3c168864f48
+    size: 113
