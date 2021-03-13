@@ -49,12 +49,12 @@ jobs:
           bohr config software_path /usr/src/tools
           bash tools/install-refactoring-miner /usr/src/tools
           dvc pull -r ironspeed-test downloaded-data/bugginess_train.7z downloaded-data/berger.csv downloaded-data/herzig.csv downloaded-data/1151-commits.csv
-          dvc repro bugginess-1k_label_dataset
+          bohr repro bugginess-1k
       - name: reproduce-smells
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
           dvc pull -r ironspeed-test downloaded-data/smells-madeyski.csv
-          dvc repro smells_10_label_dataset smells_10_train_label_model
+          bohr repro smells_10
       - name: report-metrics
         run: |
           git fetch --prune
