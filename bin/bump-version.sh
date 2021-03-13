@@ -2,10 +2,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-if [ -n "$(git diff HEAD)" ]; then
-    echo "Git repo must be clean"
-    exit 4
-fi
+# if [ -n "$(git diff HEAD)" ]; then
+#     echo "Git repo must be clean"
+#     exit 4
+# fi
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 version_file="$SCRIPTPATH/../bohr/VERSION"
@@ -21,7 +21,8 @@ if ! [[ "$BOHR_VERSION" =~ .*-rc ]]; then
     exit 3
 fi
 
-tag_bohr_version="$(echo $BOHR_VERSION | sed -e 's/-rc$//g' )"
+tag_bohr_version=0.3.0
+#tag_bohr_version="$(echo $BOHR_VERSION | sed -e 's/-rc$//g' )"
 
 jq ".bohr_framework_version = \"$tag_bohr_version\"" "$bohr_config_file" > "${bohr_config_file}.tmp"
 mv -f "${bohr_config_file}.tmp" "$bohr_config_file"
