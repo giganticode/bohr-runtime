@@ -25,7 +25,7 @@ def bohr():
 def repro(task: Optional[str]):
     config = load_config()
     add_all_tasks_to_dvc_pipeline(config)
-    cmd = ["dvc", "repro"]
+    cmd = ["dvc", "repro", "--pull"]
     if task:
         if task not in config.tasks:
             raise ValueError(f"Task {task} not found in bohr.json")
