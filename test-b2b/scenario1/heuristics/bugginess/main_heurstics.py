@@ -4,23 +4,10 @@ from typing import Optional
 from labels import *
 
 from bohr.artifacts.commit import Commit
-from bohr.core import Heuristic
+from bohr.decorators import Heuristic
 from bohr.labels.labelset import Label, Labels
 from bohr.nlp_utils import NgramSet
 from bohr.templates.heuristics.keywords import KeywordHeuristics
-from bohr.templates.heuristics.tool import ToolOutputHeuristic
-from bohr.templates.heuristics.tools.refactoring_miner import RefactoringMiner
-
-
-@ToolOutputHeuristic(Commit, tool=RefactoringMiner)
-def refactorings_detected(
-    commit: Commit, refactoring_miner: RefactoringMiner
-) -> Optional[Labels]:
-    if commit.sha.endswith("f"):  # running on 1/16 of commits for now to make it faster
-        refactoring_miner_output = refactoring_miner.run(commit)
-        if len(refactoring_miner_output.commits[0].refactorings) > 0:
-            return CommitLabel.Refactoring
-    return None
 
 
 @KeywordHeuristics(Commit, "bug", name_pattern="bug_message_keyword_%1")

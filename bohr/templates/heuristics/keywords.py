@@ -1,9 +1,11 @@
 from pathlib import Path
 from typing import Callable, List, Type
 
+from bohr import datamodel
 from bohr.artifacts.core import Artifact
 from bohr.config import load_config
-from bohr.core import KEYWORD_GROUP_SEPARATOR, Heuristic, _Heuristic
+from bohr.core import KEYWORD_GROUP_SEPARATOR
+from bohr.decorators import Heuristic
 from bohr.labels.labelset import Label
 
 
@@ -22,7 +24,7 @@ class KeywordHeuristics(Heuristic):
         self.name_pattern = name_pattern
         self.resources = resources
 
-    def __call__(self, f: Callable[..., Label]) -> List[_Heuristic]:
+    def __call__(self, f: Callable[..., Label]) -> List[datamodel.Heuristic]:
 
         heuristic_list = []
         for keyword_group in self.keyword_list:
@@ -42,7 +44,7 @@ class KeywordHeuristics(Heuristic):
 
             safe_func = self.get_artifact_safe_func(f)
             safe_func.__name__ = name
-            heuristic = _Heuristic(
+            heuristic = datamodel.Heuristic(
                 safe_func,
                 artifact_type_applied_to=self.artifact_type_applied_to,
                 resources=resources,

@@ -1,11 +1,12 @@
--n {{task.name}}_label_dataset
+-n {{task.name}}_label_dataset_{{dataset|replace('.', '_')}}
 
--d {{config.paths.generated_dir}}/{{task.name}}/heuristic_matrix_train.pkl
-{% for datapath in task.train_datapaths %} -d {{datapath}}{% endfor %}
-{% for dataloader in task.train_datasets %} -d {{dataloader|replace('.', '/')}}.py{% endfor %}
+-d {{config.paths.generated_dir}}/{{task.name}}/heuristic_matrix_{{dataset}}.pkl
+-d {{config.paths.generated_dir}}/{{task.name}}/label_model.pkl
+{% for datapath in task.datasets[dataset].get_paths(task.project_root) %} -d {{datapath}}{% endfor %}
+-d {{dataset|replace('.', '/')}}.py
 
 -p bohr.json:bohr_framework_version
 
--o {{config.paths.labeled_data_dir}}/{{task.name}}.csv
+-o {{config.paths.labeled_data_dir}}/{{dataset}}.labeled.csv
 
-bohr label-dataset {{task.name}} {{task.train_datasets|first}}
+bohr label-dataset {{task.name}} {{dataset}}

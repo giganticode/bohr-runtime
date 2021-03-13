@@ -1,14 +1,16 @@
 import importlib
+import inspect
+import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Type
+from typing import Any, Dict, List, Optional, Set, Type
 
 import jsons
 import toml
 
 from bohr import version
 from bohr.artifacts.core import Artifact
-from bohr.datamodel import DatasetLoader, Task
+from bohr.datamodel import DatasetLoader, Heuristic, Task
 
 
 def find_project_root() -> Path:
@@ -32,7 +34,7 @@ class PathsConfig:
     """
     >>> jsons.loads('{}', PathsConfig, project_root=Path('/'), software_path='/software')
     PathsConfig(project_root=PosixPath('/'), software_path=PosixPath('/software'), metrics_dir='metrics', \
-generated_dir='generated', heuristics_dir='heuristics', dataset_dir='dataloaders', labeled_data_dir='labeled-data', \
+generated_dir='generated', heuristics_dir='heuristics', dataset_dir='dataloaders', labeled_data_dir='labeled-datasets', \
 data_dir='data', labels_dir='labels')
     """
 
@@ -42,7 +44,7 @@ data_dir='data', labels_dir='labels')
     generated_dir: str = "generated"
     heuristics_dir: str = "heuristics"
     dataset_dir: str = "dataloaders"
-    labeled_data_dir: str = "labeled-data"
+    labeled_data_dir: str = "labeled-datasets"
     data_dir: str = "data"
     labels_dir: str = "labels"
 
@@ -147,7 +149,7 @@ software_path='/software')
     Config(project_root=PosixPath('/'), bohr_framework_version=0.1, tasks={}, \
 paths=PathsConfig(project_root=PosixPath('/'), software_path=PosixPath('/software'), metrics_dir='metrics', \
 generated_dir='generated', heuristics_dir='heuristics', dataset_dir='dataloaders', \
-labeled_data_dir='labeled-data', data_dir='data', labels_dir='labels'))
+labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels'))
     """
 
     project_root: Path
@@ -219,6 +221,7 @@ def deserialize_task(
     cls,
     project_root: Path,
     task_name: str,
+    heuristic_path: Path,
     **kwargs,
 ) -> "Task":
     # """
@@ -226,14 +229,17 @@ def deserialize_task(
     # """
     test_datasets = {name: get_dataset_loader(name) for name in dct["test_datasets"]}
     train_datasets = {name: get_dataset_loader(name) for name in dct["train_datasets"]}
+    artifact = load_artifact_by_name(dct["top_artifact"])
+    heuristic_groups = get_heuristic_module_list(artifact, heuristic_path)
     return Task(
         task_name,
-        load_artifact_by_name(dct["top_artifact"]),
+        artifact,
         dct["label_categories"],
         train_datasets=train_datasets,
         test_datasets=test_datasets,
         label_column_name=dct["label_column_name"],
         project_root=project_root,
+        heuristic_groups=heuristic_groups,
     )
 
 
@@ -252,7 +258,11 @@ def deserialize_config(
     tasks = dict()
     for task_name, task_json in dct["tasks"].items():
         tasks[task_name] = jsons.load(
-            task_json, Task, project_root=project_root, task_name=task_name
+            task_json,
+            Task,
+            project_root=project_root,
+            task_name=task_name,
+            heuristic_path=paths.heuristics,
         )
     return Config(
         project_root,
@@ -265,3 +275,69 @@ def deserialize_config(
 jsons.set_deserializer(deserialize_task, Task)
 jsons.set_deserializer(deserialize_config, Config)
 jsons.set_deserializer(PathsConfig.deserialize, PathsConfig)
+
+
+def load_heuristics_from_module(
+    artifact_type: Type, full_module_path: str
+) -> List[Heuristic]:
+    def is_heuristic_of_needed_type(obj):
+        return (
+            isinstance(obj, Heuristic) and obj.artifact_type_applied_to == artifact_type
+        )
+
+    heuristics: List[Heuristic] = []
+    module = importlib.import_module(full_module_path)
+    heuristics.extend(
+        [
+            obj
+            for name, obj in inspect.getmembers(module)
+            if is_heuristic_of_needed_type(obj)
+        ]
+    )
+    for name, obj in inspect.getmembers(module):
+        if (
+            isinstance(obj, list)
+            and len(obj) > 0
+            and is_heuristic_of_needed_type(obj[0])
+        ):
+            heuristics.extend(obj)
+    check_names_unique(heuristics)
+    return heuristics
+
+
+def check_names_unique(heuristics: List[Heuristic]) -> None:
+    name_set = set()
+    for heuristic in heuristics:
+        name = heuristic.func.__name__
+        if name in name_set:
+            raise ValueError(f"Heuristic with name {name} already exists.")
+        name_set.add(name)
+
+
+def get_heuristic_module_list(
+    artifact_type: Type,
+    heuristics_path: Path,
+    limited_to_modules: Optional[Set[str]] = None,
+) -> List[str]:
+    modules: List[str] = []
+    for root, dirs, files in os.walk(heuristics_path):
+        for file in files:
+            if (
+                file.startswith("_")
+                or root.endswith("__pycache__")
+                or not file.endswith(".py")
+            ):
+                continue
+            full_path = Path(root) / file
+            relative_path = full_path.relative_to(heuristics_path.parent)
+            heuristic_module_path = ".".join(
+                str(relative_path).replace("/", ".").split(".")[:-1]
+            )
+            if (
+                limited_to_modules is None
+                or heuristic_module_path in limited_to_modules
+            ):
+                hs = load_heuristics_from_module(artifact_type, heuristic_module_path)
+                if len(hs) > 0:
+                    modules.append(heuristic_module_path)
+    return sorted(modules)

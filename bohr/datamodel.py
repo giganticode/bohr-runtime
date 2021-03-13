@@ -1,10 +1,17 @@
+import functools
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Type
+from typing import Callable, Dict, Iterable, List, Optional, Type
 
 from dask.dataframe import DataFrame
 from snorkel.map import BaseMapper
+
+from bohr.artifacts.core import Artifact
+from bohr.labels.labelset import Label, Labels
+
+logger = logging.getLogger(__name__)
 
 
 class ArtifactMapper(BaseMapper, ABC):
@@ -45,6 +52,7 @@ class Task:
     test_datasets: Dict[str, DatasetLoader]
     label_column_name: str
     project_root: Path
+    heuristic_groups: List[str]
 
     @property
     def datasets(self) -> Dict[str, DatasetLoader]:
@@ -72,3 +80,19 @@ class Task:
                     f"Dataset {dataset} is a dataset of {dataset.get_artifact()}, "
                     f"but this task works on {self.top_artifact}"
                 )
+
+
+class Heuristic:
+    def __init__(
+        self, func: Callable, artifact_type_applied_to: Type[Artifact], resources=None
+    ):
+        self.artifact_type_applied_to = artifact_type_applied_to
+        self.resources = resources
+        self.func = func
+        functools.update_wrapper(self, func)
+
+    def __call__(self, artifact: Artifact, *args, **kwargs) -> Label:
+        return self.func(artifact, *args, **kwargs)
+
+
+HeuristicFunction = Callable[..., Optional[Labels]]

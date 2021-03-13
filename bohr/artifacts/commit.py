@@ -50,7 +50,7 @@ class Cache:
 
     @cached_property
     def __issues_df(self):
-        logger.debug("Reading and caching bug reports...")
+        logger.debug("Reading bug reports...")
         return pd.read_csv(
             self.issues_file,
             index_col=["owner", "repository", "sha"],
@@ -60,7 +60,7 @@ class Cache:
 
     @cached_property
     def __files_df(self):
-        logger.debug("Reading and caching commit files...")
+        logger.debug("Reading commit files...")
         return pd.read_csv(self.changes_file, index_col=["owner", "repository", "sha"])
 
     def get_resources_from_file(self, type: str, owner: str, repository: str, sha: str):

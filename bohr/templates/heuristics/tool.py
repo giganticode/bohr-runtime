@@ -4,10 +4,11 @@ from typing import Any, Callable, Optional, Type
 
 import regex
 
+from bohr import datamodel
 from bohr.artifacts.commit import Commit
 from bohr.artifacts.core import Artifact
 from bohr.config import Config, load_config
-from bohr.core import Heuristic, _Heuristic
+from bohr.decorators import Heuristic
 from bohr.labels.labelset import Labels
 
 logger = logging.getLogger(__name__)
@@ -51,11 +52,13 @@ class ToolOutputHeuristic(Heuristic):
         self.tool = tool(config)
         self.tool.check_installed()
 
-    def __call__(self, f: Callable[[Commit, Tool], Optional[Labels]]) -> _Heuristic:
+    def __call__(
+        self, f: Callable[[Commit, Tool], Optional[Labels]]
+    ) -> datamodel.Heuristic:
 
         safe_func = self.get_artifact_safe_func(f)
 
-        heuristic = _Heuristic(
+        heuristic = datamodel.Heuristic(
             safe_func,
             artifact_type_applied_to=self.artifact_type_applied_to,
             resources={camel_case_to_snake_case(type(self.tool).__name__): self.tool},

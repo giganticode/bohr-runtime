@@ -1,11 +1,13 @@
 import json
 import subprocess
 from pprint import pprint
+from typing import Optional
 
 import click
 
 from bohr import pipeline
 from bohr.config import add_to_local_config, load_config
+from bohr.pipeline.apply_heuristics import combine_applied_heuristics
 from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline
 from bohr.pipeline.parse_labels import parse_label
 from bohr.pipeline.profiler import Profiler
@@ -19,10 +21,16 @@ def bohr():
 
 
 @bohr.command()
-def repro():
+@click.argument("task", required=False)
+def repro(task: Optional[str]):
     config = load_config()
     add_all_tasks_to_dvc_pipeline(config)
-    subprocess.run(["dvc", "repro"], cwd=config.project_root)
+    cmd = ["dvc", "repro"]
+    if task:
+        if task not in config.tasks:
+            raise ValueError(f"Task {task} not found in bohr.json")
+        cmd.extend(["--glob", f"{task}_*"])
+    subprocess.run(cmd, cwd=config.project_root)
 
 
 @bohr.command()
@@ -49,22 +57,26 @@ def label_dataset(task: str, dataset: str, debug: bool):
 
 @bohr.command()
 @click.argument("task")
-@click.option("--n-workers", type=int, default=1)
+@click.option("--heuristic-group", type=str)
 @click.option("--profile", is_flag=True)
-def apply_heuristics(task: str, n_workers: int, profile: bool):
+def apply_heuristics(task: str, heuristic_group: Optional[str], profile: bool):
     config = load_config()
 
-    with Profiler(enabled=profile):
-        pipeline.apply_heuristics(task, n_workers, config)
+    if heuristic_group:
+        with Profiler(enabled=profile):
+            pipeline.apply_heuristics(task, config, heuristic_group)
+    else:
+        combine_applied_heuristics(task, config)
 
 
 @bohr.command()
 @click.argument("task")
-def train_label_model(task: str):
+@click.argument("target-dataset")
+def train_label_model(task: str, target_dataset: str):
 
     config = load_config()
 
-    stats = pipeline.train_label_model(task, config)
+    stats = pipeline.train_label_model(task, target_dataset, config)
     with open(config.paths.metrics / task / "label_model_metrics.json", "w") as f:
         json.dump(stats, f)
     pprint(stats)
