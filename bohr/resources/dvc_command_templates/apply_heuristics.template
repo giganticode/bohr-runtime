@@ -1,7 +1,9 @@
--n {{task.name}}_apply_heuristics
+-n {{task.name}}_apply_heuristics_{{heuristic_group|replace('.', '_')}}
 
 -d labels.py
--d {{config.paths.heuristics_dir}}
+-d {{config.paths.heuristics_dir}}/keywords
+
+-d {{heuristic_group|replace('.', '/')}}.py
 {% for datapath in task.datapaths %}
 -d {{datapath}}{% endfor %}
 {% for dataloader in task.datasets %}
@@ -9,12 +11,10 @@
 
 -p bohr.json:bohr_framework_version
 
--o {{config.paths.generated_dir}}/{{task.name}}/heuristic_matrix_train.pkl
-{% for test_dataset in task.test_datasets %} -o {{config.paths.generated_dir}}/{{task.name}}/heuristic_matrix_{{test_dataset}}.pkl {% endfor %}
--O {{config.paths.generated_dir}}/{{task.name}}/analysis_train.csv
-{% for test_dataset in task.test_datasets %} -O {{config.paths.generated_dir}}/{{task.name}}/analysis_{{test_dataset}}.csv{% endfor %}
+{% for dataset in task.datasets %} -o {{config.paths.generated_dir}}/{{task.name}}/{{heuristic_group}}/heuristic_matrix_{{dataset}}.pkl {% endfor %}
+{% for dataset in task.datasets %} -O {{config.paths.generated_dir}}/{{task.name}}/{{heuristic_group}}/analysis_{{dataset}}.csv{% endfor %}
 
--M {{config.paths.metrics_dir}}/{{task.name}}/heuristic_metrics.json -M {{config.paths.metrics_dir}}/{{task.name}}/analysis_train.json
-{% for test_dataset in task.test_datasets %} -M {{config.paths.metrics_dir}}/{{task.name}}/analysis_{{test_dataset}}.json{% endfor %}
+-M {{config.paths.metrics_dir}}/{{task.name}}/{{heuristic_group}}/heuristic_metrics.json
+{% for dataset in task.datasets %} -M {{config.paths.metrics_dir}}/{{task.name}}/{{heuristic_group}}/analysis_{{dataset}}.json{% endfor %}
 
-bohr apply-heuristics {{task.name}}
+bohr apply-heuristics {{task.name}} --heuristic-group {{heuristic_group}}

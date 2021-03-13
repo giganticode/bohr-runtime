@@ -18,6 +18,6 @@ uploads
 
 downloaded-data/*.7z
 generated/*
-labeled-data/*
+labeled-datasets/*
 data/test
 data/train
