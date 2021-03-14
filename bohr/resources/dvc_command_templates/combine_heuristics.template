@@ -9,7 +9,7 @@
 {% for dataset in task.datasets %} -o {{config.paths.generated_dir}}/{{task.name}}/heuristic_matrix_{{dataset}}.pkl {% endfor %}
 {% for dataset in task.datasets %} -O {{config.paths.generated_dir}}/{{task.name}}/analysis_{{dataset}}.csv{% endfor %}
 
--M {{config.paths.metrics_dir}}/{{task.name}}//heuristic_metrics.json
 {% for dataset in task.datasets %} -M {{config.paths.metrics_dir}}/{{task.name}}/analysis_{{dataset}}.json{% endfor %}
+{% for dataset in task.datasets %} -M {{config.paths.metrics_dir}}/{{task.name}}/heuristic_metrics_{{dataset}}.json{% endfor %}
 
 bohr apply-heuristics {{task.name}}
