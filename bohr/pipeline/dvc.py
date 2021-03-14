@@ -40,13 +40,17 @@ class DvcCommand(ABC):
 
 
 class ApplyHeuristicsCommand(DvcCommand):
-    def __init__(self, config: Config, task: Task, heuristic_group: str):
+    def __init__(self, config: Config, task: Task, heuristic_group: str, dataset: str):
         super().__init__("apply_heuristics.template", config, task)
         self.heuristic_group = heuristic_group
+        self.dataset = dataset
 
     def render_stage_template(self, template) -> str:
         return template.render(
-            task=self.task, config=self.config, heuristic_group=self.heuristic_group
+            task=self.task,
+            config=self.config,
+            heuristic_group=self.heuristic_group,
+            dataset=self.dataset,
         )
 
 
@@ -97,10 +101,13 @@ def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
     commands = []
     for task in all_tasks:
         for heuristic_group in task.heuristic_groups:
-            commands.append(ApplyHeuristicsCommand(config, task, heuristic_group))
+            for dataset_name in task.datasets:
+                commands.append(
+                    ApplyHeuristicsCommand(config, task, heuristic_group, dataset_name)
+                )
         commands.append(CombineHeuristicsCommand(config, task))
         commands.append(TrainLabelModelCommand(config, task))
-        for dataset_name in {**task.train_datasets, **task.test_datasets}:
+        for dataset_name in task.datasets:
             commands.append(LabelDatasetCommand(config, task, dataset_name))
     for command in commands:
         command.run()

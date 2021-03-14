@@ -5,12 +5,11 @@ from typing import Optional
 
 import click
 
-from bohr import pipeline
 from bohr.config import add_to_local_config, load_config
-from bohr.pipeline.apply_heuristics import combine_applied_heuristics
+from bohr.pipeline import stages
 from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline
-from bohr.pipeline.parse_labels import parse_label
 from bohr.pipeline.profiler import Profiler
+from bohr.pipeline.stages.parse_labels import parse_label
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
@@ -52,21 +51,24 @@ def parse_labels():
 @click.option("--debug", is_flag=True)
 def label_dataset(task: str, dataset: str, debug: bool):
     config = load_config()
-    pipeline.label_dataset(task, dataset, config, debug)
+    stages.label_dataset(task, dataset, config, debug)
 
 
 @bohr.command()
 @click.argument("task")
 @click.option("--heuristic-group", type=str)
+@click.option("--dataset", type=str)
 @click.option("--profile", is_flag=True)
-def apply_heuristics(task: str, heuristic_group: Optional[str], profile: bool):
+def apply_heuristics(
+    task: str, heuristic_group: Optional[str], dataset: Optional[str], profile: bool
+):
     config = load_config()
 
     if heuristic_group:
         with Profiler(enabled=profile):
-            pipeline.apply_heuristics(task, config, heuristic_group)
+            stages.apply_heuristics(task, config, heuristic_group, dataset)
     else:
-        combine_applied_heuristics(task, config)
+        stages.combine_applied_heuristics(task, config)
 
 
 @bohr.command()
@@ -76,7 +78,7 @@ def train_label_model(task: str, target_dataset: str):
 
     config = load_config()
 
-    stats = pipeline.train_label_model(task, target_dataset, config)
+    stats = stages.train_label_model(task, target_dataset, config)
     with open(config.paths.metrics / task / "label_model_metrics.json", "w") as f:
         json.dump(stats, f)
     pprint(stats)

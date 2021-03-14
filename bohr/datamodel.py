@@ -36,6 +36,10 @@ class DatasetLoader(ABC):
     def get_paths(self, project_root: Path) -> List[Path]:
         pass
 
+    @abstractmethod
+    def get_relative_paths(self) -> List[Path]:
+        pass
+
     def get_mapper(self) -> ArtifactMapper:
         return self.mapper
 

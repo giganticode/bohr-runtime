@@ -37,3 +37,6 @@ class CsvDatasetLoader(DatasetLoader):
         return [project_root / self.path_to_file] + list(
             map(lambda x: project_root / x, self.additional_data_files)
         )
+
+    def get_relative_paths(self) -> List[str]:
+        return [self.path_to_file] + self.additional_data_files
