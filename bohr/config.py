@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -11,6 +12,8 @@ import toml
 from bohr import version
 from bohr.artifacts.core import Artifact
 from bohr.datamodel import DatasetLoader, Heuristic, Task
+
+logger = logging.getLogger(__name__)
 
 
 def find_project_root() -> Path:
@@ -170,7 +173,11 @@ labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels', manua
         if not path_to_local_config.exists():
             path_to_local_config.touch()
         with open(path_to_local_config) as f:
-            software_path = toml.load(f)["core"]["software_path"]
+            try:
+                software_path = toml.load(f)["core"]["software_path"]
+            except KeyError:
+                logger.warning(f"Value not found in config: {software_path}")
+                software_path = None
         with open(project_root / "bohr.json") as f:
             return jsons.loads(
                 f.read(), Config, project_root=project_root, software_path=software_path
