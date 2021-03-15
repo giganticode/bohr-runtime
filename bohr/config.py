@@ -176,8 +176,10 @@ labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels', manua
             try:
                 software_path = toml.load(f)["core"]["software_path"]
             except KeyError:
-                logger.warning(f"Value not found in config: {software_path}")
-                software_path = None
+                logger.warning(
+                    f"Value not found in config: software_path, using default value."
+                )
+                software_path = str(project_root / "software")
         with open(project_root / "bohr.json") as f:
             return jsons.loads(
                 f.read(), Config, project_root=project_root, software_path=software_path
