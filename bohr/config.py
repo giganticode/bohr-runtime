@@ -47,7 +47,7 @@ data_dir='data', labels_dir='labels', manual_stages_dir='manual_stages')
     labeled_data_dir: str = "labeled-datasets"
     data_dir: str = "data"
     labels_dir: str = "labels"
-    manual_stages_dir = "manual_stages"
+    manual_stages_dir: str = "manual_stages"
 
     @property
     def metrics(self) -> Path:
@@ -154,7 +154,7 @@ software_path='/software')
     Config(project_root=PosixPath('/'), bohr_framework_version=0.1, tasks={}, \
 paths=PathsConfig(project_root=PosixPath('/'), software_path=PosixPath('/software'), metrics_dir='metrics', \
 generated_dir='generated', heuristics_dir='heuristics', dataset_dir='dataloaders', \
-labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels'))
+labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels', manual_stages_dir='manual_stages'))
     """
 
     project_root: Path
