@@ -164,7 +164,12 @@ labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels', manua
 
     @staticmethod
     def load(project_root: Path) -> "Config":
-        with open(project_root / ".bohr" / "local.config") as f:
+        path_to_config_dir = project_root / ".bohr"
+        path_to_config_dir.mkdir(exist_ok=True)
+        path_to_local_config = path_to_config_dir / "local.config"
+        if not path_to_local_config.exists():
+            path_to_local_config.touch()
+        with open(path_to_local_config) as f:
             software_path = toml.load(f)["core"]["software_path"]
         with open(project_root / "bohr.json") as f:
             return jsons.loads(
