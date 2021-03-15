@@ -23,6 +23,7 @@ def bohr():
 @click.argument("task", required=False)
 def repro(task: Optional[str]):
     config = load_config()
+    (config.project_root / "dvc.yaml").unlink(missing_ok=True)
     add_all_tasks_to_dvc_pipeline(config)
     cmd = ["dvc", "repro", "--pull"]
     if task:

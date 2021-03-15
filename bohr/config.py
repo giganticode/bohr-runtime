@@ -35,7 +35,7 @@ class PathsConfig:
     >>> jsons.loads('{}', PathsConfig, project_root=Path('/'), software_path='/software')
     PathsConfig(project_root=PosixPath('/'), software_path=PosixPath('/software'), metrics_dir='metrics', \
 generated_dir='generated', heuristics_dir='heuristics', dataset_dir='dataloaders', labeled_data_dir='labeled-datasets', \
-data_dir='data', labels_dir='labels')
+data_dir='data', labels_dir='labels', manual_stages_dir='manual_stages')
     """
 
     project_root: Path
@@ -47,6 +47,7 @@ data_dir='data', labels_dir='labels')
     labeled_data_dir: str = "labeled-datasets"
     data_dir: str = "data"
     labels_dir: str = "labels"
+    manual_stages_dir = "manual_stages"
 
     @property
     def metrics(self) -> Path:
@@ -75,6 +76,10 @@ data_dir='data', labels_dir='labels')
     @property
     def labels(self) -> Path:
         return self.project_root / self.labels_dir
+
+    @property
+    def manual_stages(self) -> Path:
+        return self.project_root / self.manual_stages_dir
 
     @staticmethod
     def deserialize(
