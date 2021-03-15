@@ -48,7 +48,7 @@ class DvcCommand(ABC):
 
     def run(self) -> None:
         command = self.to_string()
-        logger.debug(f"Checking stage: {self.summary()}")
+        logger.debug(f"Adding stage: {self.summary()}")
         subprocess.run(command, cwd=self.config.project_root)
 
 

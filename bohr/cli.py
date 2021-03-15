@@ -23,14 +23,19 @@ def bohr():
 @click.argument("task", required=False)
 def repro(task: Optional[str]):
     config = load_config()
-    (config.project_root / "dvc.yaml").unlink(missing_ok=True)
-    add_all_tasks_to_dvc_pipeline(config)
     cmd = ["dvc", "repro", "--pull"]
     if task:
         if task not in config.tasks:
             raise ValueError(f"Task {task} not found in bohr.json")
         cmd.extend(["--glob", f"{task}_*"])
     subprocess.run(cmd, cwd=config.project_root)
+
+
+@bohr.command()
+def refresh():
+    config = load_config()
+    (config.project_root / "dvc.yaml").unlink(missing_ok=True)
+    add_all_tasks_to_dvc_pipeline(config)
 
 
 @bohr.command()
