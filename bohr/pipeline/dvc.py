@@ -1,7 +1,8 @@
 import logging
+import os
 import re
 import subprocess
-from abc import ABC
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 
@@ -29,14 +30,26 @@ class DvcCommand(ABC):
         )
         template = env.get_template(f"resources/dvc_command_templates/{self.template}")
         command = self.render_stage_template(template)
-        command = f"dvc run -f --no-exec --force {command}"
+        command = f"dvc run -q --no-exec --force {command}"
         command_array = list(filter(None, re.split("[\n ]", command)))
         return command_array
 
+    @abstractmethod
+    def summary(self) -> str:
+        pass
+
     def run(self) -> None:
         command = self.to_string()
-        logger.debug(f"Running {command}")
+        logger.debug(f"Checking stage: {self.summary()}")
         subprocess.run(command, cwd=self.config.project_root)
+
+
+class ParseLabelsCommand(DvcCommand):
+    def __init__(self, config: Config):
+        super().__init__("parse_labels.template", config, None)
+
+    def summary(self) -> str:
+        return "parse labels"
 
 
 class ApplyHeuristicsCommand(DvcCommand):
@@ -53,10 +66,16 @@ class ApplyHeuristicsCommand(DvcCommand):
             dataset=self.dataset,
         )
 
+    def summary(self) -> str:
+        return f"[{self.task.name}] apply heuristics (group: {self.heuristic_group}) to {self.dataset}"
+
 
 class CombineHeuristicsCommand(DvcCommand):
     def __init__(self, config: Config, task: Task):
         super().__init__("combine_heuristics.template", config, task)
+
+    def summary(self) -> str:
+        return f"[{self.task.name}] combine heuristics"
 
 
 class TrainLabelModelCommand(DvcCommand):
@@ -70,6 +89,9 @@ class TrainLabelModelCommand(DvcCommand):
             target_dataset=next(iter(self.task.train_datasets.keys())),
         )
 
+    def summary(self) -> str:
+        return f"[{self.task.name}] train label model on {next(iter(self.task.train_datasets.keys()))} dataset"
+
 
 class LabelDatasetCommand(DvcCommand):
     def __init__(self, config: Config, task: Task, dataset: str):
@@ -78,6 +100,22 @@ class LabelDatasetCommand(DvcCommand):
 
     def render_stage_template(self, template) -> str:
         return template.render(task=self.task, config=self.config, dataset=self.dataset)
+
+    def summary(self) -> str:
+        return f"[{self.task.name}] label dataset: {self.dataset}"
+
+
+class ManualCommand(DvcCommand):
+    def __init__(self, config: Config, path_to_template: Path):
+        super().__init__("empty.template", config, None)
+        self.path_to_template = path_to_template
+
+    def render_stage_template(self, template) -> str:
+        with open(self.path_to_template) as f:
+            return f.read()
+
+    def summary(self) -> str:
+        return f"Command from: {self.path_to_template}"
 
 
 def create_directories_if_necessary(config: Config) -> None:
@@ -99,6 +137,7 @@ def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
         f"Following tasks are added to the pipeline: {list(map(lambda x: x.name, all_tasks))}"
     )
     commands = []
+    commands.append(ParseLabelsCommand(config))
     for task in all_tasks:
         for heuristic_group in task.heuristic_groups:
             for dataset_name in task.datasets:
@@ -109,6 +148,9 @@ def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
         commands.append(TrainLabelModelCommand(config, task))
         for dataset_name in task.datasets:
             commands.append(LabelDatasetCommand(config, task, dataset_name))
+    root, dirs, files = next(os.walk(config.paths.manual_stages))
+    for file in files:
+        commands.append(ManualCommand(config, Path(root) / file))
     for command in commands:
         command.run()
 
