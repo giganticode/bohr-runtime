@@ -15,10 +15,17 @@ logger = logging.getLogger(__name__)
 
 
 class DvcCommand(ABC):
-    def __init__(self, template: str, config: Config, task: Task):
+    def __init__(
+        self,
+        template: str,
+        config: Config,
+        task: Task,
+        execute_immediately: bool = False,
+    ):
         self.template = template
         self.config = config
         self.task = task
+        self.execute_immediately = execute_immediately
 
     def render_stage_template(self, template) -> str:
         return template.render(task=self.task, config=self.config)
@@ -30,7 +37,8 @@ class DvcCommand(ABC):
         )
         template = env.get_template(f"resources/dvc_command_templates/{self.template}")
         command = self.render_stage_template(template)
-        command = f"dvc run -q --no-exec --force {command}"
+        if_exec = "" if self.execute_immediately else "--no-exec "
+        command = f"dvc run -q {if_exec}--force {command}"
         command_array = list(filter(None, re.split("[\n ]", command)))
         return command_array
 
@@ -45,16 +53,23 @@ class DvcCommand(ABC):
 
 
 class ParseLabelsCommand(DvcCommand):
-    def __init__(self, config: Config):
-        super().__init__("parse_labels.template", config, None)
+    def __init__(self, config: Config, execute_immediately: bool = False):
+        super().__init__("parse_labels.template", config, None, execute_immediately)
 
     def summary(self) -> str:
         return "parse labels"
 
 
 class ApplyHeuristicsCommand(DvcCommand):
-    def __init__(self, config: Config, task: Task, heuristic_group: str, dataset: str):
-        super().__init__("apply_heuristics.template", config, task)
+    def __init__(
+        self,
+        config: Config,
+        task: Task,
+        heuristic_group: str,
+        dataset: str,
+        execute_immediately: bool = False,
+    ):
+        super().__init__("apply_heuristics.template", config, task, execute_immediately)
         self.heuristic_group = heuristic_group
         self.dataset = dataset
 
@@ -71,16 +86,20 @@ class ApplyHeuristicsCommand(DvcCommand):
 
 
 class CombineHeuristicsCommand(DvcCommand):
-    def __init__(self, config: Config, task: Task):
-        super().__init__("combine_heuristics.template", config, task)
+    def __init__(self, config: Config, task: Task, execute_immediately: bool = False):
+        super().__init__(
+            "combine_heuristics.template", config, task, execute_immediately
+        )
 
     def summary(self) -> str:
         return f"[{self.task.name}] combine heuristics"
 
 
 class TrainLabelModelCommand(DvcCommand):
-    def __init__(self, config: Config, task: Task):
-        super().__init__("train_label_model.template", config, task)
+    def __init__(self, config: Config, task: Task, execute_immediately: bool = False):
+        super().__init__(
+            "train_label_model.template", config, task, execute_immediately
+        )
 
     def render_stage_template(self, template) -> str:
         return template.render(
@@ -94,8 +113,14 @@ class TrainLabelModelCommand(DvcCommand):
 
 
 class LabelDatasetCommand(DvcCommand):
-    def __init__(self, config: Config, task: Task, dataset: str):
-        super().__init__("label_dataset.template", config, task)
+    def __init__(
+        self,
+        config: Config,
+        task: Task,
+        dataset: str,
+        execute_immediately: bool = False,
+    ):
+        super().__init__("label_dataset.template", config, task, execute_immediately)
         self.dataset = dataset
 
     def render_stage_template(self, template) -> str:
@@ -106,8 +131,10 @@ class LabelDatasetCommand(DvcCommand):
 
 
 class ManualCommand(DvcCommand):
-    def __init__(self, config: Config, path_to_template: Path):
-        super().__init__("empty.template", config, None)
+    def __init__(
+        self, config: Config, path_to_template: Path, execute_immediately: bool = False
+    ):
+        super().__init__("empty.template", config, None, execute_immediately)
         self.path_to_template = path_to_template
 
     def render_stage_template(self, template) -> str:
