@@ -38,7 +38,7 @@ class DvcCommand(ABC):
         template = env.get_template(f"resources/dvc_command_templates/{self.template}")
         command = self.render_stage_template(template)
         if_exec = "" if self.execute_immediately else "--no-exec "
-        command = f"dvc run -q {if_exec}--force {command}"
+        command = f"dvc run -v {if_exec}--force {command}"
         command_array = list(filter(None, re.split("[\n ]", command)))
         return command_array
 
@@ -46,10 +46,12 @@ class DvcCommand(ABC):
     def summary(self) -> str:
         pass
 
-    def run(self) -> None:
+    def run(self) -> subprocess.CompletedProcess:
         command = self.to_string()
         logger.debug(f"Adding stage: {self.summary()}")
-        subprocess.run(command, cwd=self.config.project_root)
+        return subprocess.run(
+            command, cwd=self.config.project_root, capture_output=True
+        )
 
 
 class ParseLabelsCommand(DvcCommand):
@@ -179,7 +181,10 @@ def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
     for file in files:
         commands.append(ManualCommand(config, Path(root) / file))
     for command in commands:
-        command.run()
+        completed_process = command.run()
+        if completed_process.returncode != 0:
+            print(completed_process.stderr.decode())
+            break
 
 
 if __name__ == "__main__":
