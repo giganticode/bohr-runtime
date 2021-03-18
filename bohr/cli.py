@@ -5,7 +5,7 @@ from typing import Optional
 
 import click
 
-from bohr import __version__
+from bohr import __version__, api
 from bohr.config import add_to_local_config, load_config
 from bohr.pipeline import stages
 from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline
@@ -34,10 +34,15 @@ def repro(task: Optional[str]):
 
 
 @bohr.command()
-def refresh():
+def status():
     config = load_config()
-    (config.project_root / "dvc.yaml").unlink(missing_ok=True)
-    add_all_tasks_to_dvc_pipeline(config)
+    api.refresh()
+    subprocess.run(["dvc", "status"], cwd=config.project_root)
+
+
+@bohr.command()
+def refresh():
+    api.refresh()
 
 
 @bohr.command()

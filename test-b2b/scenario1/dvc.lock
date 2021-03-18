@@ -577,3 +577,14 @@ bugginess-1k_label_dataset_dataloaders_berger:
   - path: labeled-datasets/dataloaders.berger.labeled.csv
     md5: 95b9186db579a7fc3829d38460600e29
     size: 66675
+parse_labels:
+  cmd: bohr parse-labels
+  deps:
+  - path: labels
+    md5: 2bdf7e3a52cf1d386b1edfc4558f2f55.dir
+    size: 552
+    nfiles: 3
+  outs:
+  - path: labels.py
+    md5: 4ad220b4c289b2d8597bd6431c6565a6
+    size: 1707
