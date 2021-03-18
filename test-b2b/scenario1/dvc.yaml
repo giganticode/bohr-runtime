@@ -1,4 +1,11 @@
 stages:
+  parse_labels:
+    cmd: bohr parse-labels
+    deps:
+    - labels
+    outs:
+    - labels.py:
+        cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_main_heurstics__dataloaders_bugginess-train-1k:
     cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.main_heurstics
       --dataset dataloaders.bugginess-train-1k
