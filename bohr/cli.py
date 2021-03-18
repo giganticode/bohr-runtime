@@ -5,6 +5,7 @@ from typing import Optional
 
 import click
 
+from bohr import __version__
 from bohr.config import add_to_local_config, load_config
 from bohr.pipeline import stages
 from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline
@@ -15,6 +16,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
+@click.version_option(__version__)
 def bohr():
     pass
 
