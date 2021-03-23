@@ -7,12 +7,17 @@ import click
 
 from bohr import __version__, api
 from bohr.config import add_to_local_config, load_config
+from bohr.lock import bohr_up_to_date, update_lock
 from bohr.pipeline import stages
-from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline
 from bohr.pipeline.profiler import Profiler
 from bohr.pipeline.stages.parse_labels import parse_label
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -36,7 +41,10 @@ def repro(task: Optional[str]):
 @bohr.command()
 def status():
     config = load_config()
-    api.refresh()
+    if not bohr_up_to_date(config):
+        logger.info("There are changes to the bohr config. Refreshing ...")
+        api.refresh()
+        update_lock(config)
     subprocess.run(["dvc", "status"], cwd=config.project_root)
 
 
