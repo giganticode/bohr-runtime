@@ -12,13 +12,17 @@ class CsvDatasetLoader(DatasetLoader):
         self,
         path_to_file: str,
         mapper: ArtifactMapper,
+        path_to_raw_file: Optional[str] = None,
         n_rows: Optional[int] = None,
         sep: str = ",",
         test_set: bool = False,
         additional_data_files: List[str] = None,
+        format: str = "csv",
+        from_file: bool = True,
     ):
-        super().__init__(test_set, mapper)
+        super().__init__(test_set, mapper, format, from_file)
         self.path_to_file = path_to_file
+        self.path_to_raw_file = path_to_raw_file
         self.n_rows = n_rows
         self.sep = sep
         self.additional_data_files = additional_data_files or []

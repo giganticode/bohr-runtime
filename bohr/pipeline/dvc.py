@@ -9,7 +9,7 @@ from typing import List
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from bohr.config import Config, load_config
-from bohr.datamodel import Task
+from bohr.datamodel import Dataset, Task
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +132,29 @@ class LabelDatasetCommand(DvcCommand):
         return f"[{self.task.name}] label dataset: {self.dataset}"
 
 
+class PreprocessCopyCommand(DvcCommand):
+    def __init__(
+        self,
+        config: Config,
+        dataset_name: str,
+        dataloader: Dataset,
+        execute_immediately: bool = False,
+    ):
+        super().__init__("preprocess_copy.template", config, None, False)
+        self.dataset_name = dataset_name
+        self.dataloader = dataloader
+
+    def render_stage_template(self, template) -> str:
+        return template.render(
+            dataset_name=self.dataset_name,
+            dataloader=self.dataloader,
+            data_dir=self.config.paths.data_dir,
+        )
+
+    def summary(self) -> str:
+        return f"Pre-processing: {self.dataset_name}"
+
+
 class ManualCommand(DvcCommand):
     def __init__(
         self, config: Config, path_to_template: Path, execute_immediately: bool = False
@@ -166,6 +189,11 @@ def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
         f"Following tasks are added to the pipeline: {list(map(lambda x: x.name, all_tasks))}"
     )
     commands = []
+    for dataset_name, dataloader in config.dataloaders.items():
+        if dataloader.format not in ["zip", "7z"]:
+            commands.append(PreprocessCopyCommand(config, dataset_name, dataloader))
+        else:
+            raise NotImplementedError()
     commands.append(ParseLabelsCommand(config))
     for task in all_tasks:
         for heuristic_group in task.heuristic_groups:

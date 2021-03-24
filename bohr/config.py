@@ -4,14 +4,15 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Type
+from typing import Any, Dict, List, Optional, Set, Type, Union
 
 import jsons
 import toml
 
 from bohr import version
 from bohr.artifacts.core import Artifact
-from bohr.datamodel import DatasetLoader, Heuristic, Task
+from bohr.datamodel import ArtifactMapper, Dataset, DatasetLoader, Heuristic, Task
+from bohr.templates.dataloaders.from_csv import CsvDatasetLoader
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,7 @@ data_dir='data', labels_dir='labels', manual_stages_dir='manual_stages')
     data_dir: str = "data"
     labels_dir: str = "labels"
     manual_stages_dir: str = "manual_stages"
+    downloaded_data_dir: str = "downloaded-data"
 
     @property
     def metrics(self) -> Path:
@@ -163,7 +165,15 @@ labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels', manua
     project_root: Path
     bohr_framework_version: str
     tasks: Dict[str, Task]
+    dataloaders: Dict[str, DatasetLoader]
     paths: PathsConfig
+
+    def get_dataloader(self, name: str) -> DatasetLoader:
+        return (
+            self.dataloaders[name]
+            if name in self.dataloaders
+            else get_dataset_loader(name)
+        )
 
     @staticmethod
     def load(project_root: Path) -> "Config":
@@ -235,19 +245,51 @@ def load_artifact_by_name(artifact_name: str) -> Type["Artifact"]:
         raise ValueError(f"Artifact {name} not found in module {module}") from e
 
 
+def load_mapper(path_to_mapper_obj: str) -> Type["ArtifactMapper"]:
+    # TODO deduplicate
+    *path, name = path_to_mapper_obj.split(".")
+    try:
+        module = importlib.import_module(".".join(path))
+    except ModuleNotFoundError as e:
+        raise ValueError(f'Module {".".join(path)} not defined.') from e
+
+    try:
+        return getattr(module, name)
+    except AttributeError as e:
+        raise ValueError(f"Mapper {name} not found in module {module}") from e
+
+
+def load_dataset_loaders(
+    obj, dataloaders: Dict[str, DatasetLoader], data_path: Path, project_root: Path
+) -> Dict[str, DatasetLoader]:
+    res = {}
+    for name in obj:
+        if name in dataloaders:
+            res[name] = dataloaders[name]
+        else:
+            res[name] = get_dataset_loader(name)
+    return res
+
+
 def deserialize_task(
     dct: Dict[str, Any],
     cls,
     project_root: Path,
     task_name: str,
     heuristic_path: Path,
+    data_path: Path,
+    dataloaders: Dict[str, DatasetLoader],
     **kwargs,
 ) -> "Task":
     # """
     # >>> jsons.loads('{"top_artifact": "artifacts.commit.Commit", "test_dataset_names": [], "train_dataset_names": []}', Task, project_root='/', task_name="x")
     # """
-    test_datasets = {name: get_dataset_loader(name) for name in dct["test_datasets"]}
-    train_datasets = {name: get_dataset_loader(name) for name in dct["train_datasets"]}
+    test_datasets = load_dataset_loaders(
+        dct["test_datasets"], dataloaders, data_path, project_root
+    )
+    train_datasets = load_dataset_loaders(
+        dct["train_datasets"], dataloaders, data_path, project_root
+    )
     artifact = load_artifact_by_name(dct["top_artifact"])
     heuristic_groups = get_heuristic_module_list(artifact, heuristic_path)
     return Task(
@@ -274,6 +316,17 @@ def deserialize_config(
     paths: PathsConfig = jsons.load(
         paths_json, PathsConfig, project_root=project_root, software_path=software_path
     )
+
+    dataloaders: Dict[str, DatasetLoader] = {}
+    for dataset_name, dataset_object in dct["datasets"].items():
+        dataloaders[dataset_name] = jsons.load(
+            dataset_object,
+            DatasetLoader,
+            project_root=project_root,
+            downloaded_data_dir=paths.downloaded_data_dir,
+            data_dir=paths.data_dir,
+        )
+
     tasks = dict()
     for task_name, task_json in dct["tasks"].items():
         tasks[task_name] = jsons.load(
@@ -282,15 +335,45 @@ def deserialize_config(
             project_root=project_root,
             task_name=task_name,
             heuristic_path=paths.heuristics,
+            data_path=paths.data,
+            dataloaders=dataloaders,
         )
     return Config(
         project_root,
         dct["bohr_framework_version"],
         tasks,
+        dataloaders,
         paths,
     )
 
 
+def desearialize_dataset_loader(
+    dct: Dict[str, Any],
+    cls,
+    project_root: Path,
+    downloaded_data_dir: str,
+    data_dir: str,
+    **kwargs,
+) -> "DatasetLoader":
+    mapper = load_mapper(dct["mapper"])
+    if dct["internal_format"] == "csv":
+        if not dct["format"] == "csv":
+            raise NotImplementedError()
+        mapper_object = (
+            mapper(project_root) if mapper.__name__ == "CommitMapper" else mapper()
+        )
+        return CsvDatasetLoader(
+            path_to_raw_file=f'{downloaded_data_dir}/{dct["path"]}',
+            path_to_file=f'{data_dir}/{dct["path"]}',
+            mapper=mapper_object,
+            test_set=dct["test_set"],
+            from_file=False,
+        )
+    else:
+        raise NotImplementedError()
+
+
+jsons.set_deserializer(desearialize_dataset_loader, DatasetLoader)
 jsons.set_deserializer(deserialize_task, Task)
 jsons.set_deserializer(deserialize_config, Config)
 jsons.set_deserializer(PathsConfig.deserialize, PathsConfig)

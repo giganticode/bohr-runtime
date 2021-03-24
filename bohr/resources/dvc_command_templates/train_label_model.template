@@ -3,7 +3,11 @@
 -d {{config.paths.generated_dir}}/{{task.name}}/heuristic_matrix_{{target_dataset}}.pkl
 {% for test_dataset in task.test_datasets %} -d {{config.paths.generated_dir}}/{{task.name}}/heuristic_matrix_{{test_dataset}}.pkl {% endfor %}
 {% for datapath in task.test_datapaths %} -d {{datapath}}{% endfor %}
-{% for dataloader in task.test_datasets %} -d {{dataloader|replace('.', '/')}}.py{% endfor %}
+{% for dataloader in task.test_datasets %}
+{% if task.datasets[dataloader].from_file %}
+-d {{dataloader|replace('.', '/')}}.py
+{% endif %}
+{% endfor %}
 
 -p bohr.json:bohr_framework_version
 

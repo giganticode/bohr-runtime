@@ -7,7 +7,9 @@
 {% for datapath in task.datasets[dataset].get_relative_paths() %}
 -d {{datapath}}{% endfor %}
 
+{% if task.datasets[dataset].from_file %}
 -d {{dataset|replace('.', '/')}}.py
+{% endif %}
 
 -p bohr.json:bohr_framework_version
 

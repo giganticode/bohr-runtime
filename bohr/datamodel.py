@@ -24,6 +24,8 @@ class ArtifactMapper(BaseMapper, ABC):
 class DatasetLoader(ABC):
     test_set: bool
     mapper: ArtifactMapper
+    format: str
+    from_file: bool = True
 
     def get_artifact(self) -> Type:
         return self.get_mapper().get_artifact()
@@ -37,7 +39,7 @@ class DatasetLoader(ABC):
         pass
 
     @abstractmethod
-    def get_relative_paths(self) -> List[Path]:
+    def get_relative_paths(self) -> List[str]:
         pass
 
     def get_mapper(self) -> ArtifactMapper:
@@ -45,6 +47,15 @@ class DatasetLoader(ABC):
 
     def is_test_set(self):
         return self.test_set
+
+
+@dataclass(frozen=True)
+class Dataset:
+    path: str
+    mapper: str
+    test_set: bool
+    format: str
+    internal_format: str
 
 
 @dataclass(frozen=True)

@@ -12,7 +12,7 @@ def label_dataset(
     task_name: str, dataset_name: str, config: Config, debug: bool = False
 ):
     task = config.tasks[task_name]
-    dataset_loader = get_dataset_loader(dataset_name)
+    dataset_loader = config.get_dataloader(dataset_name)
 
     applied_heuristics_df = pd.read_pickle(
         str(config.paths.generated / task.name / f"heuristic_matrix_{dataset_name}.pkl")

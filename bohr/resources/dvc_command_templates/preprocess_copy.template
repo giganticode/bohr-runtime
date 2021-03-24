@@ -1,0 +1,6 @@
+-n preprocess_{{dataset_name}}
+
+-d {{dataloader.path_to_raw_file}}
+-o {{dataloader.path_to_file}}
+
+cp {{dataloader.path_to_raw_file}} {{data_dir}}
