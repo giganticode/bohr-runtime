@@ -39,7 +39,7 @@ class PathsConfig:
     >>> jsons.loads('{}', PathsConfig, project_root=Path('/'), software_path='/software')
     PathsConfig(project_root=PosixPath('/'), software_path=PosixPath('/software'), metrics_dir='metrics', \
 generated_dir='generated', heuristics_dir='heuristics', dataset_dir='dataloaders', labeled_data_dir='labeled-datasets', \
-data_dir='data', labels_dir='labels', manual_stages_dir='manual_stages')
+data_dir='data', labels_dir='labels', manual_stages_dir='manual_stages', downloaded_data_dir='downloaded-data')
     """
 
     project_root: Path
@@ -154,12 +154,13 @@ def add_to_local_config(section: str, key: str, value: str) -> None:
 @dataclass(frozen=True)
 class Config:
     """
-    >>> jsons.loads('{"bohr_framework_version": 0.1, "tasks": {}}', Config, project_root=Path('/'), \
+    >>> jsons.loads('{"bohr_framework_version": 0.1, "tasks": {}, "datasets": {}}', Config, project_root=Path('/'), \
 software_path='/software')
-    Config(project_root=PosixPath('/'), bohr_framework_version=0.1, tasks={}, \
+    Config(project_root=PosixPath('/'), bohr_framework_version=0.1, tasks={}, dataloaders={}, \
 paths=PathsConfig(project_root=PosixPath('/'), software_path=PosixPath('/software'), metrics_dir='metrics', \
 generated_dir='generated', heuristics_dir='heuristics', dataset_dir='dataloaders', \
-labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels', manual_stages_dir='manual_stages'))
+labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels', manual_stages_dir='manual_stages', \
+downloaded_data_dir='downloaded-data'))
     """
 
     project_root: Path
