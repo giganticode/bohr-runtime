@@ -6,6 +6,7 @@ from typing import Optional
 import click
 
 from bohr import __version__, api
+from bohr.api import refresh_if_necessary
 from bohr.config import add_to_local_config, load_config
 from bohr.lock import bohr_up_to_date, update_lock
 from bohr.pipeline import stages
@@ -30,6 +31,7 @@ def bohr():
 @click.argument("task", required=False)
 def repro(task: Optional[str]):
     config = load_config()
+    refresh_if_necessary(config)
     cmd = ["dvc", "repro", "--pull"]
     if task:
         if task not in config.tasks:
@@ -41,10 +43,7 @@ def repro(task: Optional[str]):
 @bohr.command()
 def status():
     config = load_config()
-    if not bohr_up_to_date(config):
-        logger.info("There are changes to the bohr config. Refreshing ...")
-        api.refresh()
-        update_lock(config)
+    refresh_if_necessary(config)
     subprocess.run(["dvc", "status"], cwd=config.project_root)
 
 
