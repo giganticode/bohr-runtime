@@ -11,7 +11,7 @@ import toml
 
 from bohr import version
 from bohr.artifacts.core import Artifact
-from bohr.datamodel import ArtifactMapper, Dataset, DatasetLoader, Heuristic, Task
+from bohr.datamodel import ArtifactMapper, DatasetLoader, Heuristic, Task
 from bohr.templates.dataloaders.from_csv import CsvDatasetLoader
 
 logger = logging.getLogger(__name__)

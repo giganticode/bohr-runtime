@@ -50,15 +50,6 @@ class DatasetLoader(ABC):
 
 
 @dataclass(frozen=True)
-class Dataset:
-    path: str
-    mapper: str
-    test_set: bool
-    format: str
-    internal_format: str
-
-
-@dataclass(frozen=True)
 class Task:
     name: str
     top_artifact: Type

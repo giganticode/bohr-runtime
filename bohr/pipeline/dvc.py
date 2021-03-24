@@ -9,7 +9,7 @@ from typing import List
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from bohr.config import Config, load_config
-from bohr.datamodel import Dataset, Task
+from bohr.datamodel import DatasetLoader, Task
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,7 @@ class PreprocessCopyCommand(DvcCommand):
         self,
         config: Config,
         dataset_name: str,
-        dataloader: Dataset,
+        dataloader: DatasetLoader,
         execute_immediately: bool = False,
     ):
         super().__init__("preprocess_copy.template", config, None, False)
