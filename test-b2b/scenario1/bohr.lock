@@ -9,8 +9,8 @@
                     "CommitLabel.BugFix"
                 ],
                 "test_datasets": [
-                    "dataloaders.1151-commits",
-                    "dataloaders.berger"
+                    "1151-commits",
+                    "berger"
                 ],
                 "train_datasets": [
                     "dataloaders.bugginess-train-1k"
@@ -31,6 +31,22 @@
                 ],
                 "label_column_name": "smelly"
             }
+        },
+        "datasets": {
+            "berger": {
+                "path": "berger.csv",
+                "mapper": "bohr.templates.datamappers.commit.CommitMapper",
+                "test_set": "true",
+                "format": "csv",
+                "internal_format": "csv"
+            },
+            "1151-commits": {
+                "path": "1151-commits.csv",
+                "mapper": "bohr.templates.datamappers.commit.CommitMapper",
+                "test_set": "true",
+                "format": "csv",
+                "internal_format": "csv"
+            }
         }
     },
     "heuristics": {
@@ -40,7 +56,6 @@
     },
     "manual_stages": {
         "manual_stages/preprocess_smells.template": "7f29f02049a8171997da3adc3452c936",
-        "manual_stages/preprocess_bugginess_test.template": "6ecc5e41b652802654be097fa81210f1",
         "manual_stages/preprocess_bugginess_train.template": "371f3c1619be697724965875f1d0531d"
     }
 }
