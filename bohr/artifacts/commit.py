@@ -21,7 +21,7 @@ class Cache:
 
     @property
     def bugginess_train(self):
-        return self.project_root / "data" / "bugginess" / "train"
+        return self.project_root / "data" / "bugginess_train" / "train"
 
     @property
     def issues_file(self):

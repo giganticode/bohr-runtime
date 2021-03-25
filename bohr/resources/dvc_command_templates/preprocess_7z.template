@@ -3,6 +3,6 @@
 -d {{dataset.path_dist}}
 -O {{dataset.path_preprocessed}}
 
-cp {{dataset.path_dist}} {{data_dir}} &&
+7z x {{dataset.path_dist}} -o{{dataset.path_preprocessed}} &&
 echo "{{dataset.path_preprocessed}}" >> .gitignore &&
 git add .gitignore

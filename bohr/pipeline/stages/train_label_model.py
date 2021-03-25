@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 from snorkel.labeling.model import LabelModel
 
-from bohr.config import Config, load_config
+from bohr.config import load_config
+from bohr.datamodel import Dataset, Task
+from bohr.pathconfig import PathConfig
 
 random.seed(13)
 
@@ -54,24 +56,23 @@ def fit_label_model(lines_train: np.ndarray) -> LabelModel:
 
 
 def train_label_model(
-    task_name: str, target_dataset: str, config: Config
+    task: Task, target_dataset: Dataset, path_config: PathConfig
 ) -> Dict[str, Any]:
 
-    task_dir_generated = config.paths.generated / task_name
+    task_dir_generated = path_config.generated / task.name
     if not task_dir_generated.exists():
         task_dir_generated.mkdir()
 
     lines_train = pd.read_pickle(
-        str(task_dir_generated / f"heuristic_matrix_{target_dataset}.pkl")
+        str(task_dir_generated / f"heuristic_matrix_{target_dataset.name}.pkl")
     )
     label_model = fit_label_model(lines_train.to_numpy())
     label_model.save(str(task_dir_generated / "label_model.pkl"))
     label_model.eval()
 
-    task = config.tasks[task_name]
     stats = {}
     for test_set_name, test_set in task.test_datasets.items():
-        df = test_set.load(config.project_root)
+        df = test_set.load()
         stats.update(
             calculate_metrics(
                 label_model,
@@ -85,4 +86,7 @@ def train_label_model(
 
 
 if __name__ == "__main__":
-    train_label_model("bugginess", load_config())
+    config = load_config()
+    task = config.tasks["bugginess"]
+    dataset = config.datasets["berger"]
+    train_label_model(task, dataset, config.paths)

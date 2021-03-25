@@ -8,7 +8,7 @@ from typing import Any, Dict
 import jsons
 from deepdiff import DeepDiff
 
-from bohr.config import Config
+from bohr.pathconfig import PathConfig
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +33,12 @@ def md5_folder(
     return res
 
 
-def calculate_lock(config: Config) -> Dict[str, Any]:
-    with (config.project_root / "bohr.json").open() as f:
+def calculate_lock(path_config: PathConfig) -> Dict[str, Any]:
+    with (path_config.project_root / "bohr.json").open() as f:
         config_json = jsons.loads(f.read())
-    heursistics_json = md5_folder(config.paths.heuristics, config.project_root)
+    heursistics_json = md5_folder(path_config.heuristics, path_config.project_root)
     manual_stages_json = md5_folder(
-        config.paths.manual_stages, config.project_root, python_files=False
+        path_config.manual_stages, path_config.project_root, python_files=False
     )
 
     return {
@@ -48,14 +48,14 @@ def calculate_lock(config: Config) -> Dict[str, Any]:
     }
 
 
-def bohr_up_to_date(config: Config) -> bool:
-    bohr_lock_path = config.project_root / "bohr.lock"
+def bohr_up_to_date(path_config: PathConfig) -> bool:
+    bohr_lock_path = path_config.project_root / "bohr.lock"
     try:
         with bohr_lock_path.open() as f:
             current_lock: Dict[str, Any] = jsons.loads(f.read())
     except (jsons.exceptions.DecodeError, FileNotFoundError):
         current_lock = {}
-    new_lock: Dict[str, Any] = calculate_lock(config)
+    new_lock: Dict[str, Any] = calculate_lock(path_config)
     diff = DeepDiff(current_lock, new_lock, ignore_order=True)
     up_to_date = str(diff) == "{}"
     if not up_to_date:
@@ -63,8 +63,8 @@ def bohr_up_to_date(config: Config) -> bool:
     return up_to_date
 
 
-def update_lock(config: Config) -> None:
-    new_lock: Dict[str, Any] = calculate_lock(config)
-    with (config.project_root / "bohr.lock").open("w") as f:
+def update_lock(path_config: PathConfig) -> None:
+    new_lock: Dict[str, Any] = calculate_lock(path_config)
+    with (path_config.project_root / "bohr.lock").open("w") as f:
         json.dump(new_lock, f, indent=4)
         logger.debug("Bohr lock is updated")

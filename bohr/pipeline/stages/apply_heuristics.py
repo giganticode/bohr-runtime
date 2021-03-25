@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 from snorkel.labeling import LabelingFunction, PandasLFApplier
 
-from bohr.config import Config, load_config, load_heuristics_from_module
+from bohr.config import load_config, load_heuristics_from_module
 from bohr.core import to_labeling_functions
-from bohr.datamodel import Task
+from bohr.datamodel import Dataset, Task
+from bohr.pathconfig import PathConfig
 from bohr.pipeline.data_analysis import calculate_metrics
 
 
@@ -24,10 +25,10 @@ def apply_lfs_to_dataset(
 
 
 def create_dirs_if_necessary(
-    task: Task, config: Config, heuristic_group: str
+    task: Task, path_config: PathConfig, heuristic_group: str
 ) -> Tuple[Path, Path]:
-    task_dir_generated = config.paths.generated / task.name / heuristic_group
-    task_dir_metrics = config.paths.metrics / task.name / heuristic_group
+    task_dir_generated = path_config.generated / task.name / heuristic_group
+    task_dir_metrics = path_config.metrics / task.name / heuristic_group
     for dir in [task_dir_generated, task_dir_metrics]:
         if not dir.exists():
             dir.mkdir(parents=True)
@@ -35,24 +36,22 @@ def create_dirs_if_necessary(
 
 
 def apply_heuristics(
-    task_name: str, config: Config, heuristic_group: str, dataset: str
+    task: Task, path_config: PathConfig, heuristic_group: str, dataset: Dataset
 ) -> None:
-    task = config.tasks[task_name]
 
     task_dir_generated, task_dir_metrics = create_dirs_if_necessary(
-        task, config, heuristic_group=heuristic_group
+        task, path_config, heuristic_group=heuristic_group
     )
     heuristics = load_heuristics_from_module(task.top_artifact, heuristic_group)
     if not heuristics:
         raise ValueError(f"Heuristics not found for artifact: {task.top_artifact}")
 
-    dataset_loader = task.datasets[dataset]
-    save_to_matrix = task_dir_generated / f"heuristic_matrix_{dataset}.pkl"
-    save_to_metrics = task_dir_metrics / f"heuristic_metrics_{dataset}.json"
+    save_to_matrix = task_dir_generated / f"heuristic_matrix_{dataset.name}.pkl"
+    save_to_metrics = task_dir_metrics / f"heuristic_metrics_{dataset.name}.json"
     labeling_functions = to_labeling_functions(
-        heuristics, dataset_loader.get_mapper(), task.labels
+        heuristics, dataset.dataloader.get_mapper(), task.labels
     )
-    artifact_df = dataset_loader.load(config.project_root)
+    artifact_df = dataset.load()
     apply_lf_matrix = apply_lfs_to_dataset(
         labeling_functions, artifact_df=artifact_df, save_to=save_to_matrix
     )
@@ -68,10 +67,11 @@ def apply_heuristics(
 
 if __name__ == "__main__":
     config = load_config()
-
+    task = config.tasks["bugginess"]
+    dataset = config.datasets["1151-commits"]
     apply_heuristics(
-        "bugginess",
-        config,
+        task,
+        config.paths,
         "heuristics.bugginess.main_heurstics",
-        "dataloaders.1151-commits",
+        dataset,
     )

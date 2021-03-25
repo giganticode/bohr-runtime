@@ -1,0 +1,7 @@
+-n preprocess_{{dataset.name}}
+
+-d {{dataset.path_dist}}
+-d {{dataset.preprocessor}}
+-o {{dataset.path_preprocessed}}
+
+{{dataset.preprocessor}}

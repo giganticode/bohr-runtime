@@ -5,22 +5,20 @@ import pandas as pd
 from pandas import Series
 from snorkel.labeling.model import LabelModel
 
-from bohr.config import Config, get_dataset_loader
+from bohr.config import Config
+from bohr.datamodel import Dataset, Task
 
 
-def label_dataset(
-    task_name: str, dataset_name: str, config: Config, debug: bool = False
-):
-    task = config.tasks[task_name]
-    dataset_loader = config.get_dataloader(dataset_name)
+def label_dataset(task: Task, dataset: Dataset, config: Config, debug: bool = False):
+    path_config = config.paths
 
     applied_heuristics_df = pd.read_pickle(
-        str(config.paths.generated / task.name / f"heuristic_matrix_{dataset_name}.pkl")
+        str(path_config.generated / task.name / f"heuristic_matrix_{dataset.name}.pkl")
     )
 
     label_model = LabelModel()
-    label_model.load(str(config.paths.generated / task_name / "label_model.pkl"))
-    df = dataset_loader.load(config.project_root)
+    label_model.load(str(path_config.generated / task.name / "label_model.pkl"))
+    df = dataset.load()
     df_labeled = do_labeling(
         label_model, applied_heuristics_df.to_numpy(), df, task.labels
     )
@@ -38,10 +36,10 @@ def label_dataset(
         )
         df_labeled["lfs"] = col_lfs
 
-    labeled_data_path = config.paths.labeled_data
+    labeled_data_path = path_config.labeled_data
     if not labeled_data_path.exists():
         labeled_data_path.mkdir(parents=True)
-    target_file = labeled_data_path / f"{dataset_name}.labeled.csv"
+    target_file = labeled_data_path / f"{dataset.name}.labeled.csv"
     df_labeled.to_csv(target_file, index=False)
     print(f"Labeled dataset has been written to {target_file}.")
 

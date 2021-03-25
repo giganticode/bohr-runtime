@@ -1,19 +1,14 @@
 -n {{task.name}}_apply_heuristics__{{heuristic_group|replace('.', '_')}}__{{dataset|replace('.', '_')}}
 
 -d labels.py
--d {{config.paths.heuristics_dir}}/keywords
+-d {{path_config.heuristics_dir}}/keywords
 
 -d {{heuristic_group|replace('.', '/')}}.py
-{% for datapath in task.datasets[dataset].get_relative_paths() %}
--d {{datapath}}{% endfor %}
-
-{% if task.datasets[dataset].from_file %}
--d {{dataset|replace('.', '/')}}.py
-{% endif %}
+-d {{task.datasets[dataset].path_preprocessed}}
 
 -p bohr.json:bohr_framework_version
 
--o {{config.paths.generated_dir}}/{{task.name}}/{{heuristic_group}}/heuristic_matrix_{{dataset}}.pkl
--M {{config.paths.metrics_dir}}/{{task.name}}/{{heuristic_group}}/heuristic_metrics_{{dataset}}.json
+-o {{path_config.generated_dir}}/{{task.name}}/{{heuristic_group}}/heuristic_matrix_{{dataset}}.pkl
+-M {{path_config.metrics_dir}}/{{task.name}}/{{heuristic_group}}/heuristic_metrics_{{dataset}}.json
 
 bohr apply-heuristics {{task.name}} --heuristic-group {{heuristic_group}} --dataset {{dataset}}

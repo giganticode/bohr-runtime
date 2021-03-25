@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Optional, Type
 
 from cachetools import LRUCache
@@ -6,15 +5,16 @@ from snorkel.types import DataPoint
 
 from bohr.artifacts.commit import Commit
 from bohr.core import ArtifactMapper
+from bohr.pathconfig import load_path_config
 
 
 class CommitMapper(ArtifactMapper):
 
     cache = LRUCache(512)
 
-    def __init__(self, project_root: Optional[Path]) -> None:
+    def __init__(self) -> None:
         super().__init__("CommitMapper", [], memoize=False)
-        self.project_root = project_root
+        self.project_root = load_path_config().project_root
 
     def __call__(self, x: DataPoint) -> Optional[DataPoint]:
         key = (x.owner, x.repository, x.sha)
