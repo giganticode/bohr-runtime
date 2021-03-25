@@ -19,16 +19,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class Config:
-    """
-    >>> jsons.loads('{"bohr_framework_version": 0.1, "tasks": {}, "datasets": {}}', Config, \
-software_path='/software')
-    Config(bohr_framework_version=0.1, tasks={}, dataloaders={}, \
-paths=PathsConfig(project_root=PosixPath('/'), software_path=PosixPath('/software'), metrics_dir='metrics', \
-generated_dir='generated', heuristics_dir='heuristics', dataset_dir='dataloaders', \
-labeled_data_dir='labeled-datasets', data_dir='data', labels_dir='labels', manual_stages_dir='manual_stages', \
-downloaded_data_dir='downloaded-data'))
-    """
-
     bohr_framework_version: str
     tasks: Dict[str, Task]
     datasets: Dict[str, Dataset]
@@ -37,7 +27,7 @@ downloaded_data_dir='downloaded-data'))
     @staticmethod
     def load(project_root: Path) -> "Config":
         with open(project_root / "bohr.json") as f:
-            return jsons.loads(f.read(), Config, project_root=project_root)
+            return jsons.loads(f.read(), Config, path_config=load_path_config())
 
 
 def get_version_from_config() -> str:
@@ -134,10 +124,12 @@ def deserialize_task(
     )
 
 
-def deserialize_config(dct, cls, **kwargs) -> Config:
-
-    path_config = load_path_config()
-
+def deserialize_config(dct, cls, path_config: PathConfig, **kwargs) -> Config:
+    """
+    >>> jsons.loads('{"bohr_framework_version": 0.1, "tasks": {}, "datasets": {}}', Config, \
+path_config={})
+    Config(bohr_framework_version=0.1, tasks={}, datasets={}, paths={})
+    """
     datasets: Dict[str, Dataset] = {}
     for dataset_name, dataset_object in dct["datasets"].items():
         datasets[dataset_name] = jsons.load(
