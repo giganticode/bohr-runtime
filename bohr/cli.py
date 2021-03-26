@@ -32,7 +32,8 @@ def bohr():
 def repro(task: Optional[str]):
     config = load_config()
     refresh_if_necessary(config)
-    cmd = ["dvc", "repro", "--pull"]
+    subprocess.run(["dvc", "pull"], cwd=config.project_root)
+    cmd = ["dvc", "repro"]
     if task:
         if task not in config.tasks:
             raise ValueError(f"Task {task} not found in bohr.json")
