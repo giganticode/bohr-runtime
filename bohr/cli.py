@@ -37,6 +37,7 @@ def repro(task: Optional[str]):
         if task not in config.tasks:
             raise ValueError(f"Task {task} not found in bohr.json")
         cmd.extend(["--glob", f"{task}_*"])
+    logger.debug(f"Running command: {cmd}")
     subprocess.run(cmd, cwd=config.paths.project_root)
 
 
