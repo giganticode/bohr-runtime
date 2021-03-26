@@ -75,7 +75,7 @@ def parse_label(config: Config) -> None:
     label_tree = build_label_tree(config.paths.labels)
     from jinja2 import Environment
 
-    env = Environment(loader=FileSystemLoader(Path(__file__).parent.parent))
+    env = Environment(loader=FileSystemLoader(Path(__file__).parent.parent.parent))
     template = env.get_template("resources/labels.template")
     s = template.render(hierarchies=label_tree.flatten())
     with open("labels.py", "w") as f:
