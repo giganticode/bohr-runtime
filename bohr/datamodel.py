@@ -22,29 +22,35 @@ class ArtifactMapper(BaseMapper, ABC):
 
 @dataclass
 class DatasetLoader(ABC):
-    test_set: bool
+    path_preprocessed: Path
     mapper: ArtifactMapper
+    main_file: Optional[Path] = None
 
     def get_artifact(self) -> Type:
         return self.get_mapper().get_artifact()
 
     @abstractmethod
-    def load(self, project_root: Path) -> DataFrame:
-        pass
-
-    @abstractmethod
-    def get_paths(self, project_root: Path) -> List[Path]:
-        pass
-
-    @abstractmethod
-    def get_relative_paths(self) -> List[Path]:
+    def load(self) -> DataFrame:
         pass
 
     def get_mapper(self) -> ArtifactMapper:
         return self.mapper
 
-    def is_test_set(self):
-        return self.test_set
+
+@dataclass
+class Dataset(ABC):
+    name: str
+    path_preprocessed: Path
+    path_dist: Path
+    dataloader: DatasetLoader
+    test_set: bool
+    preprocessor: str
+
+    def get_artifact(self):
+        return self.dataloader.get_artifact()
+
+    def load(self):
+        return self.dataloader.load()
 
 
 @dataclass(frozen=True)
@@ -52,18 +58,17 @@ class Task:
     name: str
     top_artifact: Type
     labels: List[str]
-    train_datasets: Dict[str, DatasetLoader]
-    test_datasets: Dict[str, DatasetLoader]
+    train_datasets: Dict[str, Dataset]
+    test_datasets: Dict[str, Dataset]
     label_column_name: str
-    project_root: Path
     heuristic_groups: List[str]
 
     @property
-    def datasets(self) -> Dict[str, DatasetLoader]:
+    def datasets(self) -> Dict[str, Dataset]:
         return {**self.train_datasets, **self.test_datasets}
 
-    def _datapaths(self, datasets: Iterable[DatasetLoader]) -> List[Path]:
-        return [p for dataset in datasets for p in dataset.get_paths(self.project_root)]
+    def _datapaths(self, datasets: Iterable[Dataset]) -> List[Path]:
+        return [dataset.path_preprocessed for dataset in datasets]
 
     @property
     def datapaths(self) -> List[Path]:

@@ -2,14 +2,16 @@ from pprint import pprint
 
 import pandas as pd
 
-from bohr.config import Config, load_heuristics_from_module
+from bohr.config import load_heuristics_from_module
 from bohr.core import to_labeling_functions
+from bohr.datamodel import Task
+from bohr.pathconfig import PathConfig
 from bohr.pipeline.data_analysis import calculate_metrics, run_analysis
 
 
-def combine_applied_heuristics(task_name: str, config: Config) -> None:
-    task = config.tasks[task_name]
-    task_dir_generated = config.paths.generated / task_name
+def combine_applied_heuristics(task: Task, path_config: PathConfig) -> None:
+
+    task_dir_generated = path_config.generated / task.name
     for dataset_loader_name, dataset_loader in task.datasets.items():
         all_heuristics_file = (
             task_dir_generated / f"heuristic_matrix_{dataset_loader_name}.pkl"
@@ -29,7 +31,7 @@ def combine_applied_heuristics(task_name: str, config: Config) -> None:
             )
             all_heuristics.extend(heuristics)
         labeling_functions = to_labeling_functions(
-            all_heuristics, dataset_loader.get_mapper(), task.labels
+            all_heuristics, dataset_loader.dataloader.get_mapper(), task.labels
         )
         all_heuristics_matrix = pd.concat(matrix_list, axis=1)
         if sum(all_heuristics_matrix.columns.duplicated()) != 0:
@@ -37,20 +39,20 @@ def combine_applied_heuristics(task_name: str, config: Config) -> None:
                 f"Duplicate heuristics are present: {all_heuristics_matrix.columns}"
             )
         all_heuristics_matrix.to_pickle(str(all_heuristics_file))
-        artifact_df = dataset_loader.load(config.project_root)
+        artifact_df = dataset_loader.load()
         label_series = (
             artifact_df[task.label_column_name]
             if task.label_column_name in artifact_df.columns
             else None
         )
         save_csv_to = (
-            config.paths.generated / task.name / f"analysis_{dataset_loader_name}.csv"
+            path_config.generated / task.name / f"analysis_{dataset_loader_name}.csv"
         )
         save_json_to = (
-            config.paths.metrics / task.name / f"analysis_{dataset_loader_name}.json"
+            path_config.metrics / task.name / f"analysis_{dataset_loader_name}.json"
         )
         save_metrics_to = (
-            config.paths.metrics
+            path_config.metrics
             / task.name
             / f"heuristic_metrics_{dataset_loader_name}.json"
         )

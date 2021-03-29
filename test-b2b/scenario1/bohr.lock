@@ -9,11 +9,11 @@
                     "CommitLabel.BugFix"
                 ],
                 "test_datasets": [
-                    "dataloaders.1151-commits",
-                    "dataloaders.berger"
+                    "1151-commits",
+                    "berger"
                 ],
                 "train_datasets": [
-                    "dataloaders.bugginess-train-1k"
+                    "bugginess_train_1k"
                 ],
                 "label_column_name": "bug"
             },
@@ -24,12 +24,57 @@
                     "SnippetLabel.Smelly"
                 ],
                 "test_datasets": [
-                    "dataloaders.smells-test_10"
+                    "smells-test_10"
                 ],
                 "train_datasets": [
-                    "dataloaders.smells-train_10"
+                    "smells-train_10"
                 ],
                 "label_column_name": "smelly"
+            }
+        },
+        "datasets": {
+            "berger": {
+                "path": "berger.csv",
+                "mapper": "bohr.templates.datamappers.commit.CommitMapper",
+                "test_set": "true",
+                "preprocessor": "copy",
+                "loader": "csv"
+            },
+            "1151-commits": {
+                "path": "1151-commits.csv",
+                "mapper": "bohr.templates.datamappers.commit.CommitMapper",
+                "test_set": "true",
+                "preprocessor": "copy",
+                "loader": "csv"
+            },
+            "bugginess_train_1k": {
+                "path": "bugginess_train.7z",
+                "mapper": "bohr.templates.datamappers.commit.CommitMapper",
+                "test_set": "false",
+                "loader": "csv",
+                "preprocessor": "7z",
+                "main_file": "train/bug_sample.csv",
+                "n_rows": 1000
+            },
+            "smells-train_10": {
+                "path": "smells-madeyski.csv",
+                "path_preprocessed": "smells/train.csv",
+                "mapper": "bohr.templates.datamappers.method.MethodMapper",
+                "test_set": "false",
+                "loader": "csv",
+                "preprocessor": "data-preprocessing/smells.sh",
+                "n_rows": 10,
+                "sep": ";"
+            },
+            "smells-test_10": {
+                "path": "smells-madeyski.csv",
+                "path_preprocessed": "smells/test.csv",
+                "mapper": "bohr.templates.datamappers.method.MethodMapper",
+                "test_set": "false",
+                "loader": "csv",
+                "preprocessor": "data-preprocessing/smells.sh",
+                "n_rows": 10,
+                "sep": ";"
             }
         }
     },
@@ -38,9 +83,5 @@
         "heuristics/bugginess/main_heurstics.py": "f6f7a772734ac4a4480ad90891c7f854",
         "heuristics/bugginess/tool_heuristics.py": "844a3d49f4b06f24f0eab2fe4dbc8f31"
     },
-    "manual_stages": {
-        "manual_stages/preprocess_smells.template": "7f29f02049a8171997da3adc3452c936",
-        "manual_stages/preprocess_bugginess_test.template": "6ecc5e41b652802654be097fa81210f1",
-        "manual_stages/preprocess_bugginess_train.template": "371f3c1619be697724965875f1d0531d"
-    }
+    "manual_stages": {}
 }

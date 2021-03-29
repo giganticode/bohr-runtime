@@ -4,4 +4,9 @@
 **/.idea/workspace.xml
 **/.idea/tasks.xml
 
-config/env/local.env
+config/env/local.env/Users/hlib/dev/bohr-framework/test-b2b/scenario1/data/bugginess_train
+/Users/hlib/dev/bohr-framework/test-b2b/scenario1/data/1151-commits.csv
+/Users/hlib/dev/bohr-framework/test-b2b/scenario1/data/berger.csv
+data/1151-commits.csv
+data/berger.csv
+data/bugginess_train

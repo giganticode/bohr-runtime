@@ -1,0 +1,8 @@
+-n preprocess_{{dataset.name}}
+
+-d {{dataset.path_dist}}
+-O {{dataset.path_preprocessed}}
+
+7z x {{dataset.path_dist}} -o{{dataset.path_preprocessed}} &&
+echo "{{dataset.path_preprocessed}}" >> .gitignore &&
+git add .gitignore
