@@ -20,6 +20,7 @@ setup(
         "cachetools>=4.2.0, <5",
         "click>=7.1.2, <8",
         "dask==2020.12.0",
+        "deepdiff==5.2.3",
         "distributed==2020.12.0",
         "fsspec>=0.8.5, <0.9",
         "jinja2>=2.11.2, <3",
