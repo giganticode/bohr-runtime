@@ -39,7 +39,8 @@ def repro(task: Optional[str], only_transient: bool):
     paths_to_pull = [str(d.path_dist) for d in config.datasets.values()]
     cm = ["dvc", "pull"] + paths_to_pull
     logger.debug(f"Pulling datasets with command: {cm}")
-    subprocess.run(cm, cwd=config.paths.project_root)
+    completed_process = subprocess.run(cm, cwd=config.paths.project_root)
+    completed_process.check_returncode()
     cmd = ["dvc", "repro", "--pull"]
     if only_transient:
         cmd.extend(load_transient_stages(config.paths))
@@ -48,7 +49,8 @@ def repro(task: Optional[str], only_transient: bool):
             raise ValueError(f"Task {task} not found in bohr.json")
         cmd.extend(["--glob", f"{task}_*"])
     logger.debug(f"Running command: {cmd}")
-    subprocess.run(cmd, cwd=config.paths.project_root)
+    completed_process = subprocess.run(cmd, cwd=config.paths.project_root)
+    completed_process.check_returncode()
 
 
 @bohr.command()
