@@ -1,4 +1,4 @@
--n parse_labels
+-n {{stage_name}}
 -d {{path_config.labels}}
 -O labels.py
 bohr parse-labels

@@ -1,4 +1,4 @@
--n {{task.name}}_combine_heuristics
+-n {{stage_name}}
 
 {% for heuristic_group in task.heuristic_groups %}
 {% for dataset in task.datasets %} -d {{path_config.generated_dir}}/{{task.name}}/{{heuristic_group}}/heuristic_matrix_{{dataset}}.pkl {% endfor %}

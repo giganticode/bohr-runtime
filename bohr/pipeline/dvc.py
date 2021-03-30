@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import re
@@ -6,6 +7,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 
+import jsons
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from bohr.config import Config, load_config
@@ -22,14 +24,18 @@ class DvcCommand(ABC):
         path_config: PathConfig,
         task: Task,
         execute_immediately: bool = False,
+        transient_stage: bool = False,
     ):
         self.template = template
         self.path_config = path_config
         self.task = task
         self.execute_immediately = execute_immediately
+        self.transient_stage = transient_stage
 
     def render_stage_template(self, template) -> str:
-        return template.render(task=self.task, path_config=self.path_config)
+        return template.render(
+            stage_name=self.get_name(), task=self.task, path_config=self.path_config
+        )
 
     def to_string(self) -> List[str]:
         env = Environment(
@@ -54,6 +60,10 @@ class DvcCommand(ABC):
             command, cwd=self.path_config.project_root, capture_output=True
         )
 
+    @abstractmethod
+    def get_name(self) -> str:
+        pass
+
 
 class ParseLabelsCommand(DvcCommand):
     def __init__(self, path_config: PathConfig, execute_immediately: bool = False):
@@ -63,6 +73,9 @@ class ParseLabelsCommand(DvcCommand):
 
     def summary(self) -> str:
         return "parse labels"
+
+    def get_name(self) -> str:
+        return "parse_labels"
 
 
 class ApplyHeuristicsCommand(DvcCommand):
@@ -82,6 +95,7 @@ class ApplyHeuristicsCommand(DvcCommand):
 
     def render_stage_template(self, template) -> str:
         return template.render(
+            stage_name=self.get_name(),
             task=self.task,
             path_config=self.path_config,
             heuristic_group=self.heuristic_group,
@@ -90,6 +104,9 @@ class ApplyHeuristicsCommand(DvcCommand):
 
     def summary(self) -> str:
         return f"[{self.task.name}] apply heuristics (group: {self.heuristic_group}) to {self.dataset}"
+
+    def get_name(self) -> str:
+        return f"{self.task.name}_apply_heuristics__{self.heuristic_group.replace('.', '_')}__{self.dataset.replace('.', '_')}"
 
 
 class CombineHeuristicsCommand(DvcCommand):
@@ -103,6 +120,9 @@ class CombineHeuristicsCommand(DvcCommand):
     def summary(self) -> str:
         return f"[{self.task.name}] combine heuristics"
 
+    def get_name(self) -> str:
+        return f"{self.task.name}_combine_heuristics"
+
 
 class TrainLabelModelCommand(DvcCommand):
     def __init__(
@@ -114,6 +134,7 @@ class TrainLabelModelCommand(DvcCommand):
 
     def render_stage_template(self, template) -> str:
         return template.render(
+            stage_name=self.get_name(),
             task=self.task,
             path_config=self.path_config,
             target_dataset=next(iter(self.task.train_datasets.keys())),
@@ -121,6 +142,9 @@ class TrainLabelModelCommand(DvcCommand):
 
     def summary(self) -> str:
         return f"[{self.task.name}] train label model on {next(iter(self.task.train_datasets.keys()))} dataset"
+
+    def get_name(self) -> str:
+        return f"{self.task.name}_train_label_model"
 
 
 class LabelDatasetCommand(DvcCommand):
@@ -138,11 +162,17 @@ class LabelDatasetCommand(DvcCommand):
 
     def render_stage_template(self, template) -> str:
         return template.render(
-            task=self.task, path_config=self.path_config, dataset=self.dataset
+            stage_name=self.get_name(),
+            task=self.task,
+            path_config=self.path_config,
+            dataset=self.dataset,
         )
 
     def summary(self) -> str:
         return f"[{self.task.name}] label dataset: {self.dataset}"
+
+    def get_name(self) -> str:
+        return f"{self.task.name}_label_dataset_{self.dataset.replace('.', '_')}"
 
 
 class PreprocessCopyCommand(DvcCommand):
@@ -153,18 +183,26 @@ class PreprocessCopyCommand(DvcCommand):
         execute_immediately: bool = False,
     ):
         super().__init__(
-            "preprocess_copy.template", path_config, None, execute_immediately
+            "preprocess_copy.template",
+            path_config,
+            None,
+            execute_immediately,
+            transient_stage=True,
         )
         self.dataset = dataset
 
     def render_stage_template(self, template) -> str:
         return template.render(
+            stage_name=self.get_name(),
             dataset=self.dataset,
             data_dir=self.path_config.data_dir,
         )
 
     def summary(self) -> str:
         return f"Pre-processing (copying): {self.dataset.name}"
+
+    def get_name(self) -> str:
+        return f"preprocess_{self.dataset.name}"
 
 
 class Preprocess7zCommand(DvcCommand):
@@ -175,18 +213,22 @@ class Preprocess7zCommand(DvcCommand):
         execute_immediately: bool = False,
     ):
         super().__init__(
-            "preprocess_7z.template", path_config, None, execute_immediately
+            "preprocess_7z.template",
+            path_config,
+            None,
+            execute_immediately,
+            transient_stage=True,
         )
         self.dataset = dataset
 
     def render_stage_template(self, template) -> str:
-        return template.render(
-            dataset=self.dataset,
-            data_dir=self.path_config.data_dir,
-        )
+        return template.render(stage_name=self.get_name(), dataset=self.dataset)
 
     def summary(self) -> str:
         return f"Pre-processing (extracting): {self.dataset.name}"
+
+    def get_name(self) -> str:
+        return f"preprocess_{self.dataset.name}"
 
 
 class PreprocessShellCommand(DvcCommand):
@@ -202,13 +244,13 @@ class PreprocessShellCommand(DvcCommand):
         self.dataset = dataset
 
     def render_stage_template(self, template) -> str:
-        return template.render(
-            dataset=self.dataset,
-            data_dir=self.path_config.data_dir,
-        )
+        return template.render(stage_name=self.get_name(), dataset=self.dataset)
 
     def summary(self) -> str:
         return f"Pre-processing (shell): {self.dataset.name}"
+
+    def get_name(self) -> str:
+        return f"preprocess_{self.dataset.name}"
 
 
 class ManualCommand(DvcCommand):
@@ -228,6 +270,9 @@ class ManualCommand(DvcCommand):
     def summary(self) -> str:
         return f"Command from: {self.path_to_template}"
 
+    def get_name(self) -> str:
+        return "manual_command"
+
 
 def create_directories_if_necessary(config: Config) -> None:
     path_config = config.paths
@@ -242,6 +287,25 @@ def create_directories_if_necessary(config: Config) -> None:
     path_config.labeled_data.mkdir(exist_ok=True, parents=True)
 
 
+def save_transient_stages_to_config(
+    transient_stages: List[str], path_config: PathConfig
+) -> None:
+    conf_dir = path_config.project_root / ".bohr"
+    if not conf_dir.exists():
+        conf_dir.mkdir()
+    transient_stages_file = conf_dir / "transient_stages.json"
+    with transient_stages_file.open("w") as f:
+        json.dump(transient_stages, f)
+
+
+def load_transient_stages(path_config: PathConfig) -> List[str]:
+    transient_stages_file = path_config.project_root / ".bohr" / "transient_stages.json"
+    if not transient_stages_file.exists():
+        return []
+    with transient_stages_file.open() as f:
+        return json.load(f)
+
+
 def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
     path_config = config.paths
     create_directories_if_necessary(config)
@@ -249,12 +313,17 @@ def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
     logger.info(
         f"Following tasks are added to the pipeline: {list(map(lambda x: x.name, all_tasks))}"
     )
+    transient_stages = []
     commands: List[DvcCommand] = []
     for dataset_name, dataset in config.datasets.items():
         if dataset.preprocessor == "copy":
-            commands.append(PreprocessCopyCommand(path_config, dataset))
+            copy_command = PreprocessCopyCommand(path_config, dataset)
+            commands.append(copy_command)
+            transient_stages.append(copy_command.get_name())
         elif dataset.preprocessor == "7z":
-            commands.append(Preprocess7zCommand(path_config, dataset))
+            extract_command = Preprocess7zCommand(path_config, dataset)
+            commands.append(extract_command)
+            transient_stages.append(extract_command.get_name())
         else:
             commands.append(PreprocessShellCommand(path_config, dataset))
     commands.append(ParseLabelsCommand(path_config))
@@ -270,14 +339,16 @@ def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
         commands.append(TrainLabelModelCommand(path_config, task))
         for dataset_name in task.datasets:
             commands.append(LabelDatasetCommand(path_config, task, dataset_name))
-    root, dirs, files = next(os.walk(path_config.manual_stages))
-    for file in files:
-        commands.append(ManualCommand(path_config, Path(root) / file))
+    if path_config.manual_stages.exists():
+        root, dirs, files = next(os.walk(path_config.manual_stages))
+        for file in files:
+            commands.append(ManualCommand(path_config, Path(root) / file))
     for command in commands:
         completed_process = command.run()
         if completed_process.returncode != 0:
             print(completed_process.stderr.decode())
             break
+    save_transient_stages_to_config(transient_stages, path_config)
 
 
 if __name__ == "__main__":
