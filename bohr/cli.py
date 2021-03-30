@@ -10,6 +10,7 @@ from bohr.api import refresh_if_necessary
 from bohr.config import load_config
 from bohr.pathconfig import add_to_local_config, load_path_config
 from bohr.pipeline import stages
+from bohr.pipeline.dvc import load_transient_stages
 from bohr.pipeline.profiler import Profiler
 from bohr.pipeline.stages.parse_labels import parse_label
 
@@ -29,11 +30,19 @@ def bohr():
 
 @bohr.command()
 @click.argument("task", required=False)
-def repro(task: Optional[str]):
+@click.option("--only-transient", is_flag=True)
+def repro(task: Optional[str], only_transient: bool):
+    if only_transient and task:
+        raise ValueError("Both --only-transient and task is not supported")
     config = load_config()
     refresh_if_necessary(config.paths)
-    subprocess.run(["dvc", "pull"], cwd=config.paths.project_root)
-    cmd = ["dvc", "repro"]
+    paths_to_pull = [str(d.path_dist) for d in config.datasets.values()]
+    cm = ["dvc", "pull"] + paths_to_pull
+    logger.debug(f"Pulling datasets with command: {cm}")
+    subprocess.run(cm, cwd=config.paths.project_root)
+    cmd = ["dvc", "repro", "--pull"]
+    if only_transient:
+        cmd.extend(load_transient_stages(config.paths))
     if task:
         if task not in config.tasks:
             raise ValueError(f"Task {task} not found in bohr.json")

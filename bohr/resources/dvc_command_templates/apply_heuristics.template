@@ -1,4 +1,4 @@
--n {{task.name}}_apply_heuristics__{{heuristic_group|replace('.', '_')}}__{{dataset|replace('.', '_')}}
+-n {{stage_name}}
 
 -d labels.py
 -d {{path_config.heuristics_dir}}/keywords
