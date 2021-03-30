@@ -24,15 +24,15 @@ class Cache:
         return self.project_root / "data" / "bugginess_train" / "train"
 
     @property
-    def issues_file(self):
+    def issues_file(self) -> Path:
         return self.bugginess_train / "bug_sample_issues.csv"
 
     @property
-    def changes_file(self):
+    def changes_file(self) -> Path:
         return self.bugginess_train / "bug_sample_files.csv"
 
     @property
-    def commits_file(self):
+    def commits_file(self) -> Path:
         return self.bugginess_train / "bug_sample.csv"
 
     @lru_cache(maxsize=8)
@@ -51,6 +51,8 @@ class Cache:
     @cached_property
     def __issues_df(self):
         logger.debug("Reading bug reports...")
+        if not self.issues_file.exists():
+            return None
         return pd.read_csv(
             self.issues_file,
             index_col=["owner", "repository", "sha"],
@@ -60,6 +62,8 @@ class Cache:
 
     @cached_property
     def __files_df(self):
+        if not self.changes_file.exists():
+            return None
         logger.debug("Reading commit files...")
         return pd.read_csv(self.changes_file, index_col=["owner", "repository", "sha"])
 
@@ -71,6 +75,8 @@ class Cache:
         else:
             raise ValueError("invalid resources type")
 
+        if df is None:
+            return None
         try:
             return df.loc[[(owner, repository, sha)]]
         except KeyError:
