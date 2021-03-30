@@ -18,7 +18,7 @@ def md5_folder(
 ) -> Dict[str, str]:
     res: Dict[str, str] = {}
     for root, dir, files in os.walk(path):
-        for file in files:
+        for file in sorted(files):
             if python_files and (
                 file.startswith("_")
                 or root.endswith("__pycache__")
