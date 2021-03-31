@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 import jsons
 import toml
@@ -152,6 +153,6 @@ def add_to_local_config(section: str, key: str, value: str) -> None:
     gitignore_file(local_dir_path, LOCAL_CONFIG_FILE)
 
 
-def load_path_config() -> PathConfig:
-    project_root = find_project_root()
+def load_path_config(project_root: Optional[Path] = None) -> PathConfig:
+    project_root = project_root or find_project_root()
     return PathConfig.load(project_root)

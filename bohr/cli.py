@@ -1,13 +1,14 @@
 import json
 import subprocess
+from pathlib import Path
 from pprint import pprint
-from typing import Optional
+from typing import List, Optional
 
 import click
 
 from bohr import __version__, api
 from bohr.api import refresh_if_necessary
-from bohr.config import load_config
+from bohr.config import Config, load_config
 from bohr.pathconfig import add_to_local_config, load_path_config
 from bohr.pipeline import stages
 from bohr.pipeline.dvc import load_transient_stages
@@ -28,6 +29,43 @@ def bohr():
     pass
 
 
+def run_dvc_commands(commands: List[List[str]], project_root: Path) -> None:
+    for command in commands:
+        logger.debug(f"Running command: {' '.join(command)}")
+        completed_process = subprocess.run(command, cwd=project_root)
+        completed_process.check_returncode()
+
+
+def get_dvc_commands_to_repro(
+    task: Optional[str], only_transient: bool, config: Config
+) -> List[List[str]]:
+    """
+    # >>> import tempfile
+    # >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    # ...     with open(Path(tmpdirname) / 'bohr.json', 'w') as f:
+    # ...         print(f.write('{"bohr_framework_version": "0.3.9-rc", "tasks": {}, "datasets": {}}'))
+    # ...     get_dvc_commands_to_repro(None, False, load_config(Path(tmpdirname)))
+    """
+    commands: List[List[str]] = []
+    paths_to_pull = [str(d.path_dist) for d in config.datasets.values()]
+    if len(paths_to_pull) > 0:
+        commands.append(["dvc", "pull"] + paths_to_pull)
+
+    # TODO run only task-related transient stages if task is passed:
+    transient_stages = load_transient_stages(config.paths)
+    if len(transient_stages) > 0:
+        commands.append(["dvc", "repro"] + transient_stages)
+
+    if not only_transient:
+        cmd = ["dvc", "repro", "--pull"]
+        if task:
+            if task not in config.tasks:
+                raise ValueError(f"Task {task} not found in bohr.json")
+            cmd.extend(["--glob", f"{task}_*"])
+        commands.append(cmd)
+    return commands
+
+
 @bohr.command()
 @click.argument("task", required=False)
 @click.option("--only-transient", is_flag=True)
@@ -36,21 +74,8 @@ def repro(task: Optional[str], only_transient: bool):
         raise ValueError("Both --only-transient and task is not supported")
     config = load_config()
     refresh_if_necessary(config.paths)
-    paths_to_pull = [str(d.path_dist) for d in config.datasets.values()]
-    cm = ["dvc", "pull"] + paths_to_pull
-    logger.debug(f"Pulling datasets with command: {cm}")
-    completed_process = subprocess.run(cm, cwd=config.paths.project_root)
-    completed_process.check_returncode()
-    cmd = ["dvc", "repro", "--pull"]
-    if only_transient:
-        cmd.extend(load_transient_stages(config.paths))
-    if task:
-        if task not in config.tasks:
-            raise ValueError(f"Task {task} not found in bohr.json")
-        cmd.extend(["--glob", f"{task}_*"])
-    logger.debug(f"Running command: {cmd}")
-    completed_process = subprocess.run(cmd, cwd=config.paths.project_root)
-    completed_process.check_returncode()
+    commands = get_dvc_commands_to_repro(task, only_transient, config)
+    run_dvc_commands(commands, config.paths.project_root)
 
 
 @bohr.command()
@@ -98,7 +123,7 @@ def apply_heuristics(
     task: str, heuristic_group: Optional[str], dataset: Optional[str], profile: bool
 ):
     config = load_config()
-    path_config = load_path_config()
+    path_config = config.paths
 
     task = config.tasks[task]
     if heuristic_group:
@@ -115,7 +140,7 @@ def apply_heuristics(
 def train_label_model(task: str, target_dataset: str):
 
     config = load_config()
-    path_config = load_path_config()
+    path_config = config.paths
     task = config.tasks[task]
     target_dataset = config.datasets[target_dataset]
     stats = stages.train_label_model(task, target_dataset, path_config)

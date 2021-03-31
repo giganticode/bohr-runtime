@@ -27,7 +27,9 @@ class Config:
     @staticmethod
     def load(project_root: Path) -> "Config":
         with open(project_root / "bohr.json") as f:
-            return jsons.loads(f.read(), Config, path_config=load_path_config())
+            return jsons.loads(
+                f.read(), Config, path_config=load_path_config(project_root)
+            )
 
 
 def get_version_from_config() -> str:
@@ -37,8 +39,8 @@ def get_version_from_config() -> str:
         return str(dct["bohr-framework-version"])
 
 
-def load_config() -> Config:
-    project_root = find_project_root()
+def load_config(project_root: Optional[Path] = None) -> Config:
+    project_root = project_root or find_project_root()
     config = Config.load(project_root)
 
     version_installed = version()
