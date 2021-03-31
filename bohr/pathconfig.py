@@ -76,7 +76,7 @@ class PathConfig:
                     f"Value not found in config: software_path, using default value."
                 )
                 software_path = str(project_root / "software")
-        return PathConfig(project_root, software_path)
+        return PathConfig(project_root, Path(software_path))
 
 
 def find_project_root() -> Path:
