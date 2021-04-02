@@ -22,11 +22,17 @@ def calculate_metrics(
     """
     >>> from collections import namedtuple; import tempfile
     >>> def mocked_predictions(l,return_probs,tie_break_policy): return np.array([1, 0, 1]), np.array([[0.1, 0.9], [0.8, 0.2], [0.25, 0.75]])
-    >>> lm = namedtuple('LM', 'predict')(mocked_predictions)
+    >>> def mocked_scores(L,Y,tie_break_policy,metrics):
+    ...     return {"f1": 1.0} if metrics == ['f1'] else {"roc_auc": 0.78}
+    >>> lm = namedtuple('LM', ['predict', 'score'])(mocked_predictions, mocked_scores)
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
     ...     np.ndarray([]).dump(f"{tmpdirname}/heuristic_matrix_test_set.pkl")
     ...     calculate_metrics(lm, "test_set", np.array([1, 1, 0]), Path(tmpdirname))
-    {'label_model_acc_test_set': 0.33, 'label_model_neg_log_loss_test_set': 1.491}
+    {'label_model_accuracy_test_set': 0.333, 'label_model_auc_test_set': 0.78, 'label_model_f1_test_set': 1.0, 'label_model_mse_test_set': 0.404}
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     np.ndarray([]).dump(f"{tmpdirname}/heuristic_matrix_test_set.pkl")
+    ...     calculate_metrics(lm, "test_set", np.array([0, 1, 0]), Path(tmpdirname))
+    {'label_model_accuracy_test_set': 0.0, 'label_model_auc_test_set': 0.78, 'label_model_f1_test_set': 1.0, 'label_model_mse_test_set': 0.671}
     """
     lines = np.load(
         str(save_to / f"heuristic_matrix_{dataset_name}.pkl"), allow_pickle=True
@@ -38,14 +44,24 @@ def calculate_metrics(
         lines, return_probs=True, tie_break_policy=tie_break_policy
     )
 
+    try:
+        auc = label_model.score(
+            L=lines, Y=true_labels, tie_break_policy="random", metrics=["roc_auc"]
+        )["roc_auc"]
+        auc = round(auc, 3)
+    except ValueError:
+        auc = "n/a"
+    f1 = label_model.score(
+        L=lines, Y=true_labels, tie_break_policy="random", metrics=["f1"]
+    )["f1"]
     accuracy = sum(Y_pred == true_labels) / float(len(Y_pred))
-    neg_log_loss = np.mean(
-        -np.log2(np.take_along_axis(Y_prob, true_labels[:, None], axis=1))[:, 0]
-    )
+    mse = np.mean((Y_prob[:, 1] - true_labels) ** 2)
 
     return {
-        f"label_model_acc_{dataset_name}": round(accuracy, 2),
-        f"label_model_neg_log_loss_{dataset_name}": round(neg_log_loss, 3),
+        f"label_model_accuracy_{dataset_name}": round(accuracy, 3),
+        f"label_model_auc_{dataset_name}": auc,
+        f"label_model_f1_{dataset_name}": round(f1, 3),
+        f"label_model_mse_{dataset_name}": round(mse, 3),
     }
 
 
