@@ -1,1 +1,1 @@
-{"label_model_acc_smells-test_10": 1.0, "label_model_neg_log_loss_smells-test_10": 0.627}
+{"label_model_accuracy_smells-test_10": 1.0, "label_model_auc_smells-test_10": "n/a", "label_model_f1_smells-test_10": 1.0, "label_model_mse_smells-test_10": 0.128}
