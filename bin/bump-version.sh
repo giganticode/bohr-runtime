@@ -34,7 +34,7 @@ git commit -am "Bump version to $tag"
 git tag -a "$tag" -m "$tag"
 git push --tags
 
-patch_version="$(echo "$tag_bohr_version" | sed -E 's/.*([0-9]+)$/\1/g' )"
+patch_version="$(echo "$tag_bohr_version" | sed -E 's/.*\.([0-9]+)$/\1/g' )"
 incremented_patch_version=$(echo "$patch_version+1" | bc )
 echo $tag_bohr_version | sed -E "s/[0-9]+$/$incremented_patch_version-rc/g" > "$version_file"
 
