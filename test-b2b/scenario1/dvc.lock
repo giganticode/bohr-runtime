@@ -41,7 +41,7 @@ stages:
       size: 1707
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_matrix_1151-commits.pkl
       md5: c6af762a98ee12ff2406081c5b2474d5
@@ -92,7 +92,7 @@ stages:
       size: 1707
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_matrix_bugginess_train_1k.pkl
       md5: bd219c19890c6b8d4257d4ac08a77475
@@ -145,7 +145,7 @@ stages:
       size: 1707
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/smells_10/heuristics.smells/heuristic_matrix_smells-test_10.pkl
       md5: e2d56b2b7c4e0b4b86c2ea0d691f9d78
@@ -172,7 +172,7 @@ stages:
       size: 1707
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/smells_10/heuristics.smells/heuristic_matrix_smells-train_10.pkl
       md5: 4c2499b167bd98487397e0ac1025d5d0
@@ -191,7 +191,7 @@ stages:
       size: 1062
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/smells_10/analysis_smells-test_10.csv
       md5: 9d0a63323e2d0380f35bed4d72fa8c29
@@ -231,7 +231,7 @@ stages:
       size: 1062
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/smells_10/label_model.pkl
       md5: c11b16ee85ab50bb0dcaa84e8330e97b
@@ -253,7 +253,7 @@ stages:
       size: 4889
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: labeled-datasets/smells-train_10.labeled.csv
       md5: afe48dacf0dc2738f15a7672ba01c832
@@ -277,7 +277,7 @@ stages:
       size: 1707
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_matrix_berger.pkl
       md5: 801c9821d6c071c4e5a368d7cb9d752b
@@ -304,7 +304,7 @@ stages:
       size: 1707
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/bugginess-1k/heuristics.bugginess.tool_heuristics/heuristic_matrix_1151-commits.pkl
       md5: c249b890a201e94666dc95c9c7cb1bd4
@@ -331,7 +331,7 @@ stages:
       size: 1707
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/bugginess-1k/heuristics.bugginess.tool_heuristics/heuristic_matrix_berger.pkl
       md5: 69e25ef66180122ad15ee5cd6ca106ac
@@ -359,7 +359,7 @@ stages:
       size: 1707
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/bugginess-1k/heuristics.bugginess.tool_heuristics/heuristic_matrix_bugginess_train_1k.pkl
       md5: 6588536575bf1db4ed178e1916f0665b
@@ -390,7 +390,7 @@ stages:
       size: 8775
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/bugginess-1k/analysis_1151-commits.csv
       md5: 6b2824f890d35cef270a6f3d49f06d35
@@ -448,7 +448,7 @@ stages:
       size: 2460080
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: generated/bugginess-1k/label_model.pkl
       md5: 8cf49b08940da7ec22b671585304513d
@@ -470,7 +470,7 @@ stages:
       size: 1912346
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: labeled-datasets/berger.labeled.csv
       md5: 95b9186db579a7fc3829d38460600e29
@@ -490,7 +490,7 @@ stages:
       size: 1912346
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: labeled-datasets/bugginess_train_1k.labeled.csv
       md5: 91868b5d6e15aeabeb45db149def6d80
@@ -509,7 +509,7 @@ stages:
       size: 1912346
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: labeled-datasets/1151-commits.labeled.csv
       md5: c6f877f09f57d26562fe1aa5f8d0f081
@@ -528,7 +528,7 @@ stages:
       size: 4889
     params:
       bohr.json:
-        bohr_framework_version: 0.3.1-rc
+        bohr_framework_version: 0.3.11-rc
     outs:
     - path: labeled-datasets/smells-test_10.labeled.csv
       md5: 3bef09cc8ae3923b910b9416c989cce1
