@@ -16,7 +16,7 @@ pip install jq===1.1.2 -qqq
 BOHR_VERSION="$( cat $version_file )"
 echo "Current bohr version is $BOHR_VERSION"
 
-if ! [[ "$BOHR_VERSION" =~ [0-9]+\\.[0-9]+\\.[0-9]+-rc ]]; then
+if ! [[ "$BOHR_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc$ ]]; then
     echo "Version in bohr/VERSION file should match regex: [0-9]+\.[0-9]+\.[0-9]+-rc"
     exit 3
 fi
