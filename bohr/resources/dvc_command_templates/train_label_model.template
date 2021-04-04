@@ -7,6 +7,7 @@
 -p bohr.json:bohr_framework_version
 
 -o {{path_config.generated_dir}}/{{task.name}}/label_model.pkl
+-O {{path_config.generated_dir}}/{{task.name}}/label_model_weights.csv
 
 -M {{path_config.metrics_dir}}/{{task.name}}/label_model_metrics.json
 
