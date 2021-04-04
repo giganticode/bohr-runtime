@@ -86,6 +86,17 @@ def train_label_model(
     label_model.save(str(task_dir_generated / "label_model.pkl"))
     label_model.eval()
 
+    label_model_weights_file = (
+        path_config.generated / task.name / f"label_model_weights.csv"
+    )
+
+    df = pd.DataFrame(
+        label_model.mu.cpu().detach().numpy().reshape(-1, 4),
+        columns=["00", "01", "10", "11"],
+        index=lines_train.columns,
+    )
+    df.to_csv(label_model_weights_file)
+
     stats = {}
     for test_set_name, test_set in task.test_datasets.items():
         df = test_set.load()

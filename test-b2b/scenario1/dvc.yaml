@@ -188,6 +188,8 @@ stages:
       - bohr_framework_version
     outs:
     - generated/bugginess-1k/label_model.pkl
+    - generated/bugginess-1k/label_model_weights.csv:
+        cache: false
     metrics:
     - metrics/bugginess-1k/label_model_metrics.json:
         cache: false
@@ -291,6 +293,8 @@ stages:
       - bohr_framework_version
     outs:
     - generated/smells_10/label_model.pkl
+    - generated/smells_10/label_model_weights.csv:
+        cache: false
     metrics:
     - metrics/smells_10/label_model_metrics.json:
         cache: false
