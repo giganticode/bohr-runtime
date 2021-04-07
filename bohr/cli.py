@@ -5,10 +5,13 @@ from pprint import pprint
 from typing import List, Optional
 
 import click
+import dvc.exceptions
+import dvc.scm.base
 
 from bohr import __version__, api
 from bohr.api import refresh_if_necessary
 from bohr.config import Config, load_config
+from bohr.debugging import DataPointDebugger, DatasetDebugger
 from bohr.pathconfig import add_to_local_config, load_path_config
 from bohr.pipeline import stages
 from bohr.pipeline.dvc import load_transient_stages
@@ -27,6 +30,32 @@ logger = logging.getLogger(__name__)
 @click.version_option(__version__)
 def bohr():
     pass
+
+
+@bohr.command()
+@click.argument("task")
+@click.argument("dataset")
+@click.argument("old_rev", type=str, required=False)
+@click.option("--top", type=int, required=False)
+@click.option("-i", type=int, required=False)
+def debug(
+    task: str,
+    dataset: str,
+    old_rev: str = "master",
+    i: Optional[int] = None,
+    top: int = 10,
+) -> None:
+    try:
+        if i is None:
+            DatasetDebugger(task, dataset, old_rev).show_worst_datapoints(top)
+        else:
+            DataPointDebugger(task, dataset, old_rev).show_datapoint_info(i)
+    except dvc.scm.base.RevError:
+        logger.error(f"Revision does not exist: {old_rev}")
+        exit(23)
+    except dvc.exceptions.PathMissingError:
+        logger.error(f"Dataset {dataset} or task {task} does not exist.")
+        exit(24)
 
 
 def run_dvc_commands(commands: List[List[str]], project_root: Path) -> None:

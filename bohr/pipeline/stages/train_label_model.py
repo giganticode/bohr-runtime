@@ -95,7 +95,7 @@ def train_label_model(
         columns=["00", "01", "10", "11"],
         index=lines_train.columns,
     )
-    df.to_csv(label_model_weights_file)
+    df.to_csv(label_model_weights_file, index_label="heuristic_name")
 
     stats = {}
     for test_set_name, test_set in task.test_datasets.items():
