@@ -22,6 +22,7 @@ setup(
         "dask==2020.12.0",
         "deepdiff==5.2.3",
         "distributed==2020.12.0",
+        "dvc==2.0.14",
         "fsspec>=0.8.5, <0.9",
         "jinja2>=2.11.2, <3",
         "jsons>=1.4.0, <2",
