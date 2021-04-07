@@ -1,4 +1,4 @@
-,00,01,10,11
+heuristic_name,00,01,10,11
 bug_if_only_changed_lines_in_one_file,0.001,0.001,0.0639049,0.049420916
 bugless_if_many_files_changes,0.16672023,0.06865714,0.001,0.001
 github_ref_in_message,0.001,0.001,0.001,0.001
