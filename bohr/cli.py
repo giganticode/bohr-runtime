@@ -35,21 +35,17 @@ def bohr():
 @bohr.command()
 @click.argument("task")
 @click.argument("dataset")
-@click.argument("old_rev", type=str, required=False)
-@click.option("--top", type=int, required=False)
-@click.option("-i", type=int, required=False)
+@click.argument("old_rev", type=str, required=False, default="master")
+@click.option("-i", "--datapoint", type=int, required=False, default=None)
+@click.option("--top", type=int, required=False, default=10)
 def debug(
-    task: str,
-    dataset: str,
-    old_rev: str = "master",
-    i: Optional[int] = None,
-    top: int = 10,
+    task: str, dataset: str, old_rev: str, datapoint: Optional[int], top: int
 ) -> None:
     try:
-        if i is None:
+        if datapoint is None:
             DatasetDebugger(task, dataset, old_rev).show_worst_datapoints(top)
         else:
-            DataPointDebugger(task, dataset, old_rev).show_datapoint_info(i)
+            DataPointDebugger(task, dataset, old_rev).show_datapoint_info(datapoint)
     except dvc.scm.base.RevError:
         logger.error(f"Revision does not exist: {old_rev}")
         exit(23)
