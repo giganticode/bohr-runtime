@@ -18,6 +18,7 @@
                 "label_column_name": "bug"
             },
             "smells_10": {
+                "description": "desc",
                 "top_artifact": "bohr.artifacts.method.Method",
                 "label_categories": [
                     "SnippetLabel.NonSmelly",
@@ -34,6 +35,7 @@
         },
         "datasets": {
             "berger": {
+                "description": "desc",
                 "path": "berger.csv",
                 "mapper": "bohr.templates.datamappers.commit.CommitMapper",
                 "test_set": "true",
@@ -41,6 +43,7 @@
                 "loader": "csv"
             },
             "1151-commits": {
+                "description": "desc",
                 "path": "1151-commits.csv",
                 "mapper": "bohr.templates.datamappers.commit.CommitMapper",
                 "test_set": "true",
@@ -48,6 +51,7 @@
                 "loader": "csv"
             },
             "bugginess_train_1k": {
+                "description": "desc",
                 "path": "bugginess_train.7z",
                 "mapper": "bohr.templates.datamappers.commit.CommitMapper",
                 "test_set": "false",
@@ -57,6 +61,7 @@
                 "n_rows": 1000
             },
             "smells-train_10": {
+                "description": "desc",
                 "path": "smells-madeyski.csv",
                 "path_preprocessed": "smells/train.csv",
                 "mapper": "bohr.templates.datamappers.method.MethodMapper",
