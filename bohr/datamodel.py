@@ -40,6 +40,7 @@ class DatasetLoader(ABC):
 @dataclass
 class Dataset(ABC):
     name: str
+    description: Optional[str]
     path_preprocessed: Path
     path_dist: Path
     dataloader: DatasetLoader
@@ -56,6 +57,7 @@ class Dataset(ABC):
 @dataclass(frozen=True)
 class Task:
     name: str
+    description: Optional[str]
     top_artifact: Type
     labels: List[str]
     train_datasets: Dict[str, Dataset]

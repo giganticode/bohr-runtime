@@ -117,6 +117,7 @@ def deserialize_task(
     heuristic_groups = get_heuristic_module_list(artifact, heuristic_path)
     return Task(
         task_name,
+        dct["description"] if "description" in dct else None,
         artifact,
         dct["label_categories"],
         train_datasets=train_datasets,
@@ -193,6 +194,7 @@ def desearialize_dataset(
 
         return Dataset(
             name=dataset_name,
+            description=dct["description"] if "description" in dct else None,
             path_preprocessed=path_preprocessed,
             path_dist=downloaded_data_dir / dct["path"],
             dataloader=dataset_loader,
