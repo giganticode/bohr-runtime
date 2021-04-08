@@ -147,17 +147,24 @@ class DatasetDebugger:
         self.combined_df = pd.concat([self.combined_df, old_df["message"]], axis=1)
         self.combined_df.sort_values(by="improvement", inplace=True)
 
-    def show_worst_datapoints(self, n: Optional[int] = 10) -> None:
-        worst_datapoints = self.combined_df.head(n)
+    def _show_datapoints(self, df: pd.DataFrame) -> None:
         pd.options.mode.chained_assignment = None
-        worst_datapoints.loc[:, "message"] = worst_datapoints["message"].str.wrap(70)
+        df.loc[:, "message"] = df["message"].str.wrap(70)
         print(
             tabulate(
-                worst_datapoints,
-                headers=worst_datapoints.columns,
+                df,
+                headers=df.columns,
                 tablefmt="fancy_grid",
             )
         )
+
+    def show_worst_datapoints(self, n: Optional[int] = 10) -> None:
+        worst_datapoints = self.combined_df.head(n)
+        self._show_datapoints(worst_datapoints)
+
+    def show_best_datapoints(self, n: Optional[int] = 10) -> None:
+        worst_datapoints = self.combined_df.tail(n)
+        self._show_datapoints(worst_datapoints)
 
     def show_datapoint(self, n: int) -> None:
         a = self.combined_df.loc[n].to_frame()

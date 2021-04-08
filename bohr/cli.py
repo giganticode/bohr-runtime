@@ -37,13 +37,23 @@ def bohr():
 @click.argument("dataset")
 @click.argument("old_rev", type=str, required=False, default="master")
 @click.option("-i", "--datapoint", type=int, required=False, default=None)
-@click.option("--top", type=int, required=False, default=10)
+@click.option("--top", type=int, required=False, default=None)
+@click.option("--bottom", type=int, required=False, default=None)
 def debug(
-    task: str, dataset: str, old_rev: str, datapoint: Optional[int], top: int
+    task: str,
+    dataset: str,
+    old_rev: str,
+    datapoint: Optional[int],
+    top: Optional[int],
+    bottom: Optional[int],
 ) -> None:
     try:
         if datapoint is None:
-            DatasetDebugger(task, dataset, old_rev).show_worst_datapoints(top)
+            dataset_debugger = DatasetDebugger(task, dataset, old_rev)
+            if bottom is None:
+                dataset_debugger.show_worst_datapoints(top or 10)
+            else:
+                dataset_debugger.show_best_datapoints(bottom)
         else:
             DataPointDebugger(task, dataset, old_rev).show_datapoint_info(datapoint)
     except dvc.scm.base.RevError:
