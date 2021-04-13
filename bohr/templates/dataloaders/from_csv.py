@@ -13,12 +13,7 @@ class CsvDatasetLoader(DatasetLoader):
     sep: str = ","
 
     def load(self) -> pd.DataFrame:
-        path = (
-            self.path_preprocessed
-            if self.main_file is None
-            else self.path_preprocessed / self.main_file
-        )
-        absolute_path = load_path_config().project_root / path
+        absolute_path = load_path_config().project_root / self.path_preprocessed
         artifact_df = pd.read_csv(absolute_path, nrows=self.n_rows, sep=self.sep)
         if artifact_df.empty:
             raise ValueError(

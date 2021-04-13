@@ -92,7 +92,7 @@ def bugless_keywords_lookup_in_issue_body(
 
 @Heuristic(Commit)
 def no_files_have_modified_status(commit: Commit) -> Optional[Labels]:
-    for file in commit.files:
+    for file in commit.commit_files:
         if file.status == "modified":
             return None
     return CommitLabel.NonBugFix
@@ -101,11 +101,11 @@ def no_files_have_modified_status(commit: Commit) -> Optional[Labels]:
 @Heuristic(Commit)
 def bug_if_only_changed_lines_in_one_file(commit: Commit) -> Optional[Labels]:
     if (
-        len(commit.files) == 1
-        and commit.files[0].status == "modified"
-        and commit.files[0].changes
-        and commit.files[0].no_added_lines()
-        and commit.files[0].no_removed_lines()
+        len(commit.commit_files) == 1
+        and commit.commit_files[0].status == "modified"
+        and commit.commit_files[0].changes
+        and commit.commit_files[0].no_added_lines()
+        and commit.commit_files[0].no_removed_lines()
     ):
         return CommitLabel.BugFix
     return None
@@ -113,7 +113,7 @@ def bug_if_only_changed_lines_in_one_file(commit: Commit) -> Optional[Labels]:
 
 @Heuristic(Commit)
 def bugless_if_many_files_changes(commit: Commit) -> Optional[Labels]:
-    if len(commit.files) > 6:
+    if len(commit.commit_files) > 6:
         return CommitLabel.NonBugFix
     else:
         return None

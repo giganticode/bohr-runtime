@@ -1,30 +1,21 @@
-from typing import Optional, Type
+from typing import Optional
 
 from cachetools import LRUCache
 from snorkel.types import DataPoint
 
 from bohr.artifacts.commit import Commit
+from bohr.artifacts.core import Artifact
 from bohr.core import ArtifactMapper
-from bohr.pathconfig import load_path_config
+from bohr.datamodel import ArtifactDependencies
 
 
 class CommitMapper(ArtifactMapper):
+    def __init__(self):
+        super().__init__(Commit, ["owner", "repository", "sha"])
 
     cache = LRUCache(512)
 
-    def __init__(self) -> None:
-        super().__init__("CommitMapper", [], memoize=False)
-        self.project_root = load_path_config().project_root
-
-    def __call__(self, x: DataPoint) -> Optional[DataPoint]:
-        key = (x.owner, x.repository, x.sha)
-        if key in self.cache:
-            return self.cache[key]
-
-        commit = Commit(x.owner, x.repository, x.sha, str(x.message), self.project_root)
-        self.cache[key] = commit
-
-        return commit
-
-    def get_artifact(self) -> Type:
-        return Commit
+    def map(
+        self, x: DataPoint, dependencies: ArtifactDependencies
+    ) -> Optional[Artifact]:
+        return Commit(x.owner, x.repository, x.sha, str(x.message), **dependencies)

@@ -2,28 +2,15 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Optional, Type
 
-import regex
-
 from bohr import datamodel
 from bohr.artifacts.commit import Commit
 from bohr.artifacts.core import Artifact
 from bohr.config import Config, load_config
 from bohr.decorators import Heuristic
 from bohr.labels.labelset import Labels
+from bohr.nlp_utils import camel_case_to_snake_case
 
 logger = logging.getLogger(__name__)
-
-
-# TODO move to some proper place
-def camel_case_to_snake_case(identifier: str) -> str:
-    parts = [
-        m[0]
-        for m in regex.finditer(
-            "(_|[0-9]+|[[:upper:]]?[[:lower:]]+|[[:upper:]]+(?![[:lower:]])|[^ ])",
-            identifier,
-        )
-    ]
-    return "_".join(parts).lower()
 
 
 class Tool(ABC):

@@ -9,4 +9,6 @@ config/env/local.env/Users/hlib/dev/bohr-framework/test-b2b/scenario1/data/buggi
 /Users/hlib/dev/bohr-framework/test-b2b/scenario1/data/berger.csv
 data/1151-commits.csv
 data/berger.csv
-data/bugginess_train
+data/200k-commits-issues.csv
+data/200k-commits.csv
+data/200k-commits-files.csv

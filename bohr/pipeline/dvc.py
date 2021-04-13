@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 
-import jsons
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from bohr.config import Config, load_config
@@ -222,7 +221,11 @@ class Preprocess7zCommand(DvcCommand):
         self.dataset = dataset
 
     def render_stage_template(self, template) -> str:
-        return template.render(stage_name=self.get_name(), dataset=self.dataset)
+        return template.render(
+            stage_name=self.get_name(),
+            dataset=self.dataset,
+            data_dir=self.path_config.data_dir,
+        )
 
     def summary(self) -> str:
         return f"Pre-processing (extracting): {self.dataset.name}"
