@@ -3,21 +3,74 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Optional, Type
+from typing import Callable, Dict, Iterable, List, Optional, Type, Union
 
+import pandas as pd
 from dask.dataframe import DataFrame
 from snorkel.map import BaseMapper
+from snorkel.types import DataPoint
 
 from bohr.artifacts.core import Artifact
 from bohr.labels.labelset import Label, Labels
+from bohr.nlp_utils import camel_case_to_snake_case
 
 logger = logging.getLogger(__name__)
 
 
+ArtifactDependencies = Dict[str, Union[Artifact, List[Artifact]]]
+
+
 class ArtifactMapper(BaseMapper, ABC):
-    @abstractmethod
+    def __init__(self, artifact_type: Type, keys: List[str]):
+        name = f"{artifact_type.__name__}Mapper"
+        super().__init__(name, [], memoize=False)
+        self.artifact_type = artifact_type
+        self.keys = keys
+        self.linkers = []
+
+    def __call__(self, x: DataPoint) -> Optional[DataPoint]:
+        return self.cached_map(x)
+
+    def cached_map(self, x: DataPoint) -> Optional[Artifact]:
+        key = tuple([getattr(x, key) for key in self.keys])
+        cache = type(self).cache
+        if key in cache:
+            return cache[key]
+
+        dependencies = ArtifactMapper.load_dependent_artifacts(self.linkers, key)
+        artifact = self.map(x, dependencies)
+        cache[key] = artifact
+
+        return artifact
+
     def get_artifact(self) -> Type:
+        return self.artifact_type
+
+    @abstractmethod
+    def map(
+        self, x: DataPoint, dependencies: ArtifactDependencies
+    ) -> Optional[DataPoint]:
         pass
+
+    @staticmethod
+    def load_dependent_artifacts(
+        dataset_linkers: List["DatasetLinker"], index
+    ) -> Dict[str, Union[Artifact, List[Artifact]]]:
+        result: Dict[str, Union[Artifact, List[Artifact]]] = {}
+        for dataset_linker in dataset_linkers:
+            name = (
+                camel_case_to_snake_case(
+                    dataset_linker.to.dataloader.get_artifact().__name__
+                )
+                + "s"
+            )
+            df = dataset_linker.get_resources_from_file(index)
+
+            result[name] = [
+                dataset_linker.to.dataloader.get_mapper().cached_map(issue)
+                for issue in df.itertuples(index=False)
+            ]
+        return result
 
 
 @dataclass
@@ -52,6 +105,23 @@ class Dataset(ABC):
 
     def load(self):
         return self.dataloader.load()
+
+
+class DatasetLinker(ABC):
+    def __init__(self, from_: Dataset, to: Dataset, link_file: Path):
+        self.from_ = from_
+        self.to = to
+        self.link_file = link_file
+
+    @abstractmethod
+    def get_resources(self) -> pd.DataFrame:
+        pass
+
+    def get_resources_from_file(self, index) -> pd.DataFrame:
+        try:
+            return self.get_resources.loc[[index]]
+        except KeyError:
+            return pd.DataFrame()
 
 
 @dataclass(frozen=True)

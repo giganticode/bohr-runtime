@@ -11,6 +11,7 @@ import jsons
 from bohr import version
 from bohr.artifacts.core import Artifact
 from bohr.datamodel import ArtifactMapper, Dataset, DatasetLoader, Heuristic, Task
+from bohr.linkers.l import DatasetLinker
 from bohr.pathconfig import PathConfig, find_project_root, load_path_config
 from bohr.templates.dataloaders.from_csv import CsvDatasetLoader
 
@@ -22,6 +23,7 @@ class Config:
     bohr_framework_version: str
     tasks: Dict[str, Task]
     datasets: Dict[str, Dataset]
+    linkers: List[DatasetLinker]
     paths: PathConfig
 
     @staticmethod
@@ -129,9 +131,9 @@ def deserialize_task(
 
 def deserialize_config(dct, cls, path_config: PathConfig, **kwargs) -> Config:
     """
-    >>> jsons.loads('{"bohr_framework_version": 0.1, "tasks": {}, "datasets": {}}', Config, \
+    >>> jsons.loads('{"bohr_framework_version": 0.1, "tasks": {}, "datasets": {}, "dataset-linkers": {}}', Config, \
 path_config={})
-    Config(bohr_framework_version=0.1, tasks={}, datasets={}, paths={})
+    Config(bohr_framework_version=0.1, tasks={}, datasets={}, linkers=[], paths={})
     """
     datasets: Dict[str, Dataset] = {}
     for dataset_name, dataset_object in dct["datasets"].items():
@@ -142,6 +144,19 @@ path_config={})
             downloaded_data_dir=path_config.downloaded_data_dir,
             data_dir=path_config.data_dir,
         )
+
+    linkers = [
+        jsons.load(
+            dataset_linker_obj,
+            DatasetLinker,
+            datasets=datasets,
+            data_dir=path_config.data_dir,
+        )
+        for dataset_linker_obj in dct["dataset-linkers"]
+    ]
+
+    for linker in linkers:
+        linker.from_.dataloader.get_mapper().linkers.append(linker)
 
     tasks = dict()
     for task_name, task_json in dct["tasks"].items():
@@ -156,6 +171,7 @@ path_config={})
         dct["bohr_framework_version"],
         tasks,
         datasets,
+        linkers,
         path_config,
     )
 
@@ -173,8 +189,6 @@ def desearialize_dataset(
         extra_args = {}
         if "n_rows" in dct:
             extra_args["n_rows"] = dct["n_rows"]
-        if "main_file" in dct:
-            extra_args["main_file"] = Path(dct["main_file"])
         if "sep" in dct:
             extra_args["sep"] = dct["sep"]
 
@@ -182,7 +196,7 @@ def desearialize_dataset(
             path_preprocessed = data_dir / dct["path_preprocessed"]
         elif dct["preprocessor"] in ["zip", "7z"]:
             *name, ext = dct["path"].split(".")
-            path_preprocessed = data_dir / "".join(name)
+            path_preprocessed = data_dir / ".".join(name)
         else:
             path_preprocessed = data_dir / dct["path"]
 
@@ -205,6 +219,22 @@ def desearialize_dataset(
         raise NotImplementedError()
 
 
+def desearialize_linker(
+    dct: Dict[str, Any],
+    cls,
+    datasets: Dict[str, Dataset],
+    data_dir: Path,
+    **kwargs,
+) -> "DatasetLinker":
+    linker_class = load_artifact_by_name(dct["linker"])
+    return linker_class(
+        from_=datasets[dct["from"]],
+        to=datasets[dct["to"]],
+        link_file=data_dir / dct["link_file"],
+    )
+
+
+jsons.set_deserializer(desearialize_linker, DatasetLinker)
 jsons.set_deserializer(desearialize_dataset, Dataset)
 jsons.set_deserializer(deserialize_task, Task)
 jsons.set_deserializer(deserialize_config, Config)

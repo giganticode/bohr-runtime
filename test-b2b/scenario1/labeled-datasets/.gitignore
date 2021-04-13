@@ -1,7 +1,7 @@
-/bugginess_train_1k.labeled.csv
 /1151-commits.labeled.csv
 /berger.labeled.csv
 /dataloaders.smells-train_10.labeled.csv
 /dataloaders.smells-test_10.labeled.csv
 /smells-train_10.labeled.csv
 /smells-test_10.labeled.csv
+/200k-commits-1k.labeled.csv

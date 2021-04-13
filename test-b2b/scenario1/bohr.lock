@@ -1,6 +1,6 @@
 {
     "config": {
-        "bohr_framework_version": "0.4.2-rc",
+        "bohr_framework_version": "0.4.3-rc",
         "tasks": {
             "bugginess-1k": {
                 "top_artifact": "bohr.artifacts.commit.Commit",
@@ -13,7 +13,7 @@
                     "berger"
                 ],
                 "train_datasets": [
-                    "bugginess_train_1k"
+                    "200k-commits-1k"
                 ],
                 "label_column_name": "bug"
             },
@@ -50,15 +50,30 @@
                 "preprocessor": "copy",
                 "loader": "csv"
             },
-            "bugginess_train_1k": {
+            "200k-commits-1k": {
                 "description": "desc",
-                "path": "bugginess_train.7z",
+                "path": "200k-commits.csv",
                 "mapper": "bohr.templates.datamappers.commit.CommitMapper",
                 "test_set": "false",
                 "loader": "csv",
-                "preprocessor": "7z",
-                "main_file": "train/bug_sample.csv",
+                "preprocessor": "copy",
                 "n_rows": 1000
+            },
+            "200k-commits-issues": {
+                "description": "desc",
+                "path": "200k-commits-issues.csv",
+                "mapper": "bohr.templates.datamappers.issue.IssueMapper",
+                "test_set": "false",
+                "loader": "csv",
+                "preprocessor": "copy"
+            },
+            "200k-commits-files": {
+                "description": "desc",
+                "path": "200k-commits-files.csv.7z",
+                "mapper": "bohr.templates.datamappers.commitfile.CommitFileMapper",
+                "test_set": "false",
+                "loader": "csv",
+                "preprocessor": "7z"
             },
             "smells-train_10": {
                 "description": "desc",
@@ -81,11 +96,25 @@
                 "n_rows": 10,
                 "sep": ";"
             }
-        }
+        },
+        "dataset-linkers": [
+            {
+                "from": "200k-commits-1k",
+                "to": "200k-commits-issues",
+                "link_file": "commit_to_issues.csv",
+                "linker": "bohr.linkers.l.CommitIssueLinker"
+            },
+            {
+                "from": "200k-commits-1k",
+                "to": "200k-commits-files",
+                "link_file": "commit_to_files.csv",
+                "linker": "bohr.linkers.l.CommitFileLinker"
+            }
+        ]
     },
     "heuristics": {
         "heuristics/smells.py": "8a0ce66efaed67530523be6b8f95ccf5",
-        "heuristics/bugginess/main_heurstics.py": "f6f7a772734ac4a4480ad90891c7f854",
+        "heuristics/bugginess/main_heurstics.py": "d7b49c7c5c668273db0eeee53272e162",
         "heuristics/bugginess/tool_heuristics.py": "844a3d49f4b06f24f0eab2fe4dbc8f31"
     },
     "manual_stages": {}

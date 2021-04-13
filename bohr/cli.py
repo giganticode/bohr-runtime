@@ -83,6 +83,7 @@ def get_dvc_commands_to_repro(
     """
     commands: List[List[str]] = []
     paths_to_pull = [str(d.path_dist) for d in config.datasets.values()]
+    paths_to_pull.extend(str(l.link_file) for l in config.linkers)
     if len(paths_to_pull) > 0:
         commands.append(["dvc", "pull"] + paths_to_pull)
 

@@ -1,5 +1,5 @@
 import re
-from typing import Optional, Tuple, Type
+from typing import Optional, Tuple
 
 import requests
 from cachetools import LRUCache
@@ -7,6 +7,7 @@ from snorkel.types import DataPoint
 
 from bohr.artifacts.method import Method
 from bohr.core import ArtifactMapper
+from bohr.datamodel import ArtifactDependencies
 
 regex = re.compile("git@github.com:(.*)/(.*).git")
 
@@ -21,13 +22,16 @@ def extract_owner_and_repo(repository_url: str) -> Tuple[str, str]:
 
 
 class MethodMapper(ArtifactMapper):
+    def __init__(self):
+        super().__init__(
+            Method, ["repository", "commit_hash", "path", "start_line", "end_line"]
+        )
 
     cache = LRUCache(512)
 
-    def __init__(self) -> None:
-        super().__init__("MethodMapper", [], memoize=False)
-
-    def __call__(self, x: DataPoint) -> Optional[DataPoint]:
+    def map(
+        self, x: DataPoint, dependencies: ArtifactDependencies
+    ) -> Optional[DataPoint]:
         owner, repository = extract_owner_and_repo(x.repository)
         url = f"https://raw.githubusercontent.com/{owner}/{repository}/{x.commit_hash}/{x.path}"
         text = requests.get(url).text
@@ -40,14 +44,4 @@ class MethodMapper(ArtifactMapper):
         end_line = zero_based_line_number(x.end_line)
         needed_lines = text_lines[start_line : end_line + 1]
 
-        key = (x.repository, x.commit_hash, x.path, start_line, end_line)
-        if key in self.cache:
-            return self.cache[key]
-
-        method = Method("\n".join(needed_lines))
-        self.cache[key] = method
-
-        return method
-
-    def get_artifact(self) -> Type:
-        return Method
+        return Method("\n".join(needed_lines))
