@@ -83,14 +83,14 @@ class ApplyHeuristicsCommand(DvcCommand):
         path_config: PathConfig,
         task: Task,
         heuristic_group: str,
-        dataset: str,
+        datasets: List[str],
         execute_immediately: bool = False,
     ):
         super().__init__(
             "apply_heuristics.template", path_config, task, execute_immediately
         )
         self.heuristic_group = heuristic_group
-        self.dataset = dataset
+        self.datasets = datasets
 
     def render_stage_template(self, template) -> str:
         return template.render(
@@ -98,14 +98,14 @@ class ApplyHeuristicsCommand(DvcCommand):
             task=self.task,
             path_config=self.path_config,
             heuristic_group=self.heuristic_group,
-            dataset=self.dataset,
+            datasets=self.datasets,
         )
 
     def summary(self) -> str:
-        return f"[{self.task.name}] apply heuristics (group: {self.heuristic_group}) to {self.dataset}"
+        return f"[{self.task.name}] apply heuristics (group: {self.heuristic_group}) to {self.datasets[0]}"
 
     def get_name(self) -> str:
-        return f"{self.task.name}_apply_heuristics__{self.heuristic_group.replace('.', '_')}__{self.dataset.replace('.', '_')}"
+        return f"{self.task.name}_apply_heuristics__{self.heuristic_group.replace('.', '_')}__{self.datasets[0].replace('.', '_')}"
 
 
 class CombineHeuristicsCommand(DvcCommand):
@@ -316,6 +316,17 @@ def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
     logger.info(
         f"Following tasks are added to the pipeline: {list(map(lambda x: x.name, all_tasks))}"
     )
+
+    all_keys = set()
+    for keys in map(lambda t: t.datasets.keys(), all_tasks):
+        all_keys.update(keys)
+    all_datasets_used_in_tasks = list(map(lambda key: config.datasets[key], all_keys))
+    logger.info(f"Datasets used in tasks:")
+    for dataset in all_datasets_used_in_tasks:
+        linked_datasets = dataset.get_linked_datasets()
+        logger.info(
+            f"{dataset.name} {'-> ' + str(list(map(lambda d: d.name, linked_datasets))) if linked_datasets else ''}"
+        )
     transient_stages = []
     commands: List[DvcCommand] = []
     for dataset_name, dataset in config.datasets.items():
@@ -332,11 +343,12 @@ def add_all_tasks_to_dvc_pipeline(config: Config) -> None:
     commands.append(ParseLabelsCommand(path_config))
     for task in all_tasks:
         for heuristic_group in task.heuristic_groups:
-            for dataset_name in task.datasets:
+            for dataset_name, dataset in task.datasets.items():
+                datasets = [dataset_name] + list(
+                    map(lambda d: d.name, dataset.get_linked_datasets())
+                )
                 commands.append(
-                    ApplyHeuristicsCommand(
-                        path_config, task, heuristic_group, dataset_name
-                    )
+                    ApplyHeuristicsCommand(path_config, task, heuristic_group, datasets)
                 )
         commands.append(CombineHeuristicsCommand(path_config, task))
         commands.append(TrainLabelModelCommand(path_config, task))
