@@ -155,8 +155,11 @@ path_config={})
         for dataset_linker_obj in dct["dataset-linkers"]
     ]
 
+    for dataset_name, dataset in datasets.items():
+        dataset.dataloader.get_mapper().linkers = []
+
     for linker in linkers:
-        linker.from_.dataloader.get_mapper().linkers.append(linker)
+        linker.from_.dataloader.get_mapper().linkers = linkers
 
     tasks = dict()
     for task_name, task_json in dct["tasks"].items():

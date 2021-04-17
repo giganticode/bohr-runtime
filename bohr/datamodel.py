@@ -1,5 +1,6 @@
 import functools
 import logging
+import traceback
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,7 +27,17 @@ class ArtifactMapper(BaseMapper, ABC):
         super().__init__(name, [], memoize=False)
         self.artifact_type = artifact_type
         self.keys = keys
-        self.linkers = []
+        self._linkers = None
+
+    @property
+    def linkers(self) -> List["DatasetLinker"]:
+        if self._linkers is None:
+            raise AssertionError("Linkers have not been initialized yet.")
+        return self._linkers
+
+    @linkers.setter
+    def linkers(self, linkers: List["DatasetLinker"]):
+        self._linkers = linkers
 
     def __call__(self, x: DataPoint) -> Optional[DataPoint]:
         return self.cached_map(x)
@@ -106,6 +117,9 @@ class Dataset(ABC):
     def load(self):
         return self.dataloader.load()
 
+    def get_linked_datasets(self) -> List["Dataset"]:
+        return list(map(lambda l: l.to, self.dataloader.get_mapper().linkers))
+
 
 class DatasetLinker(ABC):
     def __init__(self, from_: Dataset, to: Dataset, link_file: Path):
@@ -138,6 +152,13 @@ class Task:
     @property
     def datasets(self) -> Dict[str, Dataset]:
         return {**self.train_datasets, **self.test_datasets}
+
+    @property
+    def all_affected_datasets(self) -> Dict[str, Dataset]:
+        total = self.datasets
+        for dataset_name, dataset in self.datasets.items():
+            total.update({d.name: d for d in dataset.get_linked_datasets()})
+        return total
 
     def _datapaths(self, datasets: Iterable[Dataset]) -> List[Path]:
         return [dataset.path_preprocessed for dataset in datasets]
