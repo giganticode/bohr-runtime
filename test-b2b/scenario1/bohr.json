@@ -1,5 +1,5 @@
 {
-  "bohr_framework_version": "0.4.3-rc",
+  "bohr_framework_version": "0.4.3",
   "tasks": {
     "bugginess-1k": {
       "top_artifact": "bohr.artifacts.commit.Commit",
@@ -96,15 +96,18 @@
       "sep": ";"
     }
   },
-  "dataset-linkers": [{
-    "from": "200k-commits-1k",
-    "to": "200k-commits-issues",
-    "link_file": "commit_to_issues.csv",
-    "linker": "bohr.linkers.l.CommitIssueLinker"
-  }, {
-    "from": "200k-commits-1k",
-    "to": "200k-commits-files",
-    "link_file": "commit_to_files.csv",
-    "linker": "bohr.linkers.l.CommitFileLinker"
-  }]
+  "dataset-linkers": [
+    {
+      "from": "200k-commits-1k",
+      "to": "200k-commits-issues",
+      "link_file": "commit_to_issues.csv",
+      "linker": "bohr.linkers.l.CommitIssueLinker"
+    },
+    {
+      "from": "200k-commits-1k",
+      "to": "200k-commits-files",
+      "link_file": "commit_to_files.csv",
+      "linker": "bohr.linkers.l.CommitFileLinker"
+    }
+  ]
 }
