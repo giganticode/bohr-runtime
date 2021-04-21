@@ -9,9 +9,14 @@ from typing import Any, Dict, List, Optional, Set, Type
 import jsons
 
 from bohr import version
-from bohr.artifacts.core import Artifact
-from bohr.datamodel import ArtifactMapper, Dataset, DatasetLoader, Heuristic, Task
-from bohr.linkers.l import DatasetLinker
+from bohr.datamodel import (
+    ArtifactType,
+    Dataset,
+    DatasetLinker,
+    Heuristic,
+    MapperType,
+    Task,
+)
 from bohr.pathconfig import PathConfig, find_project_root, load_path_config
 from bohr.templates.dataloaders.from_csv import CsvDatasetLoader
 
@@ -54,23 +59,23 @@ def load_config(project_root: Optional[Path] = None) -> Config:
     return config
 
 
-def get_dataset_loader(name: str) -> DatasetLoader:
-    module = None
-    try:
-        module = importlib.import_module(name)
-        all = module.__dict__["__all__"]
-        if len(all) != 1 or not isinstance(all[0], DatasetLoader):
-            raise SyntaxError(
-                f"{DatasetLoader} object should be specified in __all__ list"
-            )
-        return all[0]
-    except KeyError as e:
-        raise ValueError(f"__all__ is not defined in module {module}")
-    except ModuleNotFoundError as e:
-        raise ValueError(f"Dataset {name} not defined.") from e
+# def get_dataset_loader(name: str) -> DatasetLoader:
+#     module = None
+#     try:
+#         module = importlib.import_module(name)
+#         all = module.__dict__["__all__"]
+#         if len(all) != 1 or not isinstance(all[0], DatasetLoader):
+#             raise SyntaxError(
+#                 f"{DatasetLoader} object should be specified in __all__ list"
+#             )
+#         return all[0]
+#     except KeyError as e:
+#         raise ValueError(f"__all__ is not defined in module {module}")
+#     except ModuleNotFoundError as e:
+#         raise ValueError(f"Dataset {name} not defined.") from e
 
 
-def load_artifact_by_name(artifact_name: str) -> Type["Artifact"]:
+def load_artifact_class(artifact_name: str) -> ArtifactType:
     *path, name = artifact_name.split(".")
     try:
         module = importlib.import_module(".".join(path))
@@ -83,7 +88,7 @@ def load_artifact_by_name(artifact_name: str) -> Type["Artifact"]:
         raise ValueError(f"Artifact {name} not found in module {module}") from e
 
 
-def load_mapper(path_to_mapper_obj: str) -> Type["ArtifactMapper"]:
+def load_mapper_type(path_to_mapper_obj: str) -> MapperType:
     # TODO deduplicate
     *path, name = path_to_mapper_obj.split(".")
     try:
@@ -115,7 +120,7 @@ def deserialize_task(
         dataset_name: datasets[dataset_name] for dataset_name in dct["train_datasets"]
     }
 
-    artifact = load_artifact_by_name(dct["top_artifact"])
+    artifact = load_artifact_class(dct["top_artifact"])
     heuristic_groups = get_heuristic_module_list(artifact, heuristic_path)
     return Task(
         task_name,
@@ -144,7 +149,6 @@ path_config={})
             downloaded_data_dir=path_config.downloaded_data_dir,
             data_dir=path_config.data_dir,
         )
-
     linkers = [
         jsons.load(
             dataset_linker_obj,
@@ -156,10 +160,10 @@ path_config={})
     ]
 
     for dataset_name, dataset in datasets.items():
-        dataset.dataloader.get_mapper().linkers = []
+        dataset.mapper.linkers = []
 
     for linker in linkers:
-        linker.from_.dataloader.get_mapper().linkers = linkers
+        linker.from_.mapper.linkers = linkers
 
     tasks = dict()
     for task_name, task_json in dct["tasks"].items():
@@ -187,14 +191,20 @@ def desearialize_dataset(
     data_dir: Path,
     **kwargs,
 ) -> "Dataset":
-    mapper = load_mapper(dct["mapper"])
+    extra_args = {}
+    if "mapper" in dct:
+        mapper = load_mapper_type(dct["mapper"])
+        extra_args["mapper"] = mapper()
+
     if dct["loader"] == "csv":
-        extra_args = {}
         if "n_rows" in dct:
             extra_args["n_rows"] = dct["n_rows"]
         if "sep" in dct:
             extra_args["sep"] = dct["sep"]
-
+        if "keep_default_na" in dct:
+            extra_args["keep_default_na"] = dct["keep_default_na"]
+        if "dtype" in dct:
+            extra_args["dtype"] = jsons.load(dct["dtype"])
         if "path_preprocessed" in dct:
             path_preprocessed = data_dir / dct["path_preprocessed"]
         elif dct["preprocessor"] in ["zip", "7z"]:
@@ -204,11 +214,10 @@ def desearialize_dataset(
             path_preprocessed = data_dir / dct["path"]
 
         dataset_loader = CsvDatasetLoader(
-            path_preprocessed=path_preprocessed,
-            mapper=mapper(),
-            **extra_args,
+            path_preprocessed=path_preprocessed, **extra_args
         )
 
+        logger.debug(f"Deserializing {dataset_name}")
         return Dataset(
             name=dataset_name,
             description=dct["description"] if "description" in dct else None,
@@ -229,12 +238,10 @@ def desearialize_linker(
     data_dir: Path,
     **kwargs,
 ) -> "DatasetLinker":
-    linker_class = load_artifact_by_name(dct["linker"])
-    return linker_class(
-        from_=datasets[dct["from"]],
-        to=datasets[dct["to"]],
-        link_file=data_dir / dct["link_file"],
-    )
+    extras = {}
+    if "link" in dct:
+        extras["link"] = datasets[dct["link"]]
+    return DatasetLinker(from_=datasets[dct["from"]], to=datasets[dct["to"]], **extras)
 
 
 jsons.set_deserializer(desearialize_linker, DatasetLinker)

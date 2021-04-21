@@ -9,7 +9,7 @@ from bohr.datamodel import ArtifactDependencies, ArtifactMapper
 
 class CommitFileMapper(ArtifactMapper):
     def __init__(self):
-        super().__init__(CommitFile, ["file_id"])
+        super().__init__(CommitFile, "file_id", ("owner", "repository", "sha"))
 
     cache = LRUCache(512)
 
@@ -21,5 +21,4 @@ class CommitFileMapper(ArtifactMapper):
             x.status,
             x.patch if not isinstance(x.patch, float) else None,
             x.change if not isinstance(x.change, float) else None,
-            **dependencies
         )
