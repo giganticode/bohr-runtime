@@ -45,11 +45,14 @@ def _load_output_matrix_and_weights(
     task_name: str,
     labeled_dataset: str,
     rev: Optional[str] = None,
+    force_update: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     path_config = load_path_config()
     logging.disable(logging.WARNING)
     repo = (
-        get_path_to_revision(path_config.project_root, rev) if rev is not None else None
+        get_path_to_revision(path_config.project_root, rev, force_update=force_update)
+        if rev is not None
+        else None
     )
     with dvc.api.open(
         path_config.generated_dir
@@ -70,11 +73,15 @@ def _load_output_matrix_and_weights(
 
 class DataPointDebugger:
     def __init__(
-        self, task_name: str, labeled_dataset: str, rev: Optional[str] = "master"
+        self,
+        task_name: str,
+        labeled_dataset: str,
+        rev: Optional[str] = "master",
+        force_update: bool = False,
     ):
         self.dataset_debugger = DatasetDebugger(task_name, labeled_dataset, rev)
         self.old_matrix, self.old_weights = _load_output_matrix_and_weights(
-            task_name, labeled_dataset, rev
+            task_name, labeled_dataset, rev, force_update=force_update
         )
         self.new_matrix, self.new_weights = _load_output_matrix_and_weights(
             task_name, labeled_dataset
@@ -224,10 +231,24 @@ class DatasetDebugger:
             self.combined_df["prob_CommitLabel.BugFix_new"]
             - self.combined_df["prob_CommitLabel.BugFix"]
         ) * (self.combined_df["bug"] * 2 - 1)
-        self.combined_df = pd.concat([self.combined_df, old_df["message"]], axis=1)
-        self.combined_df.sort_values(by="improvement", inplace=True)
 
-    def _show_datapoints(self, df: pd.DataFrame) -> None:
+        self.combined_df.loc[:, "certainty"] = (
+            np.abs(self.combined_df["prob_CommitLabel.BugFix_new"] - 0.5) * 2
+        )
+        self.combined_df.loc[:, "precision"] = 1 - np.abs(
+            self.combined_df["prob_CommitLabel.BugFix_new"] - self.combined_df["bug"]
+        )
+
+        self.combined_df = pd.concat([self.combined_df, old_df["message"]], axis=1)
+
+    def show_datapoints(
+        self,
+        value: str,
+        n: Optional[int] = 10,
+        reverse: bool = False,
+    ) -> None:
+        self.combined_df.sort_values(by=value, inplace=True, ascending=reverse)
+        df = self.combined_df.head(n)
         pd.options.mode.chained_assignment = None
         df.loc[:, "message"] = df["message"].str.wrap(70)
         print(
@@ -237,14 +258,6 @@ class DatasetDebugger:
                 tablefmt="fancy_grid",
             )
         )
-
-    def show_worst_datapoints(self, n: Optional[int] = 10) -> None:
-        worst_datapoints = self.combined_df.head(n)
-        self._show_datapoints(worst_datapoints)
-
-    def show_best_datapoints(self, n: Optional[int] = 10) -> None:
-        worst_datapoints = self.combined_df.tail(n)
-        self._show_datapoints(worst_datapoints)
 
     def show_datapoint(self, n: int) -> None:
         a = self.combined_df.loc[n].to_frame()
