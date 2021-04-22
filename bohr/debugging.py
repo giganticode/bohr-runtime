@@ -1,15 +1,23 @@
 import logging
+from datetime import datetime
 from io import BytesIO
+from pathlib import Path
+from shutil import copy
+from time import time
 from typing import Dict, Optional, Tuple
 
+import appdirs
 import dvc.api
+import git
 import numpy as np
 import pandas as pd
+from git import Repo
 from tabulate import tabulate
 
+from bohr import appauthor, appname, version
 from bohr.pathconfig import load_path_config
 
-logging.getLogger()
+logger = logging.getLogger()
 
 
 def _normalize_weights(x: np.ndarray) -> np.ndarray:
@@ -36,25 +44,24 @@ def _normalize_weights(x: np.ndarray) -> np.ndarray:
 def _load_output_matrix_and_weights(
     task_name: str,
     labeled_dataset: str,
-    repo: Optional[str] = None,
     rev: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     path_config = load_path_config()
     logging.disable(logging.WARNING)
+    repo = (
+        get_path_to_revision(path_config.project_root, rev) if rev is not None else None
+    )
     with dvc.api.open(
         path_config.generated_dir
         / task_name
         / f"heuristic_matrix_{labeled_dataset}.pkl",
         repo,
-        rev=rev,
         mode="rb",
     ) as f:
         matrix = pd.read_pickle(BytesIO(f.read()))
 
     with dvc.api.open(
-        path_config.generated_dir / task_name / f"label_model_weights.csv",
-        repo,
-        rev=rev,
+        path_config.generated_dir / task_name / f"label_model_weights.csv", repo
     ) as f:
         weights = pd.read_csv(f, index_col="heuristic_name")
     logging.disable(logging.NOTSET)
@@ -67,7 +74,7 @@ class DataPointDebugger:
     ):
         self.dataset_debugger = DatasetDebugger(task_name, labeled_dataset, rev)
         self.old_matrix, self.old_weights = _load_output_matrix_and_weights(
-            task_name, labeled_dataset, "https://github.com/giganticode/bohr", rev
+            task_name, labeled_dataset, rev
         )
         self.new_matrix, self.new_weights = _load_output_matrix_and_weights(
             task_name, labeled_dataset
@@ -114,22 +121,95 @@ class DataPointDebugger:
         pass
 
 
+def get_cloned_rev(repo: str, rev: str = "master") -> Repo:
+    path = appdirs.user_cache_dir(
+        appname=appname(), appauthor=appauthor(), version=version()
+    )
+    path_to_repo = Path(path) / repo / rev
+    if not path_to_repo.exists():
+        return Repo.clone_from(repo, path_to_repo, depth=1, b=rev)
+    else:
+        return Repo(path_to_repo)
+
+
+def get_git_repo_of(path: Path) -> Repo:
+    current_path = path
+    while True:
+        try:
+            return Repo(current_path)
+        except git.exc.InvalidGitRepositoryError:
+            if current_path == current_path.parent:
+                raise ValueError(f"Path {path} or its parents are not a git repo!")
+            current_path = current_path.parent
+
+
+def is_update_needed(git_revision: Repo) -> bool:
+    fetch_head_file = Path(git_revision.working_tree_dir) / ".git" / "FETCH_HEAD"
+    if not fetch_head_file.exists():
+        return True
+
+    last_modification = fetch_head_file.stat().st_mtime
+    updated_sec_ago = time() - last_modification
+    logger.debug(
+        f"Repo {git_revision} last attempt to pull {datetime.fromtimestamp(last_modification)}"
+    )
+    return updated_sec_ago > 300
+
+
+def update(repo: Repo, dvc_project_root: Path, rel_path_to_dvc_root: Path) -> None:
+    logger.info("Updating the repo... ")
+    repo.remotes.origin.pull()
+    move_local_config_to_old_revision(
+        dvc_project_root, repo.working_tree_dir / rel_path_to_dvc_root
+    )
+
+
+def move_local_config_to_old_revision(src: Path, dst: Path):
+    config_path = Path(".dvc/config.local")
+    logger.debug(f"Copying config from {src / config_path} to {dst / config_path}")
+    copy(src / config_path, dst / config_path)
+
+
+def get_path_to_revision(
+    dvc_project_root: Path, rev: str, force_update: bool = False
+) -> Path:
+    current_repo = get_git_repo_of(dvc_project_root)
+    remote = current_repo.remotes.origin
+    old_revision: Repo = get_cloned_rev(remote.url, rev)
+    rel_path_to_dvc_root = dvc_project_root.relative_to(current_repo.working_tree_dir)
+    logger.info(
+        f"Comparing to {remote.url} , revision: {rev}, \n"
+        f"relative dvc root: {rel_path_to_dvc_root}\n"
+        f"(Cloned to {old_revision.working_tree_dir})"
+    )
+    if is_update_needed(old_revision) or force_update:
+        if force_update:
+            logger.debug("Forcing refresh ...")
+        update(old_revision, dvc_project_root, rel_path_to_dvc_root)
+    else:
+        logger.info(f"Pass `--force-refresh` to refresh the repository.")
+    return old_revision.working_tree_dir / rel_path_to_dvc_root
+
+
 class DatasetDebugger:
     def __init__(
-        self, task: str, labeled_dataset_path: str, rev: Optional[str] = "master"
+        self,
+        task: str,
+        labeled_dataset_name: str,
+        rev: Optional[str] = "master",
+        force_update: bool = False,
     ):
         path_config = load_path_config()
+        path_to_old_revision = get_path_to_revision(
+            path_config.project_root, rev, force_update
+        )
         logging.disable(logging.WARNING)
-        with dvc.api.open(
-            path_config.labeled_data_dir / f"{labeled_dataset_path}.labeled.csv",
-            "https://github.com/giganticode/bohr",
-            rev=rev,
-        ) as f:
+        labeled_dataset_path = (
+            path_config.labeled_data_dir / f"{labeled_dataset_name}.labeled.csv"
+        )
+        with dvc.api.open(labeled_dataset_path, path_to_old_revision) as f:
             old_df = pd.read_csv(f)
-
-        with dvc.api.open(
-            path_config.labeled_data_dir / f"{labeled_dataset_path}.labeled.csv"
-        ) as f:
+        with dvc.api.open(labeled_dataset_path) as f:
             new_df = pd.read_csv(f)
         logging.disable(logging.NOTSET)
 
