@@ -1,6 +1,6 @@
 {
     "config": {
-        "bohr_framework_version": "0.4.3-rc",
+        "bohr_framework_version": "0.4.4-rc",
         "tasks": {
             "bugginess-1k": {
                 "top_artifact": "bohr.artifacts.commit.Commit",
@@ -114,7 +114,9 @@
     },
     "heuristics": {
         "heuristics/smells.py": "8a0ce66efaed67530523be6b8f95ccf5",
-        "heuristics/bugginess/main_heurstics.py": "d7b49c7c5c668273db0eeee53272e162",
+        "heuristics/bugginess/file_heuristics.py": "0bca467480b55b1aa13178d16207a3ab",
+        "heuristics/bugginess/issue_heuristics.py": "dabc35aa22d090f19dcb30503a56cb46",
+        "heuristics/bugginess/main_heurstics.py": "b277590dff0b3e86855c8017a83f4b6d",
         "heuristics/bugginess/tool_heuristics.py": "844a3d49f4b06f24f0eab2fe4dbc8f31"
     },
     "manual_stages": {}
