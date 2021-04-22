@@ -37,27 +37,36 @@ def bohr():
 @click.argument("dataset")
 @click.argument("old_rev", type=str, required=False, default="master")
 @click.option("-i", "--datapoint", type=int, required=False, default=None)
-@click.option("--top", type=int, required=False, default=None)
-@click.option("--bottom", type=int, required=False, default=None)
+@click.option(
+    "-v",
+    "--value",
+    type=click.Choice(["improvement", "certainty", "precision"]),
+    required=False,
+    default="improvement",
+)
+@click.option("-n", "--n-datapoints", type=int, required=False, default=None)
+@click.option("-r", "--reverse", is_flag=True)
 @click.option("--force-refresh", is_flag=True)
 def debug(
     task: str,
     dataset: str,
     old_rev: str,
     datapoint: Optional[int],
-    top: Optional[int],
-    bottom: Optional[int],
+    value: str,
+    n_datapoints: Optional[int],
+    reverse: bool,
     force_refresh: bool,
 ) -> None:
     try:
         if datapoint is None:
-            dataset_debugger = DatasetDebugger(task, dataset, old_rev, force_refresh)
-            if bottom is None:
-                dataset_debugger.show_worst_datapoints(top or 10)
-            else:
-                dataset_debugger.show_best_datapoints(bottom)
+            dataset_debugger = DatasetDebugger(
+                task, dataset, old_rev, force_update=force_refresh
+            )
+            dataset_debugger.show_datapoints(value, n_datapoints or 10, reverse=reverse)
         else:
-            DataPointDebugger(task, dataset, old_rev).show_datapoint_info(datapoint)
+            DataPointDebugger(
+                task, dataset, old_rev, force_update=force_refresh
+            ).show_datapoint_info(datapoint)
     except dvc.scm.base.RevError:
         logger.error(f"Revision does not exist: {old_rev}")
         exit(23)
