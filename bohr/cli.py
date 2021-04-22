@@ -39,6 +39,7 @@ def bohr():
 @click.option("-i", "--datapoint", type=int, required=False, default=None)
 @click.option("--top", type=int, required=False, default=None)
 @click.option("--bottom", type=int, required=False, default=None)
+@click.option("--force-refresh", is_flag=True)
 def debug(
     task: str,
     dataset: str,
@@ -46,10 +47,11 @@ def debug(
     datapoint: Optional[int],
     top: Optional[int],
     bottom: Optional[int],
+    force_refresh: bool,
 ) -> None:
     try:
         if datapoint is None:
-            dataset_debugger = DatasetDebugger(task, dataset, old_rev)
+            dataset_debugger = DatasetDebugger(task, dataset, old_rev, force_refresh)
             if bottom is None:
                 dataset_debugger.show_worst_datapoints(top or 10)
             else:

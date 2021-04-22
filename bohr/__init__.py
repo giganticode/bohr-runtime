@@ -20,4 +20,12 @@ def version() -> str:
         return version_file.read().strip()
 
 
+def appauthor() -> str:
+    return "giganticode"
+
+
+def appname() -> str:
+    return "bohr"
+
+
 __version__ = version()
