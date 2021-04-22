@@ -303,7 +303,6 @@
         "bugless_message_keyword_upgrad": 0.004,
         "bugless_message_keyword_version": 0.023,
         "github_ref_in_message": 0.0,
-        "manual_labels": 0.001,
         "no_files_have_modified_status": 0.853,
         "refactorings_detected": 0.0,
         "version_in_message": 0.011
@@ -612,7 +611,6 @@
         "bugless_message_keyword_upgrad": 0.004,
         "bugless_message_keyword_version": 0.025,
         "github_ref_in_message": 0.0,
-        "manual_labels": 0.001,
         "no_files_have_modified_status": 1.0,
         "refactorings_detected": 0.0,
         "version_in_message": 0.015
@@ -921,7 +919,6 @@
         "bugless_message_keyword_upgrad": 0.004,
         "bugless_message_keyword_version": 0.025,
         "github_ref_in_message": 0.0,
-        "manual_labels": 0.001,
         "no_files_have_modified_status": 0.971,
         "refactorings_detected": 0.0,
         "version_in_message": 0.015
@@ -1644,9 +1641,6 @@
             0
         ],
         "github_ref_in_message": [],
-        "manual_labels": [
-            0
-        ],
         "no_files_have_modified_status": [
             0
         ],

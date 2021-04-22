@@ -303,7 +303,6 @@
         "bugless_message_keyword_upgrad": 0.0,
         "bugless_message_keyword_version": 0.010666666666666666,
         "github_ref_in_message": 0.0,
-        "manual_labels": 0.0,
         "no_files_have_modified_status": 0.5386666666666666,
         "refactorings_detected": 0.0,
         "version_in_message": 0.013333333333333334
@@ -612,7 +611,6 @@
         "bugless_message_keyword_upgrad": 1,
         "bugless_message_keyword_version": 12,
         "github_ref_in_message": 0,
-        "manual_labels": 0,
         "no_files_have_modified_status": 235,
         "refactorings_detected": 0,
         "version_in_message": 7
@@ -921,7 +919,6 @@
         "bugless_message_keyword_upgrad": 0.0026666666666666666,
         "bugless_message_keyword_version": 0.037333333333333336,
         "github_ref_in_message": 0.0,
-        "manual_labels": 0.0,
         "no_files_have_modified_status": 1.0,
         "refactorings_detected": 0.0,
         "version_in_message": 0.02666666666666667
@@ -1230,7 +1227,6 @@
         "bugless_message_keyword_upgrad": 1.0,
         "bugless_message_keyword_version": 0.8571428571428572,
         "github_ref_in_message": 0.0,
-        "manual_labels": 0.0,
         "no_files_have_modified_status": 0.6266666666666667,
         "refactorings_detected": 0.0,
         "version_in_message": 0.7
@@ -1539,7 +1535,6 @@
         "bugless_message_keyword_upgrad": 0,
         "bugless_message_keyword_version": 2,
         "github_ref_in_message": 0,
-        "manual_labels": 0,
         "no_files_have_modified_status": 140,
         "refactorings_detected": 0,
         "version_in_message": 3
@@ -1848,7 +1843,6 @@
         "bugless_message_keyword_upgrad": 0.0026666666666666666,
         "bugless_message_keyword_version": 0.037333333333333336,
         "github_ref_in_message": 0.0,
-        "manual_labels": 0.0,
         "no_files_have_modified_status": 0.9013333333333333,
         "refactorings_detected": 0.0,
         "version_in_message": 0.02666666666666667
@@ -2325,7 +2319,6 @@
             0
         ],
         "github_ref_in_message": [],
-        "manual_labels": [],
         "no_files_have_modified_status": [
             0
         ],

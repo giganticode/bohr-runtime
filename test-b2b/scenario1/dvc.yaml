@@ -82,6 +82,7 @@ stages:
     deps:
     - data/200k-commits-files.csv
     - data/200k-commits-issues.csv
+    - data/200k-commits-manual-labels.csv
     - data/200k-commits.csv
     - heuristics/bugginess/file_heuristics.py
     - heuristics/keywords
@@ -132,6 +133,7 @@ stages:
     deps:
     - data/200k-commits-files.csv
     - data/200k-commits-issues.csv
+    - data/200k-commits-manual-labels.csv
     - data/200k-commits.csv
     - heuristics/bugginess/issue_heuristics.py
     - heuristics/keywords
@@ -227,57 +229,6 @@ stages:
     metrics:
     - metrics/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_metrics_berger.json:
         cache: false
-  bugginess-1k_apply_heuristics__heuristics_bugginess_manuallabels__200k-commits-1k:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.manuallabels
-      --dataset 200k-commits-1k
-    deps:
-    - data/200k-commits-files.csv
-    - data/200k-commits-issues.csv
-    - data/200k-commits-manual-labels.csv
-    - data/200k-commits.csv
-    - heuristics/bugginess/manuallabels.py
-    - heuristics/keywords
-    - labels.py
-    params:
-    - bohr.json:
-      - bohr_framework_version
-    outs:
-    - generated/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_matrix_200k-commits-1k.pkl
-    metrics:
-    - metrics/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_metrics_200k-commits-1k.json:
-        cache: false
-  bugginess-1k_apply_heuristics__heuristics_bugginess_manuallabels__1151-commits:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.manuallabels
-      --dataset 1151-commits
-    deps:
-    - data/1151-commits.csv
-    - heuristics/bugginess/manuallabels.py
-    - heuristics/keywords
-    - labels.py
-    params:
-    - bohr.json:
-      - bohr_framework_version
-    outs:
-    - generated/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_matrix_1151-commits.pkl
-    metrics:
-    - metrics/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_metrics_1151-commits.json:
-        cache: false
-  bugginess-1k_apply_heuristics__heuristics_bugginess_manuallabels__berger:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.manuallabels
-      --dataset berger
-    deps:
-    - data/berger.csv
-    - heuristics/bugginess/manuallabels.py
-    - heuristics/keywords
-    - labels.py
-    params:
-    - bohr.json:
-      - bohr_framework_version
-    outs:
-    - generated/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_matrix_berger.pkl
-    metrics:
-    - metrics/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_metrics_berger.json:
-        cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_tool_heuristics__200k-commits-1k:
     cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.tool_heuristics
       --dataset 200k-commits-1k
@@ -341,9 +292,6 @@ stages:
     - generated/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_matrix_1151-commits.pkl
     - generated/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_matrix_200k-commits-1k.pkl
     - generated/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_matrix_berger.pkl
-    - generated/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_matrix_1151-commits.pkl
-    - generated/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_matrix_200k-commits-1k.pkl
-    - generated/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_matrix_berger.pkl
     - generated/bugginess-1k/heuristics.bugginess.tool_heuristics/heuristic_matrix_1151-commits.pkl
     - generated/bugginess-1k/heuristics.bugginess.tool_heuristics/heuristic_matrix_200k-commits-1k.pkl
     - generated/bugginess-1k/heuristics.bugginess.tool_heuristics/heuristic_matrix_berger.pkl
