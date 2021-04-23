@@ -164,15 +164,12 @@ class DatasetLinker(ABC):
         self.from_ = from_
         self.link = link
         self.to = to
-        self.dependent_dataframe = None
-
-    def finish_setup(self):
-        self.dependent_dataframe = self.calc_dependent_dataframe()
 
     def __str__(self):
         return f"{self.from_} -> {self.to}, linker: {self.link}"
 
-    def calc_dependent_dataframe(self):
+    @functools.cached_property
+    def dependent_dataframe(self):
         artifact_type_name = self.to.artifact_type.__name__
         logger.debug(f"Reading {artifact_type_name}s ... ")
         to_df = self.to.load()
