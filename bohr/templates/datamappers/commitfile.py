@@ -9,7 +9,7 @@ from bohr.datamodel import ArtifactDependencies, ArtifactMapper
 
 class CommitFileMapper(ArtifactMapper):
     def __init__(self):
-        super().__init__(CommitFile, "file_id", ("owner", "repository", "sha"))
+        super().__init__(CommitFile, foreign_key="commit_id")
 
     cache = LRUCache(512)
 

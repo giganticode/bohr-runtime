@@ -164,24 +164,52 @@ class DatasetLinker(ABC):
         self.from_ = from_
         self.link = link
         self.to = to
+        self.dependent_dataframe = None
+
+    def finish_setup(self):
+        self.dependent_dataframe = self.calc_dependent_dataframe()
 
     def __str__(self):
         return f"{self.from_} -> {self.to}, linker: {self.link}"
 
-    @functools.cached_property
-    def dependent_dataframe(self):
+    def calc_dependent_dataframe(self):
         artifact_type_name = self.to.artifact_type.__name__
-        logger.debug(f"Reading {artifact_type_name}s ...")
+        logger.debug(f"Reading {artifact_type_name}s ... ")
         to_df = self.to.load()
+        logger.debug(
+            f"Index: {list(to_df.index.names)}, "
+            f"columns: {list(to_df.columns)}, "
+            f"n_rows: {len(to_df.index)}"
+        )
         if self.link is None and self.to.foreign_key is None:
             raise ValueError(
                 f"Linker: {self}.\n"
                 f"Either linking dataset has to be defined "
-                f"or destination dataset has to have foreign key defined, however its foreign key is {self.to.foreign_key}"
+                f"or destination dataset has to have foreign key defined, "
+                f"however its foreign key is {self.to.foreign_key}"
             )
         if self.link is not None:
+            if self.link.foreign_key is None:
+                raise ValueError(
+                    f"Foreign key is not specified for linker dataset: {self.link}"
+                )
+            logger.debug(f"Reading linker dataset ... ")
             link_df = self.link.load()
-            return pd.merge(link_df, to_df, on=self.to.foreign_key)
+            logger.debug(
+                f"Index: {list(link_df.index.names)}, "
+                f"columns: {list(link_df.columns)}, "
+                f"n_rows: {len(link_df.index)}"
+            )
+            logger.debug(f"Merging on {self.to.primary_key}")
+            link_df = link_df.reset_index()
+            res = pd.merge(link_df, to_df, on=self.to.primary_key)
+            res.set_index(self.link.foreign_key, inplace=True)
+            logger.debug(
+                f"Merged dataset -> Index: {list(res.index.names)}, "
+                f"columns: {list(res.columns)}, "
+                f"n_rows: {len(res.index)}"
+            )
+            return res
         else:
             return to_df
 

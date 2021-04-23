@@ -59,22 +59,6 @@ def load_config(project_root: Optional[Path] = None) -> Config:
     return config
 
 
-# def get_dataset_loader(name: str) -> DatasetLoader:
-#     module = None
-#     try:
-#         module = importlib.import_module(name)
-#         all = module.__dict__["__all__"]
-#         if len(all) != 1 or not isinstance(all[0], DatasetLoader):
-#             raise SyntaxError(
-#                 f"{DatasetLoader} object should be specified in __all__ list"
-#             )
-#         return all[0]
-#     except KeyError as e:
-#         raise ValueError(f"__all__ is not defined in module {module}")
-#     except ModuleNotFoundError as e:
-#         raise ValueError(f"Dataset {name} not defined.") from e
-
-
 def load_artifact_class(artifact_name: str) -> ArtifactType:
     *path, name = artifact_name.split(".")
     try:
@@ -164,6 +148,9 @@ path_config={})
 
     for linker in linkers:
         linker.from_.mapper.linkers = linkers
+        if linker.link is not None:
+            linker.link.mapper.foreign_key = linker.from_.primary_key
+        linker.finish_setup()
 
     tasks = dict()
     for task_name, task_json in dct["tasks"].items():
@@ -217,7 +204,6 @@ def desearialize_dataset(
             path_preprocessed=path_preprocessed, **extra_args
         )
 
-        logger.debug(f"Deserializing {dataset_name}")
         return Dataset(
             name=dataset_name,
             description=dct["description"] if "description" in dct else None,
