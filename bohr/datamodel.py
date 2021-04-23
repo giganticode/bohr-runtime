@@ -186,10 +186,6 @@ class DatasetLinker(ABC):
                 f"however its foreign key is {self.to.foreign_key}"
             )
         if self.link is not None:
-            if self.link.foreign_key is None:
-                raise ValueError(
-                    f"Foreign key is not specified for linker dataset: {self.link}"
-                )
             logger.debug(f"Reading linker dataset ... ")
             link_df = self.link.load()
             logger.debug(
@@ -200,7 +196,7 @@ class DatasetLinker(ABC):
             logger.debug(f"Merging on {self.to.primary_key}")
             link_df = link_df.reset_index()
             res = pd.merge(link_df, to_df, on=self.to.primary_key)
-            res.set_index(self.link.foreign_key, inplace=True)
+            res.set_index(self.from_.primary_key, inplace=True)
             logger.debug(
                 f"Merged dataset -> Index: {list(res.index.names)}, "
                 f"columns: {list(res.columns)}, "

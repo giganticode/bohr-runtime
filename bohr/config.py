@@ -148,8 +148,6 @@ path_config={})
 
     for linker in linkers:
         linker.from_.mapper.linkers = linkers
-        if linker.link is not None:
-            linker.link.mapper.foreign_key = linker.from_.primary_key
 
     tasks = dict()
     for task_name, task_json in dct["tasks"].items():
