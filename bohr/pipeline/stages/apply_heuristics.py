@@ -48,9 +48,7 @@ def apply_heuristics(
 
     save_to_matrix = task_dir_generated / f"heuristic_matrix_{dataset.name}.pkl"
     save_to_metrics = task_dir_metrics / f"heuristic_metrics_{dataset.name}.json"
-    labeling_functions = to_labeling_functions(
-        heuristics, dataset.dataloader.get_mapper(), task.labels
-    )
+    labeling_functions = to_labeling_functions(heuristics, dataset.mapper, task.labels)
     artifact_df = dataset.load()
     apply_lf_matrix = apply_lfs_to_dataset(
         labeling_functions, artifact_df=artifact_df, save_to=save_to_matrix

@@ -7,6 +7,7 @@ from bohr.config import load_config
 from bohr.core import KEYWORD_GROUP_SEPARATOR
 from bohr.decorators import Heuristic
 from bohr.labels.labelset import Label
+from bohr.pathconfig import load_path_config
 
 
 class KeywordHeuristics(Heuristic):
@@ -18,16 +19,17 @@ class KeywordHeuristics(Heuristic):
         resources=None,
     ):
         super().__init__(artifact_type_applied_to)
-        config = load_config()
-        file = config.paths.heuristics / "keywords" / f"{keyword_list_name}.kwords"
-        self.keyword_list = load_keywords_from_file(file)
+        self.keyword_list_name = keyword_list_name
         self.name_pattern = name_pattern
         self.resources = resources
 
     def __call__(self, f: Callable[..., Label]) -> List[datamodel.Heuristic]:
 
         heuristic_list = []
-        for keyword_group in self.keyword_list:
+        path_config = load_path_config()
+        file = path_config.heuristics / "keywords" / f"{self.keyword_list_name}.kwords"
+        keyword_list = load_keywords_from_file(file)
+        for keyword_group in keyword_list:
 
             def to_tuple_or_str(lst: List[str]):
                 return lst[0] if len(lst) == 1 else tuple(lst)

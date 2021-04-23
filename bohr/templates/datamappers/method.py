@@ -23,9 +23,7 @@ def extract_owner_and_repo(repository_url: str) -> Tuple[str, str]:
 
 class MethodMapper(ArtifactMapper):
     def __init__(self):
-        super().__init__(
-            Method, ["repository", "commit_hash", "path", "start_line", "end_line"]
-        )
+        super().__init__(Method)
 
     cache = LRUCache(512)
 

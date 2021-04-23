@@ -1,3 +1,4 @@
+import importlib
 from typing import Optional
 
 from cachetools import LRUCache
@@ -6,14 +7,17 @@ from snorkel.types import DataPoint
 from bohr.artifacts.issue import Issue
 from bohr.core import ArtifactMapper
 from bohr.datamodel import ArtifactDependencies
+from bohr.labels.labelset import Label
 
 
-class IssueMapper(ArtifactMapper):
+class ManualLabelMapper(ArtifactMapper):
     def __init__(self):
-        super().__init__(Issue, "issue_id")
+        super().__init__(Label, foreign_key="commit_id")
 
     cache = LRUCache(512)
 
     def map(self, x: DataPoint, dependencies: ArtifactDependencies) -> Optional[Issue]:
-        labels = list(filter(None, x.labels.split(", ")))
-        return Issue(x.title, x.body, labels)
+        class_name, obj = x.label.split('.')
+        module = importlib.import_module("labels")
+        clz = getattr(module, class_name)
+        return clz[obj]

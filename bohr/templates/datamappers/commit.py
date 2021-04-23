@@ -11,7 +11,7 @@ from bohr.datamodel import ArtifactDependencies
 
 class CommitMapper(ArtifactMapper):
     def __init__(self):
-        super().__init__(Commit, ["owner", "repository", "sha"])
+        super().__init__(Commit, "commit_id")
 
     cache = LRUCache(512)
 

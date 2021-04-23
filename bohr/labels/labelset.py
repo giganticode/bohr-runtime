@@ -3,8 +3,10 @@ from enum import Flag, auto
 from functools import reduce
 from typing import List, Set, Type, TypeVar, Union
 
+from bohr.artifacts.core import Artifact
 
-class Label(Flag):
+
+class Label(Artifact, Flag):
     def __or__(self, other: Union["LabelSet", "Label"]):
         if type(self) == type(other):
             return super().__or__(other)
