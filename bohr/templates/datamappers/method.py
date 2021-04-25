@@ -7,7 +7,6 @@ from snorkel.types import DataPoint
 
 from bohr.artifacts.method import Method
 from bohr.core import ArtifactMapper
-from bohr.datamodel import ArtifactDependencies
 
 regex = re.compile("git@github.com:(.*)/(.*).git")
 
@@ -27,9 +26,7 @@ class MethodMapper(ArtifactMapper):
 
     cache = LRUCache(512)
 
-    def map(
-        self, x: DataPoint, dependencies: ArtifactDependencies
-    ) -> Optional[DataPoint]:
+    def map(self, x: DataPoint) -> Optional[DataPoint]:
         owner, repository = extract_owner_and_repo(x.repository)
         url = f"https://raw.githubusercontent.com/{owner}/{repository}/{x.commit_hash}/{x.path}"
         text = requests.get(url).text

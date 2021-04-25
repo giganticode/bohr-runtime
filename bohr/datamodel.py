@@ -5,13 +5,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
-import pandas as pd
 from dask.dataframe import DataFrame
-from pandas.core.indexing import IndexingError
 from snorkel.map import BaseMapper
 from snorkel.types import DataPoint
 
-from bohr.artifacts.core import Artifact
+from bohr.artifacts.core import Artifact, ArtifactProxy
 from bohr.labels.labelset import Label, Labels
 from bohr.nlp_utils import camel_case_to_snake_case
 
@@ -54,6 +52,16 @@ class ArtifactMapper(BaseMapper, ABC):
     def __call__(self, x: DataPoint) -> Optional[DataPoint]:
         return self.cached_map(x)
 
+    @functools.cached_property
+    def proxies(self) -> Dict[str, ArtifactProxy]:
+        proxies = {}
+        for linker in self.linkers:
+            name = camel_case_to_snake_case(linker.to.artifact_type.__name__) + "s"
+            proxies[name] = ArtifactProxy(
+                linker.to, linker.from_.primary_key, linker.link
+            )
+        return proxies
+
     def cached_map(self, x: DataPoint) -> Optional[Artifact]:
         # TODO use snorkels cache?
         try:
@@ -62,8 +70,9 @@ class ArtifactMapper(BaseMapper, ABC):
             if key in cache:
                 return cache[key]
 
-            dependencies = ArtifactMapper.load_dependent_artifacts(self.linkers, key)
-            artifact = self.map(x, dependencies)
+            artifact = self.map(x)
+            artifact.proxies = self.proxies
+            artifact.keys = key
             cache[key] = artifact
 
             return artifact
@@ -71,38 +80,15 @@ class ArtifactMapper(BaseMapper, ABC):
             raise AttributeError(f"Datapoint:\n {x}, \n\nprimary_key: {x.name}") from ex
 
     @abstractmethod
-    def map(
-        self, x: DataPoint, dependencies: ArtifactDependencies
-    ) -> Optional[DataPoint]:
+    def map(self, x: DataPoint) -> Optional[DataPoint]:
         pass
-
-    @staticmethod
-    def load_dependent_artifacts(
-        dataset_linkers: List["DatasetLinker"], index: Tuple[str]
-    ) -> Dict[str, Union[Artifact, List[Artifact]]]:
-        result: Dict[str, Union[Artifact, List[Artifact]]] = {}
-        for dataset_linker in dataset_linkers:
-            name = (
-                camel_case_to_snake_case(dataset_linker.to.artifact_type.__name__) + "s"
-            )
-            df = dataset_linker.get_dependency_by_key(index)
-
-            lst = [
-                dataset_linker.to.dataloader.mapper.cached_map(issue[1])
-                for issue in df.iterrows()
-            ]
-
-            result[name] = lst
-        return result
 
 
 class DummyMapper(ArtifactMapper):
     def __init__(self):
         super().__init__(None)
 
-    def map(
-        self, x: DataPoint, dependencies: ArtifactDependencies
-    ) -> Optional[DataPoint]:
+    def map(self, x: DataPoint) -> Optional[DataPoint]:
         raise NotImplementedError()
 
     def get_name(self, artifact_type: Optional[ArtifactType] = None) -> str:
@@ -167,55 +153,6 @@ class DatasetLinker(ABC):
 
     def __str__(self):
         return f"{self.from_} -> {self.to}, linker: {self.link}"
-
-    @functools.cached_property
-    def dependent_dataframe(self):
-        artifact_type_name = self.to.artifact_type.__name__
-        logger.debug(f"Reading {artifact_type_name}s ... ")
-        to_df = self.to.load()
-        logger.debug(
-            f"Index: {list(to_df.index.names)}, "
-            f"columns: {list(to_df.columns)}, "
-            f"n_rows: {len(to_df.index)}"
-        )
-        if self.link is None and self.to.foreign_key is None:
-            raise ValueError(
-                f"Linker: {self}.\n"
-                f"Either linking dataset has to be defined "
-                f"or destination dataset has to have foreign key defined, "
-                f"however its foreign key is {self.to.foreign_key}"
-            )
-        if self.link is not None:
-            logger.debug(f"Reading linker dataset ... ")
-            link_df = self.link.load()
-            logger.debug(
-                f"Index: {list(link_df.index.names)}, "
-                f"columns: {list(link_df.columns)}, "
-                f"n_rows: {len(link_df.index)}"
-            )
-            logger.debug(f"Merging on {self.to.primary_key}")
-            link_df = link_df.reset_index()
-            res = pd.merge(link_df, to_df, on=self.to.primary_key)
-            res.set_index(self.from_.primary_key, inplace=True)
-            logger.debug(
-                f"Merged dataset -> Index: {list(res.index.names)}, "
-                f"columns: {list(res.columns)}, "
-                f"n_rows: {len(res.index)}"
-            )
-            return res
-        else:
-            return to_df
-
-    def get_dependency_by_key(self, key: Tuple[str]) -> pd.DataFrame:
-        try:
-            return self.dependent_dataframe.loc[[key]]
-        except KeyError:
-            return pd.DataFrame()
-        except IndexingError as ex:
-            raise AssertionError(
-                f"Dataframe:\n{self.dependent_dataframe}\n\n"
-                f"Key: {key}\nIndex: {self.dependent_dataframe.index}"
-            ) from ex
 
 
 @dataclass(frozen=True)

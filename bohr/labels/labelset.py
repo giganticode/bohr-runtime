@@ -6,7 +6,7 @@ from typing import List, Set, Type, TypeVar, Union
 from bohr.artifacts.core import Artifact
 
 
-class Label(Artifact, Flag):
+class Label(Flag):
     def __or__(self, other: Union["LabelSet", "Label"]):
         if type(self) == type(other):
             return super().__or__(other)

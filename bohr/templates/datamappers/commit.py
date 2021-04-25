@@ -6,7 +6,6 @@ from snorkel.types import DataPoint
 from bohr.artifacts.commit import Commit
 from bohr.artifacts.core import Artifact
 from bohr.core import ArtifactMapper
-from bohr.datamodel import ArtifactDependencies
 
 
 class CommitMapper(ArtifactMapper):
@@ -15,7 +14,5 @@ class CommitMapper(ArtifactMapper):
 
     cache = LRUCache(512)
 
-    def map(
-        self, x: DataPoint, dependencies: ArtifactDependencies
-    ) -> Optional[Artifact]:
-        return Commit(x.owner, x.repository, x.sha, str(x.message), **dependencies)
+    def map(self, x: DataPoint) -> Optional[Artifact]:
+        return Commit(x.owner, x.repository, x.sha, str(x.message))

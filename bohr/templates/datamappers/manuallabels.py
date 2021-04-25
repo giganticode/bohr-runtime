@@ -6,7 +6,6 @@ from snorkel.types import DataPoint
 
 from bohr.artifacts.issue import Issue
 from bohr.core import ArtifactMapper
-from bohr.datamodel import ArtifactDependencies
 from bohr.labels.labelset import Label
 
 
@@ -16,7 +15,7 @@ class ManualLabelMapper(ArtifactMapper):
 
     cache = LRUCache(512)
 
-    def map(self, x: DataPoint, dependencies: ArtifactDependencies) -> Optional[Issue]:
+    def map(self, x: DataPoint) -> Optional[Issue]:
         class_name, obj = x.label.split('.')
         module = importlib.import_module("labels")
         clz = getattr(module, class_name)
