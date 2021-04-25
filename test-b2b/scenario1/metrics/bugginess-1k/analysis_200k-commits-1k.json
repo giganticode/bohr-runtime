@@ -303,6 +303,7 @@
         "bugless_message_keyword_upgrad": 0.002,
         "bugless_message_keyword_version": 0.008,
         "github_ref_in_message": 0.0,
+        "manual_labels": 0.006,
         "no_files_have_modified_status": 0.015,
         "refactorings_detected": 0.0,
         "version_in_message": 0.004
@@ -611,6 +612,7 @@
         "bugless_message_keyword_upgrad": 0.004,
         "bugless_message_keyword_version": 0.025,
         "github_ref_in_message": 0.0,
+        "manual_labels": 0.03,
         "no_files_have_modified_status": 0.195,
         "refactorings_detected": 0.0,
         "version_in_message": 0.015
@@ -672,7 +674,7 @@
         "bug_message_keyword_bad": 0.002,
         "bug_message_keyword_broken": 0.003,
         "bug_message_keyword_bug": 0.072,
-        "bug_message_keyword_bugfix": 0.155,
+        "bug_message_keyword_bugfix": 0.156,
         "bug_message_keyword_close": 0.008,
         "bug_message_keyword_concurr": 0.0,
         "bug_message_keyword_correct": 0.009,
@@ -822,7 +824,7 @@
         "bugless_issue_label_keyword_renovate": 0.0,
         "bugless_issue_label_keyword_request": 0.0,
         "bugless_message_keyword_abil": 0.002,
-        "bugless_message_keyword_ad": 0.052,
+        "bugless_message_keyword_ad": 0.053,
         "bugless_message_keyword_add": 0.066,
         "bugless_message_keyword_addit": 0.004,
         "bugless_message_keyword_allow": 0.009,
@@ -834,7 +836,7 @@
         "bugless_message_keyword_better": 0.006,
         "bugless_message_keyword_bump": 0.005,
         "bugless_message_keyword_chang|log": 0.0,
-        "bugless_message_keyword_clean": 0.01,
+        "bugless_message_keyword_clean": 0.011,
         "bugless_message_keyword_comment": 0.008,
         "bugless_message_keyword_complet": 0.005,
         "bugless_message_keyword_configur|chang": 0.0,
@@ -882,7 +884,7 @@
         "bugless_message_keyword_propos": 0.0,
         "bugless_message_keyword_provid": 0.002,
         "bugless_message_keyword_publish": 0.003,
-        "bugless_message_keyword_readm": 0.025,
+        "bugless_message_keyword_readm": 0.026,
         "bugless_message_keyword_reduc": 0.0,
         "bugless_message_keyword_refactor": 0.003,
         "bugless_message_keyword_refin": 0.002,
@@ -915,10 +917,11 @@
         "bugless_message_keyword_tweak": 0.002,
         "bugless_message_keyword_unit": 0.002,
         "bugless_message_keyword_unnecessari": 0.008,
-        "bugless_message_keyword_updat": 0.086,
+        "bugless_message_keyword_updat": 0.088,
         "bugless_message_keyword_upgrad": 0.003,
         "bugless_message_keyword_version": 0.017,
         "github_ref_in_message": 0.0,
+        "manual_labels": 0.03,
         "no_files_have_modified_status": 0.129,
         "refactorings_detected": 0.0,
         "version_in_message": 0.014
@@ -1549,6 +1552,10 @@
             0
         ],
         "github_ref_in_message": [],
+        "manual_labels": [
+            0,
+            1
+        ],
         "no_files_have_modified_status": [
             0
         ],
