@@ -14,12 +14,13 @@ class Artifact:
     keys: Union[str, Tuple[str, ...]] = field(init=False)
 
     def __getattr__(self, item):
-        if item in self.__slots__:
+        if "__slots__" in self.__dict__ and item in self.__slots__:
             return (
                 self.proxies[item].load_artifact(self.keys)
                 if item in self.proxies
                 else []
             )
+        raise AttributeError(f"Attribute {item} is ont found in {self}.")
 
 
 ArtifactSubclass = TypeVar("ArtifactSubclass", bound="Artifact")
