@@ -22,37 +22,13 @@ class Commit(Artifact):
     raw_message: str
     message: CommitMessage = field(init=False)
 
+    __slots__ = ["issues", "commit_files", "labels"]
+
     def __post_init__(self):
         self.message = CommitMessage(self.raw_message)
 
     def __hash__(self):
         return hash((self.owner, self.repository, self.sha))
-
-    # TODO code dupliaction, use slots?
-
-    @cached_property
-    def issues(self) -> List[Issue]:
-        return (
-            self.proxies["issues"].load_artifact(self.keys)
-            if "issues" in self.proxies
-            else []
-        )
-
-    @cached_property
-    def commit_files(self) -> List[CommitFile]:
-        return (
-            self.proxies["commit_files"].load_artifact(self.keys)
-            if "commit_files" in self.proxies
-            else []
-        )
-
-    @cached_property
-    def labels(self) -> List[Label]:
-        return (
-            self.proxies["labels"].load_artifact(self.keys)
-            if "labels" in self.proxies
-            else []
-        )
 
     def issues_match_label(self, stemmed_labels: Set[str]) -> bool:
         for issue in self.issues:
