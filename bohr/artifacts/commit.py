@@ -22,7 +22,17 @@ class Commit(Artifact):
     raw_message: str
     message: CommitMessage = field(init=False)
 
-    __slots__ = ["issues", "commit_files", "labels"]
+    @cached_property
+    def issues(self) -> List[Issue]:
+        return self.linked("issues")
+
+    @cached_property
+    def commit_files(self) -> List[CommitFile]:
+        return self.linked("commit_files")
+
+    @cached_property
+    def labels(self) -> List[Label]:
+        return self.linked("labels")
 
     def __post_init__(self):
         self.message = CommitMessage(self.raw_message)
