@@ -175,7 +175,7 @@ bug_message_keyword_ensur,172,[1],0.005,0.004,0.003
 bug_message_keyword_error,173,[1],0.024,0.022,0.015
 bug_message_keyword_except,174,[1],0.003,0.003,0.003
 bug_message_keyword_fail,175,[1],0.009,0.009,0.008
-bug_message_keyword_bugfix,176,[1],0.199,0.155,0.106
+bug_message_keyword_bugfix,176,[1],0.199,0.156,0.106
 bug_message_keyword_garbag,177,[],0.0,0.0,0.0
 bug_message_keyword_handl,178,[1],0.021,0.019,0.017
 bug_message_keyword_incomplet,179,[1],0.001,0.001,0.001
@@ -208,7 +208,7 @@ bug_message_keyword_unknown,205,[],0.0,0.0,0.0
 bug_message_keyword_unsynchron,206,[],0.0,0.0,0.0
 bug_message_keyword_wrong,207,[1],0.005,0.005,0.003
 bugless_message_keyword_abil,208,[0],0.002,0.002,0.001
-bugless_message_keyword_ad,209,[0],0.071,0.052,0.007
+bugless_message_keyword_ad,209,[0],0.071,0.053,0.007
 bugless_message_keyword_add,210,[0],0.094,0.066,0.016
 bugless_message_keyword_addit,211,[0],0.004,0.004,0.002
 bugless_message_keyword_allow,212,[0],0.009,0.009,0.007
@@ -220,7 +220,7 @@ bugless_message_keyword_benchmark,217,[],0.0,0.0,0.0
 bugless_message_keyword_better,218,[0],0.007,0.006,0.003
 bugless_message_keyword_bump,219,[0],0.006,0.005,0.004
 bugless_message_keyword_chang|log,220,[],0.0,0.0,0.0
-bugless_message_keyword_clean,221,[0],0.013,0.01,0.003
+bugless_message_keyword_clean,221,[0],0.013,0.011,0.003
 bugless_message_keyword_comment,222,[0],0.01,0.008,0.003
 bugless_message_keyword_complet,223,[0],0.005,0.005,0.003
 bugless_message_keyword_configur|chang,224,[],0.0,0.0,0.0
@@ -268,7 +268,7 @@ bugless_message_keyword_prepar,265,[0],0.008,0.008,0.005
 bugless_message_keyword_propos,266,[],0.0,0.0,0.0
 bugless_message_keyword_provid,267,[0],0.003,0.002,0.002
 bugless_message_keyword_publish,268,[0],0.005,0.003,0.0
-bugless_message_keyword_readm,269,[0],0.026,0.025,0.003
+bugless_message_keyword_readm,269,[0],0.026,0.026,0.003
 bugless_message_keyword_reduc,270,[],0.0,0.0,0.0
 bugless_message_keyword_refactor,271,[0],0.007,0.003,0.001
 bugless_message_keyword_refin,272,[0],0.002,0.002,0.002
@@ -301,7 +301,8 @@ bugless_message_keyword_todo,298,[0],0.001,0.001,0.001
 bugless_message_keyword_tweak,299,[0],0.003,0.002,0.001
 bugless_message_keyword_unit,300,[0],0.002,0.002,0.001
 bugless_message_keyword_unnecessari,301,[0],0.008,0.008,0.004
-bugless_message_keyword_updat,302,[0],0.172,0.086,0.032
+bugless_message_keyword_updat,302,[0],0.172,0.088,0.032
 bugless_message_keyword_upgrad,303,[0],0.004,0.003,0.002
 bugless_message_keyword_version,304,[0],0.025,0.017,0.008
-refactorings_detected,305,[],0.0,0.0,0.0
+manual_labels,305,"[0, 1]",0.03,0.03,0.006
+refactorings_detected,306,[],0.0,0.0,0.0
