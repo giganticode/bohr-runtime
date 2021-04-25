@@ -4,7 +4,7 @@ from cachetools import LRUCache
 from snorkel.types import DataPoint
 
 from bohr.artifacts.commit_file import CommitFile
-from bohr.datamodel import ArtifactDependencies, ArtifactMapper
+from bohr.datamodel import ArtifactMapper
 
 
 class CommitFileMapper(ArtifactMapper):
@@ -13,9 +13,7 @@ class CommitFileMapper(ArtifactMapper):
 
     cache = LRUCache(512)
 
-    def map(
-        self, x: DataPoint, dependencies: ArtifactDependencies
-    ) -> Optional[CommitFile]:
+    def map(self, x: DataPoint) -> Optional[CommitFile]:
         return CommitFile(
             x.filename,
             x.status,

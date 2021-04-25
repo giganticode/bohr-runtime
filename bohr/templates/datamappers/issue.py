@@ -5,7 +5,6 @@ from snorkel.types import DataPoint
 
 from bohr.artifacts.issue import Issue
 from bohr.core import ArtifactMapper
-from bohr.datamodel import ArtifactDependencies
 
 
 class IssueMapper(ArtifactMapper):
@@ -14,6 +13,6 @@ class IssueMapper(ArtifactMapper):
 
     cache = LRUCache(512)
 
-    def map(self, x: DataPoint, dependencies: ArtifactDependencies) -> Optional[Issue]:
+    def map(self, x: DataPoint) -> Optional[Issue]:
         labels = list(filter(None, x.labels.split(", ")))
         return Issue(x.title, x.body, labels)

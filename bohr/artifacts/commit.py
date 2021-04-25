@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass, field
-from typing import List, Optional, Set
+from functools import cached_property
+from typing import List, Set
 
 from bohr.artifacts.commit_file import CommitFile
 from bohr.artifacts.commit_message import CommitMessage
@@ -19,9 +20,6 @@ class Commit(Artifact):
     repository: str
     sha: str
     raw_message: str
-    issues: List[Issue] = field(default_factory=list)
-    commit_files: List[CommitFile] = field(default_factory=list)
-    labels: List[Label] = field(default_factory=list)
     message: CommitMessage = field(init=False)
 
     def __post_init__(self):
@@ -29,6 +27,32 @@ class Commit(Artifact):
 
     def __hash__(self):
         return hash((self.owner, self.repository, self.sha))
+
+    # TODO code dupliaction, use slots?
+
+    @cached_property
+    def issues(self) -> List[Issue]:
+        return (
+            self.proxies["issues"].load_artifact(self.keys)
+            if "issues" in self.proxies
+            else []
+        )
+
+    @cached_property
+    def commit_files(self) -> List[CommitFile]:
+        return (
+            self.proxies["commit_files"].load_artifact(self.keys)
+            if "commit_files" in self.proxies
+            else []
+        )
+
+    @cached_property
+    def labels(self) -> List[Label]:
+        return (
+            self.proxies["labels"].load_artifact(self.keys)
+            if "labels" in self.proxies
+            else []
+        )
 
     def issues_match_label(self, stemmed_labels: Set[str]) -> bool:
         for issue in self.issues:
