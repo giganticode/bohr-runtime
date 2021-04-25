@@ -210,6 +210,7 @@ class DatasetDebugger:
         path_to_old_revision = get_path_to_revision(
             path_config.project_root, rev, force_update
         )
+        self.labeled_dataset_name = labeled_dataset_name
         logging.disable(logging.WARNING)
         labeled_dataset_path = (
             path_config.labeled_data_dir / f"{labeled_dataset_name}.labeled.csv"
@@ -220,24 +221,32 @@ class DatasetDebugger:
             new_df = pd.read_csv(f)
         logging.disable(logging.NOTSET)
 
+        self.is_test_set = "bug" in old_df.columns
+
+        old_df_columns = ["prob_CommitLabel.BugFix"]
+        if self.is_test_set:
+            old_df_columns.append("bug")
         self.combined_df = pd.concat(
             [
-                old_df[["bug", "prob_CommitLabel.BugFix"]],
+                old_df[old_df_columns],
                 new_df["prob_CommitLabel.BugFix"].rename("prob_CommitLabel.BugFix_new"),
             ],
             axis=1,
         )
-        self.combined_df.loc[:, "improvement"] = (
-            self.combined_df["prob_CommitLabel.BugFix_new"]
-            - self.combined_df["prob_CommitLabel.BugFix"]
-        ) * (self.combined_df["bug"] * 2 - 1)
+        if self.is_test_set:
+            self.combined_df.loc[:, "improvement"] = (
+                self.combined_df["prob_CommitLabel.BugFix_new"]
+                - self.combined_df["prob_CommitLabel.BugFix"]
+            ) * (self.combined_df["bug"] * 2 - 1)
 
         self.combined_df.loc[:, "certainty"] = (
             np.abs(self.combined_df["prob_CommitLabel.BugFix_new"] - 0.5) * 2
         )
-        self.combined_df.loc[:, "precision"] = 1 - np.abs(
-            self.combined_df["prob_CommitLabel.BugFix_new"] - self.combined_df["bug"]
-        )
+        if self.is_test_set:
+            self.combined_df.loc[:, "precision"] = 1 - np.abs(
+                self.combined_df["prob_CommitLabel.BugFix_new"]
+                - self.combined_df["bug"]
+            )
 
         self.combined_df = pd.concat([self.combined_df, old_df["message"]], axis=1)
 
@@ -247,6 +256,12 @@ class DatasetDebugger:
         n: Optional[int] = 10,
         reverse: bool = False,
     ) -> None:
+        if not self.is_test_set and value in ["improvement", "precision"]:
+            raise ValueError(
+                f"Dataset {self.labeled_dataset_name} has no ground-truth labels. "
+                f"Cannot calculate {value}"
+            )
+
         self.combined_df.sort_values(by=value, inplace=True, ascending=reverse)
         df = self.combined_df.head(n)
         pd.options.mode.chained_assignment = None
