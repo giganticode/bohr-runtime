@@ -22,8 +22,6 @@ class Commit(Artifact):
     raw_message: str
     message: CommitMessage = field(init=False)
 
-    __slots__ = ["issues", "commit_files", "labels"]
-
     def __post_init__(self):
         self.message = CommitMessage(self.raw_message)
 
