@@ -1,5 +1,5 @@
 {
-  "bohr_framework_version": "0.4.4-rc",
+  "bohr_framework_version": "0.4.4",
   "tasks": {
     "bugginess-1k": {
       "top_artifact": "bohr.artifacts.commit.Commit",
@@ -66,7 +66,9 @@
       "loader": "csv",
       "preprocessor": "copy",
       "keep_default_na": false,
-      "dtype": {"labels": "str"}
+      "dtype": {
+        "labels": "str"
+      }
     },
     "200k-commits-files": {
       "description": "desc",
@@ -118,10 +120,12 @@
       "from": "200k-commits-1k",
       "to": "200k-commits-issues",
       "link": "200k-commits-link-issues"
-    }, {
+    },
+    {
       "from": "200k-commits-1k",
       "to": "200k-commits-files"
-    }, {
+    },
+    {
       "from": "200k-commits-1k",
       "to": "200k-commits-manual-labels"
     }
