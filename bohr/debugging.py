@@ -249,6 +249,8 @@ class DatasetDebugger:
             )
 
         self.combined_df = pd.concat([self.combined_df, old_df["message"]], axis=1)
+        if "url" in old_df.columns:
+            self.combined_df["url"] = old_df["url"]
 
     def show_datapoints(
         self,
