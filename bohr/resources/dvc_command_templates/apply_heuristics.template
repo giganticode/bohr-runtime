@@ -1,7 +1,6 @@
 -n {{stage_name}}
 
 -d labels.py
--d {{path_config.heuristics_dir}}/keywords
 
 -d {{heuristic_group|replace('.', '/')}}.py
 {% for dataset in datasets %}
