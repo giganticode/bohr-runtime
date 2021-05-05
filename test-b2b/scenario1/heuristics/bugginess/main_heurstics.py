@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import List, Optional
 
 from labels import *
 
@@ -138,7 +138,6 @@ def bug_keywords_lookup_in_message(
         "publish",
         "readm",
         "reduc",
-        "refactor",
         "refin",
         "reformat",
         "regress test",
@@ -179,6 +178,21 @@ def bugless_keywords_lookup_in_message(
     commit: Commit, keywords: NgramSet
 ) -> Optional[Labels]:
     if commit.message.match_ngrams(keywords):
+        return CommitLabel.NonBugFix
+    return None
+
+
+@KeywordHeuristics(
+    Commit,
+    keywords=["refactor"],
+    name_pattern="refactoring_message_keyword",
+    lf_per_key_word=False,
+)
+def refactoring_keywords_lookup_in_message(
+        commit: Commit,
+        keywords: List[NgramSet],
+) -> Optional[Labels]:
+    if commit.message.match_ngrams(keywords[0]):
         return CommitLabel.NonBugFix
     return None
 
