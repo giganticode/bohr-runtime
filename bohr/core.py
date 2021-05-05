@@ -5,9 +5,6 @@ from bohr.datamodel import ArtifactMapper, Heuristic
 from bohr.labels.cache import CategoryMappingCache
 from bohr.snorkel_util import SnorkelLabelingFunction, to_snorkel_label
 
-KEYWORD_GROUP_SEPARATOR = "|"
-
-
 logger = logging.getLogger(__name__)
 
 
