@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from pathlib import Path
+from pprint import pformat
 from typing import Any, Dict
 
 import jsons
@@ -59,7 +60,7 @@ def bohr_up_to_date(path_config: PathConfig) -> bool:
     diff = DeepDiff(current_lock, new_lock, ignore_order=True)
     up_to_date = str(diff) == "{}"
     if not up_to_date:
-        logger.debug(f"Changes:\n\n{diff}")
+        logger.debug(f"Changes:\n\n{pformat(diff)}")
     return up_to_date
 
 
