@@ -26,7 +26,7 @@ dulwich==0.20.21
 dvc==2.0.14
 flatten-dict==0.3.0
 flufl.lock==3.2
-fsspec==0.8.5
+fsspec==0.9.0
 ftfy==5.9
 funcy==1.15
 future==0.18.2
