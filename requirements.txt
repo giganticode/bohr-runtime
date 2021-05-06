@@ -48,7 +48,7 @@ joblib==1.0.1
 jsonpath-ng==1.5.2
 jsons==1.4.0
 mailchecker==4.0.6
-Markdown==3.3.3
+Markdown==3.3.4
 MarkupSafe==1.1.1
 msgpack==1.0.2
 munkres==1.1.4
