@@ -7,7 +7,7 @@ from typing import List
 import jsons
 
 from bohr.artifacts.commit import Commit
-from bohr.config import Config
+from bohr.pathconfig import PathConfig
 from bohr.templates.heuristics.tool import Tool
 
 logger = logging.getLogger(__name__)
@@ -32,8 +32,11 @@ def get_full_github_url(author: str, repo: str) -> str:
 
 
 class RefactoringMiner(Tool):
-    def __init__(self, config: Config):
-        super().__init__(config)
+    def __init__(self, path_config: PathConfig):
+        super().__init__(path_config)
+        refactoring_miner_dir = os.listdir(self.path_config.software_path)[0]
+        logger.debug(f"Using RefactoringMiner version {refactoring_miner_dir}")
+        self.path = self.path_config.software_path / refactoring_miner_dir / "bin"
 
     def check_installed(self):
         pass
@@ -42,14 +45,7 @@ class RefactoringMiner(Tool):
         url = get_full_github_url(commit.owner, commit.repository)
         cmd = ["./RefactoringMiner", "-gc", url, commit.sha, "1000"]
 
-        refactoring_miner_dir = os.listdir(self.path_config.software_path)[0]
-        logger.debug(f"Using RefactoringMiner version {refactoring_miner_dir}")
-        refactoring_miner_path = (
-            self.path_config.software_path / refactoring_miner_dir / "bin"
-        )
-        result = subprocess.run(
-            cmd, cwd=refactoring_miner_path, capture_output=True, check=True
-        )
+        result = subprocess.run(cmd, cwd=self.path, capture_output=True, check=True)
 
         output = result.stdout.decode()
         return jsons.loads(output, cls=RefactoringMinerOutput)
