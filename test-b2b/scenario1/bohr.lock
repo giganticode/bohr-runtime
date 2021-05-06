@@ -1,6 +1,6 @@
 {
     "config": {
-        "bohr_framework_version": "0.4.4-rc",
+        "bohr_framework_version": "0.4.5-rc",
         "tasks": {
             "bugginess-1k": {
                 "top_artifact": "bohr.artifacts.commit.Commit",
@@ -35,7 +35,8 @@
         },
         "datasets": {
             "berger": {
-                "description": "desc",
+                "author": "Berger, E. D., Hollenbeck, C., Maj, P., Vitek, O., & Vitek, J.",
+                "description": "Dataset of labeled commits from Berger, E. D., Hollenbeck, C., Maj, P., Vitek, O., & Vitek, J. (2019). On the impact of programming languages on code quality: a reproduction study. ACM Transactions on Programming Languages and Systems (TOPLAS), 41(4), 1-24.",
                 "path": "berger.csv",
                 "mapper": "bohr.templates.datamappers.commit.CommitMapper",
                 "test_set": "true",
@@ -43,7 +44,7 @@
                 "loader": "csv"
             },
             "1151-commits": {
-                "description": "desc",
+                "description": "Dataset of manually-labeled 1k commits (corrective, perfective, adaptive) from Levin, S., & Yehudai, A. (2017, November). Boosting automatic commit classification into maintenance activities by utilizing source code changes. In Proceedings of the 13th International Conference on Predictive Models and Data Analytics in Software Engineering (pp. 97-106).",
                 "path": "1151-commits.csv",
                 "mapper": "bohr.templates.datamappers.commit.CommitMapper",
                 "test_set": "true",
@@ -51,7 +52,7 @@
                 "loader": "csv"
             },
             "200k-commits-1k": {
-                "description": "desc",
+                "description": "Dataset of commits mined by J. Prenner from Github (truncated to first 1k commits).\n Cite: @article{babii2021mining,\n  title={Mining Software Repositories with a Collaborative Heuristic Repository},\n  author={Babii, Hlib and Prenner, Julian Aron and Stricker, Laurin and Karmakar, Anjan and Janes, Andrea and Robbes, Romain},\n  journal={arXiv preprint arXiv:2103.01722},\n  year={2021}\n}",
                 "path": "200k-commits.csv",
                 "mapper": "bohr.templates.datamappers.commit.CommitMapper",
                 "test_set": "false",
@@ -60,7 +61,7 @@
                 "n_rows": 1000
             },
             "200k-commits-issues": {
-                "description": "desc",
+                "description": "Dataset of issues linked to commits mined by J. Prenner from Github.\n Cite: @article{babii2021mining,\n  title={Mining Software Repositories with a Collaborative Heuristic Repository},\n  author={Babii, Hlib and Prenner, Julian Aron and Stricker, Laurin and Karmakar, Anjan and Janes, Andrea and Robbes, Romain},\n  journal={arXiv preprint arXiv:2103.01722},\n  year={2021}\n}",
                 "path": "200k-commits-issues.csv",
                 "mapper": "bohr.templates.datamappers.issue.IssueMapper",
                 "test_set": "false",
@@ -72,7 +73,7 @@
                 }
             },
             "200k-commits-files": {
-                "description": "desc",
+                "description": "Dataset of commits (file changes) mined by J. Prenner from Github.\n Cite: @article{babii2021mining,\n  title={Mining Software Repositories with a Collaborative Heuristic Repository},\n  author={Babii, Hlib and Prenner, Julian Aron and Stricker, Laurin and Karmakar, Anjan and Janes, Andrea and Robbes, Romain},\n  journal={arXiv preprint arXiv:2103.01722},\n  year={2021}\n}",
                 "path": "200k-commits-files.csv.7z",
                 "mapper": "bohr.templates.datamappers.commitfile.CommitFileMapper",
                 "test_set": "false",
@@ -80,14 +81,14 @@
                 "preprocessor": "7z"
             },
             "200k-commits-link-issues": {
-                "description": "desc",
+                "description": "Dataset of commits (links from commits to issues) mined by J. Prenner from Github.\n Cite: @article{babii2021mining,\n  title={Mining Software Repositories with a Collaborative Heuristic Repository},\n  author={Babii, Hlib and Prenner, Julian Aron and Stricker, Laurin and Karmakar, Anjan and Janes, Andrea and Robbes, Romain},\n  journal={arXiv preprint arXiv:2103.01722},\n  year={2021}\n}",
                 "path": "200k-commits-link-issues.csv",
                 "test_set": "false",
                 "loader": "csv",
                 "preprocessor": "copy"
             },
             "200k-commits-manual-labels": {
-                "description": "desc",
+                "description": "Manual labels for 200k dataset",
                 "path": "200k-commits-manual-labels.csv",
                 "mapper": "bohr.templates.datamappers.manuallabels.ManualLabelMapper",
                 "test_set": "false",
@@ -95,7 +96,7 @@
                 "preprocessor": "copy"
             },
             "smells-train_10": {
-                "description": "desc",
+                "description": "Dataset of manually classified code smells (truncated to first 10 data points) from Madeyski, L., & Lewowski, T. (2020). MLCQ: Industry-relevant code smell data set. In Proceedings of the Evaluation and Assessment in Software Engineering (pp. 342-347).",
                 "path": "smells-madeyski.csv",
                 "path_preprocessed": "smells/train.csv",
                 "mapper": "bohr.templates.datamappers.method.MethodMapper",
@@ -106,6 +107,7 @@
                 "sep": ";"
             },
             "smells-test_10": {
+                "description": "Dataset of manually classified code smells (truncated to first 10 data points) from Madeyski, L., & Lewowski, T. (2020). MLCQ: Industry-relevant code smell data set. In Proceedings of the Evaluation and Assessment in Software Engineering (pp. 342-347).",
                 "path": "smells-madeyski.csv",
                 "path_preprocessed": "smells/test.csv",
                 "mapper": "bohr.templates.datamappers.method.MethodMapper",
@@ -135,8 +137,8 @@
     "heuristics": {
         "heuristics/smells.py": "8a0ce66efaed67530523be6b8f95ccf5",
         "heuristics/bugginess/file_heuristics.py": "b07d94fb60577b1bfa87ee2768deb9b2",
-        "heuristics/bugginess/issue_heuristics.py": "8a1fc8ea18834c746a1c7baebfbe2534",
-        "heuristics/bugginess/main_heurstics.py": "b798abc92c952d68f7517bec5a8f0ab4",
+        "heuristics/bugginess/issue_heuristics.py": "59ff548d7566b7e398fc15d78f0e260c",
+        "heuristics/bugginess/main_heurstics.py": "48f5e0c8bd7a4bba7ec1e3814f110466",
         "heuristics/bugginess/manuallabels.py": "5120f1e19e5bfdaf6f61cfa064782e05",
         "heuristics/bugginess/tool_heuristics.py": "844a3d49f4b06f24f0eab2fe4dbc8f31"
     },

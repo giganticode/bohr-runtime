@@ -85,7 +85,6 @@ stages:
     - data/200k-commits-manual-labels.csv
     - data/200k-commits.csv
     - heuristics/bugginess/file_heuristics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -101,7 +100,6 @@ stages:
     deps:
     - data/1151-commits.csv
     - heuristics/bugginess/file_heuristics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -117,7 +115,6 @@ stages:
     deps:
     - data/berger.csv
     - heuristics/bugginess/file_heuristics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -136,7 +133,6 @@ stages:
     - data/200k-commits-manual-labels.csv
     - data/200k-commits.csv
     - heuristics/bugginess/issue_heuristics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -152,7 +148,6 @@ stages:
     deps:
     - data/1151-commits.csv
     - heuristics/bugginess/issue_heuristics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -168,7 +163,6 @@ stages:
     deps:
     - data/berger.csv
     - heuristics/bugginess/issue_heuristics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -187,7 +181,6 @@ stages:
     - data/200k-commits-manual-labels.csv
     - data/200k-commits.csv
     - heuristics/bugginess/main_heurstics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -203,7 +196,6 @@ stages:
     deps:
     - data/1151-commits.csv
     - heuristics/bugginess/main_heurstics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -219,7 +211,6 @@ stages:
     deps:
     - data/berger.csv
     - heuristics/bugginess/main_heurstics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -238,7 +229,6 @@ stages:
     - data/200k-commits-manual-labels.csv
     - data/200k-commits.csv
     - heuristics/bugginess/manuallabels.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -254,7 +244,6 @@ stages:
     deps:
     - data/1151-commits.csv
     - heuristics/bugginess/manuallabels.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -270,7 +259,6 @@ stages:
     deps:
     - data/berger.csv
     - heuristics/bugginess/manuallabels.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -289,7 +277,6 @@ stages:
     - data/200k-commits-manual-labels.csv
     - data/200k-commits.csv
     - heuristics/bugginess/tool_heuristics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -305,7 +292,6 @@ stages:
     deps:
     - data/1151-commits.csv
     - heuristics/bugginess/tool_heuristics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -321,7 +307,6 @@ stages:
     deps:
     - data/berger.csv
     - heuristics/bugginess/tool_heuristics.py
-    - heuristics/keywords
     - labels.py
     params:
     - bohr.json:
@@ -431,7 +416,6 @@ stages:
       smells-train_10
     deps:
     - data/smells/train.csv
-    - heuristics/keywords
     - heuristics/smells.py
     - labels.py
     params:
@@ -447,7 +431,6 @@ stages:
       smells-test_10
     deps:
     - data/smells/test.csv
-    - heuristics/keywords
     - heuristics/smells.py
     - labels.py
     params:
