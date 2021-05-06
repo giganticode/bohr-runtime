@@ -38,7 +38,7 @@ google-auth==1.30.0
 google-auth-httplib2==0.1.0
 googleapis-common-protos==1.53.0
 grandalf==0.6
-grpcio==1.35.0
+grpcio==1.37.1
 HeapDict==1.0.1
 httplib2==0.19.1
 idna==2.10
