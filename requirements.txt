@@ -16,7 +16,7 @@ cryptography==3.4.7
 Cython==0.29.21
 dask==2020.12.0
 decorator==4.4.2
-deepdiff==5.2.3
+deepdiff==5.5.0
 dictdiffer==0.8.1
 diskcache==5.2.1
 distributed==2020.12.0
