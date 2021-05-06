@@ -34,6 +34,7 @@
   },
   "datasets": {
     "berger": {
+      "author": "Berger, E. D., Hollenbeck, C., Maj, P., Vitek, O., & Vitek, J.",
       "description": "Dataset of labeled commits from Berger, E. D., Hollenbeck, C., Maj, P., Vitek, O., & Vitek, J. (2019). On the impact of programming languages on code quality: a reproduction study. ACM Transactions on Programming Languages and Systems (TOPLAS), 41(4), 1-24.",
       "path": "berger.csv",
       "mapper": "bohr.templates.datamappers.commit.CommitMapper",
