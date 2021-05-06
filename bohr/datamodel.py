@@ -158,6 +158,7 @@ class DatasetLinker(ABC):
 @dataclass(frozen=True)
 class Task:
     name: str
+    author: str
     description: Optional[str]
     top_artifact: Type
     labels: List[str]

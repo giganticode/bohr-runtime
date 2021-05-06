@@ -108,6 +108,7 @@ def deserialize_task(
     heuristic_groups = get_heuristic_module_list(artifact, heuristic_path)
     return Task(
         task_name,
+        dct["author"] if "author" in dct else None,
         dct["description"] if "description" in dct else None,
         artifact,
         dct["label_categories"],
