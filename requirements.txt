@@ -109,7 +109,7 @@ torch==1.7.1
 tornado==6.1
 tqdm==4.56.2
 typing-extensions==3.7.4.3
-typish==1.9.1
+typish==1.9.2
 uritemplate==3.0.1
 urllib3==1.26.3
 voluptuous==0.12.1
