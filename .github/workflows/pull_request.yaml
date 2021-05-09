@@ -27,6 +27,7 @@ jobs:
           git fetch origin pull/$PR_NUMBER/head:pr/$PR_NUMBER
           git checkout pr/$PR_NUMBER
           pip install Cython==0.29.21
+          pip install --no-binary numpy==1.19.5 numpy==1.19.5
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
           pip install -e .
