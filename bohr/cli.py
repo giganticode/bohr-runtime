@@ -140,7 +140,7 @@ def refresh():
 @click.argument("key")
 @click.argument("value")
 def config(key: str, value: str):
-    add_to_local_config("core", key, value)
+    add_to_local_config(key, value)
 
 
 @bohr.command()

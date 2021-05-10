@@ -45,7 +45,8 @@ jobs:
       - name: reproduce-bugginess
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
-          bohr config software_path /usr/src/tools
+          bohr config paths.software_path /usr/src/tools
+          bohr config core.verbose false
           bash tools/install-refactoring-miner /usr/src/tools
           bohr repro bugginess-1k
       - name: reproduce-smells
