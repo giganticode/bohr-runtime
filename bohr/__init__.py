@@ -6,10 +6,12 @@ from rich.logging import RichHandler
 
 FORMAT = "%(message)s"
 logging.basicConfig(
-    level="DEBUG", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+    level="WARN", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
 )
 
+
 logger = logging.getLogger("bohr")
+logger.setLevel("INFO")
 
 
 bohr_framework_root = Path(__file__).parent

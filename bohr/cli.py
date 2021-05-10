@@ -12,7 +12,7 @@ from bohr import __version__, api
 from bohr.api import refresh_if_necessary
 from bohr.config import Config, load_config
 from bohr.debugging import DataPointDebugger, DatasetDebugger
-from bohr.pathconfig import add_to_local_config, load_path_config
+from bohr.pathconfig import AppConfig, add_to_local_config, load_path_config
 from bohr.pipeline import stages
 from bohr.pipeline.dvc import load_transient_stages
 from bohr.pipeline.profiler import Profiler
@@ -24,6 +24,34 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class verbosity:
+    def __init__(self, verbose: bool = True):
+        self.current_verbosity = AppConfig.load().verbose
+        self.verbose = verbose or self.current_verbosity
+
+    def __enter__(self):
+        add_to_local_config("core.verbose", str(self.verbose))
+        setup_loggers(self.verbose)
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        add_to_local_config("core.verbose", str(self.current_verbosity))
+        return True
+
+
+def setup_loggers(verbose: Optional[bool] = None):
+    if verbose is None:
+        verbose = AppConfig.load().verbose
+    logging.captureWarnings(True)
+    root = logging.root
+    for (logger_name, logger) in root.manager.loggerDict.items():
+        if logger_name != "bohr" and not logger_name.startswith("bohr."):
+            logger.disabled = True
+        else:
+            if verbose:
+                logging.getLogger("bohr").setLevel(logging.DEBUG)
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -38,8 +66,8 @@ def bohr():
 @click.argument("old_rev", type=str, required=False, default="master")
 @click.option("-i", "--datapoint", type=int, required=False, default=None)
 @click.option(
-    "-v",
-    "--value",
+    "-m",
+    "--metric",
     type=click.Choice(["improvement", "certainty", "precision"]),
     required=False,
     default="improvement",
@@ -47,22 +75,27 @@ def bohr():
 @click.option("-n", "--n-datapoints", type=int, required=False, default=None)
 @click.option("-r", "--reverse", is_flag=True)
 @click.option("--force-refresh", is_flag=True)
+@click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
 def debug(
     task: str,
     dataset: str,
     old_rev: str,
     datapoint: Optional[int],
-    value: str,
+    metric: str,
     n_datapoints: Optional[int],
     reverse: bool,
     force_refresh: bool,
+    verbose: bool = False,
 ) -> None:
+    setup_loggers(verbose)
     try:
         if datapoint is None:
             dataset_debugger = DatasetDebugger(
                 task, dataset, old_rev, force_update=force_refresh
             )
-            dataset_debugger.show_datapoints(value, n_datapoints or 10, reverse=reverse)
+            dataset_debugger.show_datapoints(
+                metric, n_datapoints or 10, reverse=reverse
+            )
         else:
             DataPointDebugger(
                 task, dataset, old_rev, force_update=force_refresh
@@ -115,24 +148,30 @@ def get_dvc_commands_to_repro(
 @bohr.command()
 @click.argument("task", required=False)
 @click.option("--only-transient", is_flag=True)
-def repro(task: Optional[str], only_transient: bool):
-    if only_transient and task:
-        raise ValueError("Both --only-transient and task is not supported")
-    config = load_config()
-    refresh_if_necessary(config.paths)
-    commands = get_dvc_commands_to_repro(task, only_transient, config)
-    run_dvc_commands(commands, config.paths.project_root)
+@click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
+def repro(task: Optional[str], only_transient: bool, verbose: bool = False):
+    with verbosity(verbose):
+        if only_transient and task:
+            raise ValueError("Both --only-transient and task is not supported")
+        config = load_config()
+        refresh_if_necessary(config.paths)
+        commands = get_dvc_commands_to_repro(task, only_transient, config)
+        run_dvc_commands(commands, config.paths.project_root)
 
 
 @bohr.command()
-def status():
+@click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
+def status(verbose: bool = False):
+    setup_loggers(verbose)
     path_config = load_path_config()
     refresh_if_necessary(path_config)
     subprocess.run(["dvc", "status"], cwd=path_config.project_root)
 
 
 @bohr.command()
-def refresh():
+@click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
+def refresh(verbose: bool = False):
+    setup_loggers(verbose)
     api.refresh()
 
 
@@ -145,6 +184,7 @@ def config(key: str, value: str):
 
 @bohr.command()
 def parse_labels():
+    setup_loggers()
     config = load_config()
     parse_label(config)
 
@@ -154,6 +194,7 @@ def parse_labels():
 @click.argument("dataset")
 @click.option("--debug", is_flag=True)
 def label_dataset(task: str, dataset: str, debug: bool):
+    setup_loggers()
     config = load_config()
     task = config.tasks[task]
     dataset = config.datasets[dataset]
@@ -168,6 +209,7 @@ def label_dataset(task: str, dataset: str, debug: bool):
 def apply_heuristics(
     task: str, heuristic_group: Optional[str], dataset: Optional[str], profile: bool
 ):
+    setup_loggers()
     config = load_config()
     path_config = config.paths
 
@@ -184,7 +226,7 @@ def apply_heuristics(
 @click.argument("task")
 @click.argument("target-dataset")
 def train_label_model(task: str, target_dataset: str):
-
+    setup_loggers()
     config = load_config()
     path_config = config.paths
     task = config.tasks[task]
