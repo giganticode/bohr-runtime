@@ -1,12 +1,27 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional, Tuple, Union
 
-import jsons
 import toml
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class AppConfig:
+    verbose: bool = False
+
+    @staticmethod
+    def load(project_root: Optional[Path] = None) -> "AppConfig":
+        project_root = project_root or find_project_root()
+        config_dict = load_config(project_root)
+        try:
+            verbose_str = config_dict["core"]["verbose"]
+            verbose = verbose_str == "true" or verbose_str == "True"
+        except KeyError:
+            verbose = False
+        return AppConfig(verbose)
 
 
 @dataclass(frozen=True)
@@ -63,19 +78,14 @@ class PathConfig:
 
     @staticmethod
     def load(project_root: Path) -> "PathConfig":
-        path_to_config_dir = project_root / ".bohr"
-        path_to_config_dir.mkdir(exist_ok=True)
-        path_to_local_config = path_to_config_dir / "local.config"
-        if not path_to_local_config.exists():
-            path_to_local_config.touch()
-        with open(path_to_local_config) as f:
-            try:
-                software_path = toml.load(f)["core"]["software_path"]
-            except KeyError:
-                logger.warning(
-                    f"Value not found in config: software_path, using default value."
-                )
-                software_path = str(project_root / "software")
+        config_dict = load_config(project_root)
+        try:
+            software_path = config_dict["paths"]["software_path"]
+        except KeyError:
+            logger.warning(
+                f"Value not found in config: software_path, using default value."
+            )
+            software_path = str(project_root / "software")
         return PathConfig(project_root, Path(software_path))
 
 
@@ -133,24 +143,31 @@ def gitignore_file(dir: Path, filename: str):
                 a.write(f"{filename}\n")
 
 
-def add_to_local_config(section: str, key: str, value: str) -> None:
+def add_to_local_config(key: str, value: str) -> None:
     project_root = find_project_root()
-    local_dir_path = project_root / ".bohr"
-    local_dir_path.mkdir(exist_ok=True)
-    LOCAL_CONFIG_FILE = "local.config"
-    local_config_path = local_dir_path / LOCAL_CONFIG_FILE
-    if local_config_path.exists():
-        with open(local_config_path) as f:
-            dct = toml.load(f)
-    else:
-        local_config_path.touch()
-        dct = {}
+    dct, local_config_path = load_config(project_root, with_path=True)
+    if "." not in key:
+        raise ValueError(f"The key must have format [section].[key] but is {key}")
+    section, key = key.split(".", maxsplit=1)
     if section not in dct:
         dct[section] = {}
     dct[section][key] = value
     with open(local_config_path, "w") as f:
         toml.dump(dct, f)
-    gitignore_file(local_dir_path, LOCAL_CONFIG_FILE)
+
+
+def load_config(
+    project_root: Path, with_path: bool = False
+) -> Union[Dict, Tuple[Dict, Path]]:
+    path_to_config_dir = project_root / ".bohr"
+    path_to_config_dir.mkdir(exist_ok=True)
+    path_to_local_config = path_to_config_dir / "local.config"
+    if not path_to_local_config.exists():
+        path_to_local_config.touch()
+        gitignore_file(path_to_config_dir, "local.config")
+    with open(path_to_local_config) as f:
+        dct = toml.load(f)
+    return (dct, path_to_local_config) if with_path else dct
 
 
 def load_path_config(project_root: Optional[Path] = None) -> PathConfig:
