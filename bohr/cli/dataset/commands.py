@@ -1,7 +1,9 @@
 import logging
+import textwrap
 from typing import Optional
 
 import click
+from tabulate import tabulate
 
 from bohr.config import load_config
 
@@ -15,7 +17,8 @@ def dataset():
 
 @dataset.command()
 @click.option("-t", "--task", type=str)
-def ls(task: Optional[str]) -> None:
+@click.option("-a", "--extended-list", is_flag=True)
+def ls(task: Optional[str], extended_list: bool) -> None:
     config = load_config()
     if task:
         if task not in config.tasks:
@@ -24,8 +27,19 @@ def ls(task: Optional[str]) -> None:
                 f"Defined tasks: {list(config.tasks.keys())}"
             )
             exit(404)
-        datasets = list(config.tasks[task].datasets.keys())
+        datasets = config.tasks[task].datasets
     else:
         datasets = config.datasets
-    for dataset in datasets:
-        print(dataset)
+    if extended_list:
+        print(
+            tabulate(
+                [
+                    [dataset_name, textwrap.fill(dataset.description)]
+                    for dataset_name, dataset in datasets.items()
+                ],
+                tablefmt="fancy_grid",
+            )
+        )
+    else:
+        for dataset in datasets:
+            print(dataset)
