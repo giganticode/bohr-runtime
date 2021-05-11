@@ -48,6 +48,7 @@ jobs:
           bohr config paths.software_path /usr/src/tools
           bohr config core.verbose false
           bash tools/install-refactoring-miner /usr/src/tools
+          bohr pull -v berger
           bohr repro bugginess-1k
       - name: reproduce-smells
         run: |
