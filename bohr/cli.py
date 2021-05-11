@@ -1,20 +1,17 @@
 import json
-import subprocess
-from pathlib import Path
 from pprint import pprint
-from typing import List, Optional
+from typing import Optional
 
 import click
 import dvc.exceptions
 import dvc.scm.base
 
 from bohr import __version__, api
-from bohr.api import refresh_if_necessary
-from bohr.config import Config, load_config
+from bohr.api import BohrDatasetNotFound, refresh_if_necessary
+from bohr.config import load_config
 from bohr.debugging import DataPointDebugger, DatasetDebugger
-from bohr.pathconfig import AppConfig, add_to_local_config, load_path_config
+from bohr.pathconfig import AppConfig, add_to_local_config
 from bohr.pipeline import stages
-from bohr.pipeline.dvc import load_transient_stages
 from bohr.pipeline.profiler import Profiler
 from bohr.pipeline.stages.parse_labels import parse_label
 
@@ -38,7 +35,6 @@ class verbosity:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         add_to_local_config("core.verbose", str(self.current_verbosity))
-        return True
 
 
 def setup_loggers(verbose: Optional[bool] = None):
@@ -108,64 +104,47 @@ def debug(
         exit(24)
 
 
-def run_dvc_commands(commands: List[List[str]], project_root: Path) -> None:
-    for command in commands:
-        logger.debug(f"Running command: {' '.join(command)}")
-        completed_process = subprocess.run(command, cwd=project_root)
-        completed_process.check_returncode()
-
-
-def get_dvc_commands_to_repro(
-    task: Optional[str], only_transient: bool, config: Config
-) -> List[List[str]]:
-    """
-    # >>> import tempfile
-    # >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    # ...     with open(Path(tmpdirname) / 'bohr.json', 'w') as f:
-    # ...         print(f.write('{"bohr_framework_version": "0.3.9-rc", "tasks": {}, "datasets": {}}'))
-    # ...     get_dvc_commands_to_repro(None, False, load_config(Path(tmpdirname)))
-    """
-    commands: List[List[str]] = []
-    paths_to_pull = [str(d.path_dist) for d in config.datasets.values()]
-    if len(paths_to_pull) > 0:
-        commands.append(["dvc", "pull"] + paths_to_pull)
-
-    # TODO run only task-related transient stages if task is passed:
-    transient_stages = load_transient_stages(config.paths)
-    if len(transient_stages) > 0:
-        commands.append(["dvc", "repro"] + transient_stages)
-
-    if not only_transient:
-        cmd = ["dvc", "repro", "--pull"]
-        if task:
-            if task not in config.tasks:
-                raise ValueError(f"Task {task} not found in bohr.json")
-            cmd.extend(["--glob", f"{task}_*"])
-        commands.append(cmd)
-    return commands
-
-
 @bohr.command()
 @click.argument("task", required=False)
 @click.option("--only-transient", is_flag=True)
+@click.option("-f", "--force", is_flag=True, help="Force pipeline reproduction")
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
-def repro(task: Optional[str], only_transient: bool, verbose: bool = False):
+def repro(
+    task: Optional[str],
+    only_transient: bool,
+    force: bool = False,
+    verbose: bool = False,
+):
     with verbosity(verbose):
         if only_transient and task:
             raise ValueError("Both --only-transient and task is not supported")
         config = load_config()
         refresh_if_necessary(config.paths)
-        commands = get_dvc_commands_to_repro(task, only_transient, config)
-        run_dvc_commands(commands, config.paths.project_root)
+        api.repro(task, only_transient, force, config)
+
+
+@bohr.command()
+@click.argument("target")
+@click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
+def pull(target: Optional[str], verbose: bool = False):
+    try:
+        with verbosity(verbose):
+            config = load_config()
+            refresh_if_necessary(config.paths)
+            path = api.pull(target, config)
+            logger.info(
+                f"The dataset is available at {config.paths.project_root / path}"
+            )
+    except BohrDatasetNotFound as ex:
+        logger.error(ex, exc_info=logger.getEffectiveLevel() == logging.DEBUG)
+        exit(404)
 
 
 @bohr.command()
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
 def status(verbose: bool = False):
     setup_loggers(verbose)
-    path_config = load_path_config()
-    refresh_if_necessary(path_config)
-    subprocess.run(["dvc", "status"], cwd=path_config.project_root)
+    print(api.status())
 
 
 @bohr.command()

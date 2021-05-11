@@ -77,7 +77,8 @@ class PathConfig:
         return PathConfig(project_root, Path(software_path), **dct)
 
     @staticmethod
-    def load(project_root: Path) -> "PathConfig":
+    def load(project_root: Optional[Path] = None) -> "PathConfig":
+        project_root = project_root or find_project_root()
         config_dict = load_config(project_root)
         try:
             software_path = config_dict["paths"]["software_path"]
@@ -171,5 +172,4 @@ def load_config(
 
 
 def load_path_config(project_root: Optional[Path] = None) -> PathConfig:
-    project_root = project_root or find_project_root()
     return PathConfig.load(project_root)
