@@ -1,13 +1,14 @@
 import logging
+import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import bohr.dvcwrapper as dvc
-from bohr.config import Config, load_config
-from bohr.datamodel import RelativePath
+from bohr.config import Config, get_mapper_by_name, load_config
+from bohr.datamodel import Dataset, RelativePath, relative_to_safe
 from bohr.lock import bohr_up_to_date, update_lock
-from bohr.pathconfig import PathConfig, load_path_config
 from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline, load_transient_stages
+from bohr.templates.dataloaders.from_csv import CsvDatasetLoader
 
 logger = logging.getLogger(__name__)
 
@@ -79,3 +80,77 @@ def pull(target: str, config: Optional[Config] = None) -> RelativePath:
         raise BohrDatasetNotFound(
             f"Dataset {target} not found! Available datasets: {list(config.datasets.keys())}"
         )
+
+
+def extract_preprocessor_from_file_name(file_name: str) -> Tuple[str, str]:
+    """
+    >>> extract_preprocessor_from_file_name("dataset.csv.7z")
+    ('dataset.csv', '7z')
+    >>> extract_preprocessor_from_file_name("dataset.zip")
+    ('dataset', 'zip')
+    >>> extract_preprocessor_from_file_name("dataset.csv")
+    ('dataset.csv', 'copy')
+    """
+    *prefix, suffix = file_name.split(".")
+    if suffix in ["zip", "7z"]:
+        return ".".join(prefix), suffix
+    else:
+        return file_name, "copy"
+
+
+def extract_format_from_file_name(file_name: str) -> Tuple[str, str]:
+    *prefix, format = file_name.split(".")
+    if format == "csv":
+        return ".".join(prefix), format
+    else:
+        raise ValueError(f"Unrecognized file format: {format}")
+
+
+def add(
+    path: Path,
+    artifact: str,
+    test_set: bool,
+    name: Optional[str] = None,
+    author: Optional[str] = None,
+    description: Optional[str] = "",
+    format: Optional[str] = None,
+    preprocessor: Optional[str] = None,
+    config: Optional[Config] = None,
+) -> Dataset:
+    config = config or load_config()
+    destination_path = config.paths.downloaded_data / path.name
+    logger.info(f"Copying {path.name} to {destination_path} ...")
+    shutil.copy(path, destination_path)
+    dvc_output = dvc.add(destination_path, config.paths.project_root)
+    logger.info(dvc_output)
+    file_name = path.name
+    if preprocessor is None:
+        file_name, preprocessor = extract_preprocessor_from_file_name(file_name)
+    if format is None:
+        file_name, format = extract_format_from_file_name(file_name)
+    dataset_name = name or file_name
+    if dataset_name in config.datasets:
+        message = f"Dataset with name {dataset_name} already exists."
+        if name is None:
+            message += (
+                "\nAre you trying to add the same dataset twice?\n"
+                "If not, please specifying the `name` parameter explicitly."
+            )
+        raise ValueError(message)
+    mapper = get_mapper_by_name(artifact)
+    relative_destination_path: RelativePath = relative_to_safe(
+        destination_path, config.paths.project_root
+    )
+    dataset = Dataset(
+        dataset_name,
+        author,
+        description,
+        relative_destination_path,
+        config.paths.data_dir / path.name,
+        CsvDatasetLoader(config.paths.data_dir / path.name, mapper()),
+        test_set,
+        preprocessor,
+    )
+    config.datasets[dataset.name] = dataset
+    config.dump(config.paths.project_root)
+    return dataset

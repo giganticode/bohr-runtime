@@ -1,10 +1,12 @@
 import logging
 import textwrap
+from pathlib import Path
 from typing import Optional
 
 import click
 from tabulate import tabulate
 
+from bohr import api
 from bohr.config import load_config
 
 logger = logging.getLogger(__name__)
@@ -43,3 +45,15 @@ def ls(task: Optional[str], extended_list: bool) -> None:
     else:
         for dataset in datasets:
             print(dataset)
+
+
+@dataset.command()
+@click.argument("path", type=str)
+@click.option("-a", "--artifact", required=True)
+@click.option("-t", "--test-set", is_flag=True)
+def add(path: str, artifact: str, test_set: bool) -> None:
+    dataset = api.add(Path(path), artifact, test_set)
+    print(f"Dataset {dataset.name} is added.")
+
+
+# bohr task add-dataset #TODO

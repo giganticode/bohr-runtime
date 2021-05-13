@@ -1,8 +1,10 @@
 import logging
 import subprocess
+from pathlib import Path
 from typing import Iterable, List, Optional
 
-from bohr.pathconfig import PathConfig
+from bohr.datamodel import AbsolutePath
+from bohr.pathconfig import PathConfig, find_project_root
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +15,15 @@ def status(path_config: Optional[PathConfig] = None) -> str:
     logger.debug(f"Running dvc command: {command}")
     return subprocess.check_output(
         command, cwd=path_config.project_root, encoding="utf8"
+    )
+
+
+def add(path: AbsolutePath, project_root: Optional[Path] = None) -> str:
+    project_root = project_root or find_project_root()
+    command = ["dvc", "add", path.name]
+    logger.debug(f"Running dvc command: {command}")
+    return subprocess.check_output(
+        command, cwd=project_root / path.parent, encoding="utf8"
     )
 
 

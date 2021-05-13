@@ -113,7 +113,7 @@ def load_mapper_type(path_to_mapper_obj: str) -> MapperType:
         raise ValueError(f"Mapper {name} not found in module {module}") from e
 
 
-def get_mapper_by_name(name: str) -> str:
+def get_mapper_by_name(name: str) -> MapperType:
     return load_mapper_type(name)
 
 
