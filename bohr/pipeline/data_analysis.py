@@ -8,12 +8,14 @@ from pandas import Series
 from snorkel.labeling import LabelingFunction, LFAnalysis
 from snorkel.labeling.model import MajorityLabelVoter
 
+from bohr.datamodel import AbsolutePath
+
 
 def run_analysis(
     applied_lf_matrix: np.ndarray,
     lfs: List[LabelingFunction],
-    save_csv_to: Path,
-    save_json_to: Path,
+    save_csv_to: AbsolutePath,
+    save_json_to: AbsolutePath,
     label_series: Optional[Series] = None,
 ) -> None:
     lf_analysis_summary = LFAnalysis(applied_lf_matrix, lfs).lf_summary(

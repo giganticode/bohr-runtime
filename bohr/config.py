@@ -11,12 +11,15 @@ import jsons
 
 from bohr import version
 from bohr.datamodel import (
+    AbsolutePath,
     ArtifactType,
     Dataset,
     DatasetLinker,
     Heuristic,
     MapperType,
+    RelativePath,
     Task,
+    relative_to_safe,
 )
 from bohr.pathconfig import PathConfig, find_project_root, load_path_config
 from bohr.templates.dataloaders.from_csv import CsvDatasetLoader
@@ -47,13 +50,13 @@ class Config:
         }
 
     @staticmethod
-    def load(project_root: Path) -> "Config":
+    def load(project_root: AbsolutePath) -> "Config":
         with open(project_root / "bohr.json") as f:
             return jsons.loads(
                 f.read(), Config, path_config=load_path_config(project_root)
             )
 
-    def dump(self, project_root: Path) -> None:
+    def dump(self, project_root: AbsolutePath) -> None:
         with open(project_root / "bohr.json", "w") as f:
             f.write(
                 json.dumps(
@@ -118,7 +121,7 @@ def deserialize_task(
     dct: Dict[str, Any],
     cls,
     task_name: str,
-    heuristic_path: Path,
+    heuristic_path: AbsolutePath,
     datasets: Dict[str, Dataset],
     **kwargs,
 ) -> "Task":
@@ -200,8 +203,8 @@ def desearialize_dataset(
     dct: Dict[str, Any],
     cls,
     dataset_name: str,
-    downloaded_data_dir: Path,
-    data_dir: Path,
+    downloaded_data_dir: RelativePath,
+    data_dir: RelativePath,
     **kwargs,
 ) -> "Dataset":
     extra_args = {}
@@ -248,7 +251,7 @@ def desearialize_linker(
     dct: Dict[str, Any],
     cls,
     datasets: Dict[str, Dataset],
-    data_dir: Path,
+    data_dir: RelativePath,
     **kwargs,
 ) -> "DatasetLinker":
     extras = {}
@@ -306,7 +309,7 @@ def check_names_unique(heuristics: List[Heuristic]) -> None:
 
 def get_heuristic_module_list(
     artifact_type: Type,
-    heuristics_path: Path,
+    heuristics_path: AbsolutePath,
     limited_to_modules: Optional[Set[str]] = None,
 ) -> List[str]:
     modules: List[str] = []
@@ -318,10 +321,11 @@ def get_heuristic_module_list(
                 or not file.endswith(".py")
             ):
                 continue
-            full_path = Path(root) / file
-            relative_path = full_path.relative_to(heuristics_path.parent)
+            path: RelativePath = relative_to_safe(
+                Path(root) / file, heuristics_path.parent
+            )
             heuristic_module_path = ".".join(
-                str(relative_path).replace("/", ".").split(".")[:-1]
+                str(path).replace("/", ".").split(".")[:-1]
             )
             if (
                 limited_to_modules is None

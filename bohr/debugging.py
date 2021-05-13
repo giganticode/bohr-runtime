@@ -15,6 +15,12 @@ from git import Repo
 from tabulate import tabulate
 
 from bohr import appauthor, appname, version
+from bohr.datamodel import (
+    AbsolutePath,
+    RelativePath,
+    concat_paths_safe,
+    relative_to_safe,
+)
 from bohr.pathconfig import load_path_config
 
 logger = logging.getLogger()
@@ -139,7 +145,7 @@ def get_cloned_rev(repo: str, rev: str = "master") -> Repo:
         return Repo(path_to_repo)
 
 
-def get_git_repo_of(path: Path) -> Repo:
+def get_git_repo_of(path: AbsolutePath) -> AbsolutePath:
     current_path = path
     while True:
         try:
@@ -163,39 +169,43 @@ def is_update_needed(git_revision: Repo) -> bool:
     return updated_sec_ago > 300
 
 
-def update(repo: Repo, dvc_project_root: Path, rel_path_to_dvc_root: Path) -> None:
+def update(
+    repo: Repo, dvc_project_root: AbsolutePath, rel_path_to_dvc_root: RelativePath
+) -> None:
     logger.info("Updating the repo... ")
     repo.remotes.origin.pull()
     move_local_config_to_old_revision(
-        dvc_project_root, repo.working_tree_dir / rel_path_to_dvc_root
+        dvc_project_root, concat_paths_safe(repo.working_tree_dir, rel_path_to_dvc_root)
     )
 
 
-def move_local_config_to_old_revision(src: Path, dst: Path):
-    config_path = Path(".dvc/config.local")
+def move_local_config_to_old_revision(src: AbsolutePath, dst: AbsolutePath):
+    config_path: RelativePath = Path(".dvc/config.local")
     logger.debug(f"Copying config from {src / config_path} to {dst / config_path}")
     copy(src / config_path, dst / config_path)
 
 
 def get_path_to_revision(
-    dvc_project_root: Path, rev: str, force_update: bool = False
-) -> Path:
+    dvc_project_root: AbsolutePath, rev: str, force_update: bool = False
+) -> AbsolutePath:
     current_repo = get_git_repo_of(dvc_project_root)
     remote = current_repo.remotes.origin
     old_revision: Repo = get_cloned_rev(remote.url, rev)
-    rel_path_to_dvc_root = dvc_project_root.relative_to(current_repo.working_tree_dir)
+    dvc_root: RelativePath = relative_to_safe(
+        dvc_project_root, current_repo.working_tree_dir
+    )
     logger.info(
         f"Comparing to {remote.url} , revision: {rev}, \n"
-        f"relative dvc root: {rel_path_to_dvc_root}\n"
+        f"relative dvc root: {dvc_root}\n"
         f"(Cloned to {old_revision.working_tree_dir})"
     )
     if is_update_needed(old_revision) or force_update:
         if force_update:
             logger.debug("Forcing refresh ...")
-        update(old_revision, dvc_project_root, rel_path_to_dvc_root)
+        update(old_revision, dvc_project_root, dvc_root)
     else:
         logger.info(f"Pass `--force-refresh` to refresh the repository.")
-    return old_revision.working_tree_dir / rel_path_to_dvc_root
+    return concat_paths_safe(old_revision.working_tree_dir, dvc_root)
 
 
 class DatasetDebugger:

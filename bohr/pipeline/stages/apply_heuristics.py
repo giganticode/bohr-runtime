@@ -7,7 +7,7 @@ from snorkel.labeling import LabelingFunction, PandasLFApplier
 
 from bohr.config import load_config, load_heuristics_from_module
 from bohr.core import to_labeling_functions
-from bohr.datamodel import Dataset, Task
+from bohr.datamodel import AbsolutePath, Dataset, Task
 from bohr.pathconfig import PathConfig
 from bohr.pipeline.data_analysis import calculate_metrics
 
@@ -15,7 +15,7 @@ from bohr.pipeline.data_analysis import calculate_metrics
 def apply_lfs_to_dataset(
     lfs: List[LabelingFunction],
     artifact_df: pd.DataFrame,
-    save_to: Path,
+    save_to: AbsolutePath,
 ) -> np.ndarray:
     applier = PandasLFApplier(lfs=lfs)
     applied_lf_matrix = applier.apply(df=artifact_df)

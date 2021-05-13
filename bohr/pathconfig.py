@@ -5,6 +5,8 @@ from typing import Dict, Optional, Tuple, Union
 
 import toml
 
+from bohr.datamodel import AbsolutePath, RelativePath
+
 logger = logging.getLogger(__name__)
 
 
@@ -13,7 +15,7 @@ class AppConfig:
     verbose: bool = False
 
     @staticmethod
-    def load(project_root: Optional[Path] = None) -> "AppConfig":
+    def load(project_root: Optional[AbsolutePath] = None) -> "AppConfig":
         project_root = project_root or find_project_root()
         config_dict = load_config(project_root)
         try:
@@ -26,62 +28,62 @@ class AppConfig:
 
 @dataclass(frozen=True)
 class PathConfig:
-    project_root: Path
-    software_path: Path
-    metrics_dir: Path = Path("metrics")
-    generated_dir: Path = Path("generated")
-    heuristics_dir: Path = Path("heuristics")
-    dataset_dir: Path = Path("dataloaders")
-    labeled_data_dir: Path = Path("labeled-datasets")
-    data_dir: Path = Path("data")
-    labels_dir: Path = Path("labels")
-    manual_stages_dir: Path = Path("manual_stages")
-    downloaded_data_dir: Path = Path("downloaded-data")
+    project_root: AbsolutePath
+    software_path: AbsolutePath
+    metrics_dir: RelativePath = Path("metrics")
+    generated_dir: RelativePath = Path("generated")
+    heuristics_dir: RelativePath = Path("heuristics")
+    dataset_dir: RelativePath = Path("dataloaders")
+    labeled_data_dir: RelativePath = Path("labeled-datasets")
+    data_dir: RelativePath = Path("data")
+    labels_dir: RelativePath = Path("labels")
+    manual_stages_dir: RelativePath = Path("manual_stages")
+    downloaded_data_dir: RelativePath = Path("downloaded-data")
 
     @property
-    def metrics(self) -> Path:
+    def metrics(self) -> AbsolutePath:
         return self.project_root / self.metrics_dir
 
     @property
-    def generated(self) -> Path:
+    def generated(self) -> AbsolutePath:
         return self.project_root / self.generated_dir
 
     @property
-    def heuristics(self) -> Path:
+    def heuristics(self) -> AbsolutePath:
         return self.project_root / self.heuristics_dir
 
     @property
-    def dataset(self) -> Path:
+    def dataset(self) -> AbsolutePath:
         return self.project_root / self.dataset_dir
 
     @property
-    def labeled_data(self) -> Path:
+    def labeled_data(self) -> AbsolutePath:
         return self.project_root / self.labeled_data_dir
 
     @property
-    def data(self) -> Path:
+    def data(self) -> AbsolutePath:
         return self.project_root / self.data_dir
 
     @property
-    def downloaded_data(self) -> Path:
+    def downloaded_data(self) -> AbsolutePath:
         return self.project_root / self.downloaded_data_dir
 
     @property
-    def labels(self) -> Path:
+    def labels(self) -> AbsolutePath:
         return self.project_root / self.labels_dir
 
     @property
-    def manual_stages(self) -> Path:
+    def manual_stages(self) -> AbsolutePath:
         return self.project_root / self.manual_stages_dir
 
     @staticmethod
     def deserialize(
-        dct, cls, project_root: Path, software_path: str, **kwargs
+        dct, cls, project_root: AbsolutePath, software_path: str, **kwargs
     ) -> "PathConfig":
         return PathConfig(project_root, Path(software_path), **dct)
 
     @staticmethod
-    def load(project_root: Optional[Path] = None) -> "PathConfig":
+    def load(project_root: Optional[AbsolutePath] = None) -> "PathConfig":
         project_root = project_root or find_project_root()
         config_dict = load_config(project_root)
         try:
@@ -94,7 +96,7 @@ class PathConfig:
         return PathConfig(project_root, Path(software_path))
 
 
-def find_project_root() -> Path:
+def find_project_root() -> AbsolutePath:
     path = Path(".").resolve()
     current_path = path
     while True:
@@ -110,7 +112,7 @@ def find_project_root() -> Path:
             current_path = current_path.parent
 
 
-def gitignore_file(dir: Path, filename: str):
+def gitignore_file(dir: AbsolutePath, filename: str):
     """
     >>> import tempfile
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
@@ -162,8 +164,8 @@ def add_to_local_config(key: str, value: str) -> None:
 
 
 def load_config(
-    project_root: Path, with_path: bool = False
-) -> Union[Dict, Tuple[Dict, Path]]:
+    project_root: AbsolutePath, with_path: bool = False
+) -> Union[Dict, Tuple[Dict, AbsolutePath]]:
     path_to_config_dir = project_root / ".bohr"
     path_to_config_dir.mkdir(exist_ok=True)
     path_to_local_config = path_to_config_dir / "local.config"
@@ -175,5 +177,5 @@ def load_config(
     return (dct, path_to_local_config) if with_path else dct
 
 
-def load_path_config(project_root: Optional[Path] = None) -> PathConfig:
+def load_path_config(project_root: Optional[AbsolutePath] = None) -> PathConfig:
     return PathConfig.load(project_root)
