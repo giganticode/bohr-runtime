@@ -119,7 +119,7 @@ def repro(
         if only_transient and task:
             raise ValueError("Both --only-transient and task is not supported")
         config = load_config()
-        refresh_if_necessary(config.paths)
+        refresh_if_necessary(config)
         api.repro(task, only_transient, force, config)
 
 
@@ -130,7 +130,7 @@ def pull(target: Optional[str], verbose: bool = False):
     try:
         with verbosity(verbose):
             config = load_config()
-            refresh_if_necessary(config.paths)
+            refresh_if_necessary(config)
             path = api.pull(target, config)
             logger.info(
                 f"The dataset is available at {config.paths.project_root / path}"

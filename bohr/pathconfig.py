@@ -63,6 +63,10 @@ class PathConfig:
         return self.project_root / self.data_dir
 
     @property
+    def downloaded_data(self) -> Path:
+        return self.project_root / self.downloaded_data_dir
+
+    @property
     def labels(self) -> Path:
         return self.project_root / self.labels_dir
 

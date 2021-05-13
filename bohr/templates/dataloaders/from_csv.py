@@ -1,18 +1,32 @@
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import pandas as pd
 
 from bohr.datamodel import DatasetLoader
 from bohr.pathconfig import load_path_config
 
+DEFAULT_SEP = ","
+
 
 @dataclass
 class CsvDatasetLoader(DatasetLoader):
     n_rows: Optional[int] = None
-    sep: str = ","
+    sep: str = DEFAULT_SEP
     dtype: Dict[str, str] = None
     keep_default_na: bool = True
+
+    def get_extra_params(self) -> Dict[str, Any]:
+        dct = {}
+        if self.n_rows is not None:
+            dct["n_rows"] = self.n_rows
+        if self.dtype is not None:
+            dct["dtype"] = self.dtype
+        if not self.keep_default_na:
+            dct["keep_default_na"] = self.keep_default_na
+        if self.sep != DEFAULT_SEP:
+            dct["sep"] = self.sep
+        return dct
 
     def load(self) -> pd.DataFrame:
         absolute_path = load_path_config().project_root / self.path_preprocessed
