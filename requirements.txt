@@ -2,6 +2,7 @@ absl-py==0.12.0
 appdirs==1.4.4
 atpublic==2.3
 bcrypt==3.2.0
+beeprint==2.4.10
 cached-property==1.5.2
 cachetools==4.2.2
 certifi==2020.12.5
@@ -112,6 +113,7 @@ typing-extensions==3.10.0.0
 typish==1.9.2
 uritemplate==3.0.1
 urllib3==1.26.4
+urwid==2.1.2
 voluptuous==0.12.1
 wcwidth==0.2.5
 Werkzeug==1.0.1
