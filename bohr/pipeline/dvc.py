@@ -10,7 +10,7 @@ from typing import List
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from bohr.config import Config, load_config
-from bohr.datamodel import Dataset, Task
+from bohr.datamodel import AbsolutePath, Dataset, Task
 from bohr.pathconfig import PathConfig
 
 logger = logging.getLogger(__name__)
@@ -260,7 +260,7 @@ class ManualCommand(DvcCommand):
     def __init__(
         self,
         path_config: PathConfig,
-        path_to_template: Path,
+        path_to_template: AbsolutePath,
         execute_immediately: bool = False,
     ):
         super().__init__("empty.template", path_config, None, execute_immediately)

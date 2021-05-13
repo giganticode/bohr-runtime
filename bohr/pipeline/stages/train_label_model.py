@@ -7,7 +7,7 @@ import pandas as pd
 from snorkel.labeling.model import LabelModel
 
 from bohr.config import load_config
-from bohr.datamodel import Dataset, Task
+from bohr.datamodel import AbsolutePath, Dataset, Task
 from bohr.pathconfig import PathConfig
 
 random.seed(13)
@@ -17,7 +17,7 @@ def calculate_metrics(
     label_model: LabelModel,
     dataset_name: str,
     true_labels: np.ndarray,
-    save_to: Path,
+    save_to: AbsolutePath,
 ) -> Dict[str, float]:
     """
     >>> from collections import namedtuple; import tempfile

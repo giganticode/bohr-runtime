@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 from jinja2 import FileSystemLoader
 
 from bohr.config import Config
+from bohr.datamodel import AbsolutePath
 from bohr.labels.hierarchies import LabelHierarchy
 
 logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ def merge_dicts_(
     return a
 
 
-def build_label_tree(path_to_labels: Path) -> LabelHierarchy:
+def build_label_tree(path_to_labels: AbsolutePath) -> LabelHierarchy:
     flattened_multi_hierarchy: FlattenedMultiHierarchy = {}
     for label_file in sorted(glob(f"{path_to_labels}/*.txt")):
         with open(label_file, "r") as f:

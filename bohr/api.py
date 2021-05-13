@@ -4,6 +4,7 @@ from typing import Optional
 
 import bohr.dvcwrapper as dvc
 from bohr.config import Config, load_config
+from bohr.datamodel import RelativePath
 from bohr.lock import bohr_up_to_date, update_lock
 from bohr.pathconfig import PathConfig, load_path_config
 from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline, load_transient_stages
@@ -68,7 +69,7 @@ def status() -> str:
     return dvc.status(config.paths)
 
 
-def pull(target: str, config: Optional[Config] = None) -> Path:
+def pull(target: str, config: Optional[Config] = None) -> RelativePath:
     config = config or load_config()
     if target in config.datasets:
         path = config.paths.labeled_data_dir / f"{target}.labeled.csv"

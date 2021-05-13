@@ -9,13 +9,18 @@ from typing import Any, Dict
 import jsons
 from deepdiff import DeepDiff
 
+from bohr.datamodel import AbsolutePath, relative_to_safe
 from bohr.pathconfig import PathConfig
 
 logger = logging.getLogger(__name__)
 
 
+class AbolutePath(object):
+    pass
+
+
 def md5_folder(
-    path: Path, project_root: Path, python_files: bool = True
+    path: AbolutePath, project_root: AbolutePath, python_files: bool = True
 ) -> Dict[str, str]:
     res: Dict[str, str] = {}
     for root, dir, files in os.walk(path):
@@ -26,9 +31,9 @@ def md5_folder(
                 or not file.endswith(".py")
             ):
                 continue
-            full_path = Path(root) / file
-            with full_path.open("rb") as f:
-                res[str(full_path.relative_to(project_root))] = hashlib.md5(
+            path: AbsolutePath = Path(root) / file
+            with path.open("rb") as f:
+                res[str(relative_to_safe(path, project_root))] = hashlib.md5(
                     f.read()
                 ).hexdigest()
     return res

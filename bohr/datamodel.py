@@ -9,6 +9,7 @@ from typing import (
     Dict,
     Iterable,
     List,
+    NewType,
     Optional,
     Tuple,
     Type,
@@ -32,6 +33,20 @@ ArtifactSubclass = TypeVar("ArtifactSubclass", bound=Artifact)
 ArtifactType = Type[ArtifactSubclass]
 ArtifactMapperSubclass = TypeVar("ArtifactMapperSubclass", bound="ArtifactMapper")
 MapperType = Type[ArtifactMapperSubclass]
+RelativePath = NewType("RelativePath", Path)
+AbsolutePath = NewType("AbsolutePath", Path)
+
+RelativeOrAbsolute = TypeVar("RelativeOrAbsolute", RelativePath, AbsolutePath)
+
+
+def relative_to_safe(
+    path: RelativeOrAbsolute, base_path: RelativeOrAbsolute
+) -> RelativePath:
+    return path.relative_to(base_path)
+
+
+def concat_paths_safe(p1: RelativeOrAbsolute, p2: RelativePath) -> RelativeOrAbsolute:
+    return p1 / p2
 
 
 class ArtifactMapper(BaseMapper, ABC):
@@ -108,7 +123,7 @@ class DummyMapper(ArtifactMapper):
 
 @dataclass
 class DatasetLoader(ABC):
-    path_preprocessed: Path
+    path_preprocessed: RelativePath
     mapper: ArtifactMapperSubclass = DummyMapper()
 
     @property
@@ -129,8 +144,8 @@ class Dataset(ABC):
     name: str
     author: str
     description: Optional[str]
-    path_preprocessed: Path
-    path_dist: Path
+    path_preprocessed: RelativePath
+    path_dist: RelativePath
     dataloader: DatasetLoader
     test_set: bool
     preprocessor: str
@@ -141,7 +156,7 @@ class Dataset(ABC):
             "description": self.description,
             "path": self.path_dist.name,
             "path_preprocessed": str(
-                self.dataloader.path_preprocessed.relative_to(kwargs["data_dir"])
+                relative_to_safe(self.dataloader.path_preprocessed, kwargs["data_dir"])
             ),
             "test_set": self.test_set,
             "preprocessor": self.preprocessor,
@@ -230,19 +245,19 @@ class Task:
             total.update({d.name: d for d in dataset.get_linked_datasets()})
         return total
 
-    def _datapaths(self, datasets: Iterable[Dataset]) -> List[Path]:
+    def _datapaths(self, datasets: Iterable[Dataset]) -> List[RelativePath]:
         return [dataset.path_preprocessed for dataset in datasets]
 
     @property
-    def datapaths(self) -> List[Path]:
+    def datapaths(self) -> List[RelativePath]:
         return self.train_datapaths + self.test_datapaths
 
     @property
-    def train_datapaths(self) -> List[Path]:
+    def train_datapaths(self) -> List[RelativePath]:
         return self._datapaths(self.train_datasets.values())
 
     @property
-    def test_datapaths(self) -> List[Path]:
+    def test_datapaths(self) -> List[RelativePath]:
         return self._datapaths(self.test_datasets.values())
 
     def __post_init__(self):
