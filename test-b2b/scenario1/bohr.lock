@@ -1,8 +1,9 @@
 {
     "config": {
-        "bohr_framework_version": "0.4.5-rc",
+        "bohr_framework_version": "0.4.6-rc",
         "tasks": {
             "bugginess-1k": {
+                "description": "",
                 "top_artifact": "bohr.artifacts.commit.Commit",
                 "label_categories": [
                     "CommitLabel.NonBugFix",
@@ -38,82 +39,97 @@
                 "author": "Berger, E. D., Hollenbeck, C., Maj, P., Vitek, O., & Vitek, J.",
                 "description": "Dataset of labeled commits from Berger, E. D., Hollenbeck, C., Maj, P., Vitek, O., & Vitek, J. (2019). On the impact of programming languages on code quality: a reproduction study. ACM Transactions on Programming Languages and Systems (TOPLAS), 41(4), 1-24.",
                 "path": "berger.csv",
-                "mapper": "bohr.templates.datamappers.commit.CommitMapper",
+                "path_preprocessed": "berger.csv",
                 "test_set": "true",
                 "preprocessor": "copy",
-                "loader": "csv"
+                "loader": "csv",
+                "mapper": "bohr.templates.datamappers.commit.CommitMapper"
             },
             "1151-commits": {
+                "author": null,
                 "description": "Dataset of manually-labeled 1k commits (corrective, perfective, adaptive) from Levin, S., & Yehudai, A. (2017, November). Boosting automatic commit classification into maintenance activities by utilizing source code changes. In Proceedings of the 13th International Conference on Predictive Models and Data Analytics in Software Engineering (pp. 97-106).",
                 "path": "1151-commits.csv",
-                "mapper": "bohr.templates.datamappers.commit.CommitMapper",
+                "path_preprocessed": "1151-commits.csv",
                 "test_set": "true",
                 "preprocessor": "copy",
-                "loader": "csv"
+                "loader": "csv",
+                "mapper": "bohr.templates.datamappers.commit.CommitMapper"
             },
             "200k-commits-1k": {
+                "author": null,
                 "description": "Dataset of commits mined by J. Prenner from Github (truncated to first 1k commits).\n Cite: @article{babii2021mining,\n  title={Mining Software Repositories with a Collaborative Heuristic Repository},\n  author={Babii, Hlib and Prenner, Julian Aron and Stricker, Laurin and Karmakar, Anjan and Janes, Andrea and Robbes, Romain},\n  journal={arXiv preprint arXiv:2103.01722},\n  year={2021}\n}",
                 "path": "200k-commits.csv",
-                "mapper": "bohr.templates.datamappers.commit.CommitMapper",
+                "path_preprocessed": "200k-commits.csv",
                 "test_set": "false",
-                "loader": "csv",
                 "preprocessor": "copy",
+                "loader": "csv",
+                "mapper": "bohr.templates.datamappers.commit.CommitMapper",
                 "n_rows": 1000
             },
             "200k-commits-issues": {
+                "author": null,
                 "description": "Dataset of issues linked to commits mined by J. Prenner from Github.\n Cite: @article{babii2021mining,\n  title={Mining Software Repositories with a Collaborative Heuristic Repository},\n  author={Babii, Hlib and Prenner, Julian Aron and Stricker, Laurin and Karmakar, Anjan and Janes, Andrea and Robbes, Romain},\n  journal={arXiv preprint arXiv:2103.01722},\n  year={2021}\n}",
                 "path": "200k-commits-issues.csv",
-                "mapper": "bohr.templates.datamappers.issue.IssueMapper",
+                "path_preprocessed": "200k-commits-issues.csv",
                 "test_set": "false",
-                "loader": "csv",
                 "preprocessor": "copy",
-                "keep_default_na": false,
+                "loader": "csv",
+                "mapper": "bohr.templates.datamappers.issue.IssueMapper",
                 "dtype": {
                     "labels": "str"
-                }
+                },
+                "keep_default_na": false
             },
             "200k-commits-files": {
+                "author": null,
                 "description": "Dataset of commits (file changes) mined by J. Prenner from Github.\n Cite: @article{babii2021mining,\n  title={Mining Software Repositories with a Collaborative Heuristic Repository},\n  author={Babii, Hlib and Prenner, Julian Aron and Stricker, Laurin and Karmakar, Anjan and Janes, Andrea and Robbes, Romain},\n  journal={arXiv preprint arXiv:2103.01722},\n  year={2021}\n}",
                 "path": "200k-commits-files.csv.7z",
-                "mapper": "bohr.templates.datamappers.commitfile.CommitFileMapper",
+                "path_preprocessed": "200k-commits-files.csv",
                 "test_set": "false",
+                "preprocessor": "7z",
                 "loader": "csv",
-                "preprocessor": "7z"
+                "mapper": "bohr.templates.datamappers.commitfile.CommitFileMapper"
             },
             "200k-commits-link-issues": {
+                "author": null,
                 "description": "Dataset of commits (links from commits to issues) mined by J. Prenner from Github.\n Cite: @article{babii2021mining,\n  title={Mining Software Repositories with a Collaborative Heuristic Repository},\n  author={Babii, Hlib and Prenner, Julian Aron and Stricker, Laurin and Karmakar, Anjan and Janes, Andrea and Robbes, Romain},\n  journal={arXiv preprint arXiv:2103.01722},\n  year={2021}\n}",
                 "path": "200k-commits-link-issues.csv",
+                "path_preprocessed": "200k-commits-link-issues.csv",
                 "test_set": "false",
-                "loader": "csv",
-                "preprocessor": "copy"
+                "preprocessor": "copy",
+                "loader": "csv"
             },
             "200k-commits-manual-labels": {
+                "author": null,
                 "description": "Manual labels for 200k dataset",
                 "path": "200k-commits-manual-labels.csv",
-                "mapper": "bohr.templates.datamappers.manuallabels.ManualLabelMapper",
+                "path_preprocessed": "200k-commits-manual-labels.csv",
                 "test_set": "false",
+                "preprocessor": "copy",
                 "loader": "csv",
-                "preprocessor": "copy"
+                "mapper": "bohr.templates.datamappers.manuallabels.ManualLabelMapper"
             },
             "smells-train_10": {
+                "author": null,
                 "description": "Dataset of manually classified code smells (truncated to first 10 data points) from Madeyski, L., & Lewowski, T. (2020). MLCQ: Industry-relevant code smell data set. In Proceedings of the Evaluation and Assessment in Software Engineering (pp. 342-347).",
                 "path": "smells-madeyski.csv",
                 "path_preprocessed": "smells/train.csv",
-                "mapper": "bohr.templates.datamappers.method.MethodMapper",
                 "test_set": "false",
-                "loader": "csv",
                 "preprocessor": "data-preprocessing/smells.sh",
+                "loader": "csv",
+                "mapper": "bohr.templates.datamappers.method.MethodMapper",
                 "n_rows": 10,
                 "sep": ";"
             },
             "smells-test_10": {
+                "author": null,
                 "description": "Dataset of manually classified code smells (truncated to first 10 data points) from Madeyski, L., & Lewowski, T. (2020). MLCQ: Industry-relevant code smell data set. In Proceedings of the Evaluation and Assessment in Software Engineering (pp. 342-347).",
                 "path": "smells-madeyski.csv",
                 "path_preprocessed": "smells/test.csv",
-                "mapper": "bohr.templates.datamappers.method.MethodMapper",
                 "test_set": "false",
-                "loader": "csv",
                 "preprocessor": "data-preprocessing/smells.sh",
+                "loader": "csv",
+                "mapper": "bohr.templates.datamappers.method.MethodMapper",
                 "n_rows": 10,
                 "sep": ";"
             }
@@ -121,12 +137,12 @@
         "dataset-linkers": [
             {
                 "from": "200k-commits-1k",
-                "to": "200k-commits-issues",
-                "link": "200k-commits-link-issues"
+                "to": "200k-commits-files"
             },
             {
                 "from": "200k-commits-1k",
-                "to": "200k-commits-files"
+                "to": "200k-commits-issues",
+                "link": "200k-commits-link-issues"
             },
             {
                 "from": "200k-commits-1k",

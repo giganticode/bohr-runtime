@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import json
 import logging
 import os
 from dataclasses import dataclass
@@ -31,11 +32,34 @@ class Config:
     linkers: List[DatasetLinker]
     paths: PathConfig
 
+    def serealize(self, **kwargs) -> Dict[str, Any]:
+        return {
+            "bohr_framework_version": version(),
+            "tasks": {name: jsons.dump(task) for name, task in self.tasks.items()},
+            "datasets": {
+                name: jsons.dump(dataset, **kwargs)
+                for name, dataset in self.datasets.items()
+            },
+            "dataset-linkers": sorted(
+                [jsons.dump(linker) for linker in self.linkers],
+                key=lambda l: (l["from"], l["to"]),
+            ),
+        }
+
     @staticmethod
     def load(project_root: Path) -> "Config":
         with open(project_root / "bohr.json") as f:
             return jsons.loads(
                 f.read(), Config, path_config=load_path_config(project_root)
+            )
+
+    def dump(self, project_root: Path) -> None:
+        with open(project_root / "bohr.json", "w") as f:
+            f.write(
+                json.dumps(
+                    jsons.dump(self, data_dir=load_path_config(project_root).data_dir),
+                    indent=2,
+                )
             )
 
 
@@ -86,6 +110,10 @@ def load_mapper_type(path_to_mapper_obj: str) -> MapperType:
         raise ValueError(f"Mapper {name} not found in module {module}") from e
 
 
+def get_mapper_by_name(name: str) -> str:
+    return load_mapper_type(name)
+
+
 def deserialize_task(
     dct: Dict[str, Any],
     cls,
@@ -109,7 +137,7 @@ def deserialize_task(
     return Task(
         task_name,
         dct["author"] if "author" in dct else None,
-        dct["description"] if "description" in dct else None,
+        dct["description"] if "description" in dct else "",
         artifact,
         dct["label_categories"],
         train_datasets=train_datasets,
@@ -204,7 +232,8 @@ def desearialize_dataset(
 
         return Dataset(
             name=dataset_name,
-            description=dct["description"] if "description" in dct else None,
+            author=dct["author"] if "author" in dct else None,
+            description=dct["description"] if "description" in dct else "",
             path_preprocessed=path_preprocessed,
             path_dist=downloaded_data_dir / dct["path"],
             dataloader=dataset_loader,
@@ -229,9 +258,13 @@ def desearialize_linker(
 
 
 jsons.set_deserializer(desearialize_linker, DatasetLinker)
+jsons.set_serializer(DatasetLinker.serealize, DatasetLinker)
 jsons.set_deserializer(desearialize_dataset, Dataset)
+jsons.set_serializer(Dataset.serealize, Dataset)
 jsons.set_deserializer(deserialize_task, Task)
+jsons.set_serializer(Task.serealize, Task)
 jsons.set_deserializer(deserialize_config, Config)
+jsons.set_serializer(Config.serealize, Config)
 
 
 def load_heuristics_from_module(

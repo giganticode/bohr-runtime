@@ -3,7 +3,18 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from dask.dataframe import DataFrame
 from snorkel.map import BaseMapper
@@ -108,16 +119,39 @@ class DatasetLoader(ABC):
     def load(self) -> DataFrame:
         pass
 
+    @abstractmethod
+    def get_extra_params(self) -> Dict[str, Any]:
+        pass
+
 
 @dataclass
 class Dataset(ABC):
     name: str
+    author: str
     description: Optional[str]
     path_preprocessed: Path
     path_dist: Path
     dataloader: DatasetLoader
     test_set: bool
     preprocessor: str
+
+    def serealize(self, **kwargs) -> Dict[str, Any]:
+        dct = {
+            "author": self.author,
+            "description": self.description,
+            "path": self.path_dist.name,
+            "path_preprocessed": str(
+                self.dataloader.path_preprocessed.relative_to(kwargs["data_dir"])
+            ),
+            "test_set": self.test_set,
+            "preprocessor": self.preprocessor,
+            "loader": "csv",
+        }
+        if type(self.mapper).__name__ != "DummyMapper":
+            dct["mapper"] = ".".join(
+                [type(self.mapper).__module__, type(self.mapper).__name__]
+            )
+        return {**dct, **self.dataloader.get_extra_params()}
 
     def load(self):
         return self.dataloader.load()
@@ -154,6 +188,12 @@ class DatasetLinker(ABC):
     def __str__(self):
         return f"{self.from_} -> {self.to}, linker: {self.link}"
 
+    def serealize(self, **kwargs) -> Dict[str, Any]:
+        dct = {"from": self.from_.name, "to": self.to.name}
+        if self.link:
+            dct["link"] = self.link.name
+        return dct
+
 
 @dataclass(frozen=True)
 class Task:
@@ -166,6 +206,18 @@ class Task:
     test_datasets: Dict[str, Dataset]
     label_column_name: str
     heuristic_groups: List[str]
+
+    def serealize(self, **kwargs) -> Dict[str, Any]:
+        return {
+            "description": self.description,
+            "top_artifact": ".".join(
+                [self.top_artifact.__module__, self.top_artifact.__name__]
+            ),
+            "label_categories": self.labels,
+            "test_datasets": sorted(self.test_datasets.keys()),
+            "train_datasets": sorted(self.train_datasets.keys()),
+            "label_column_name": self.label_column_name,
+        }
 
     @property
     def datasets(self) -> Dict[str, Dataset]:

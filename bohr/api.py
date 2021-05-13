@@ -45,26 +45,27 @@ def repro(
         )
 
 
-def refresh() -> None:
-    config = load_config()
+def refresh(config: Optional[Config] = None) -> None:
+    config = config or load_config()
     (config.paths.project_root / "dvc.yaml").unlink(missing_ok=True)
     add_all_tasks_to_dvc_pipeline(config)
     update_lock(config.paths)
 
 
-def refresh_if_necessary(path_config: Optional[PathConfig] = None) -> None:
-    path_config = path_config or load_path_config()
-    if not bohr_up_to_date(path_config):
+def refresh_if_necessary(config: Optional[Config] = None) -> None:
+    config = config or load_config()
+    if not bohr_up_to_date(config.paths):
         logger.info("There are changes to the bohr config. Refreshing the workspace...")
-        refresh()
+        refresh(config)
     else:
         logger.info("Bohr config hasn't changed.")
 
 
 def status() -> str:
-    path_config = load_path_config()
-    refresh_if_necessary(path_config)
-    return dvc.status()
+    config = load_config()
+    config.dump(config.paths.project_root)
+    refresh_if_necessary(config)
+    return dvc.status(config.paths)
 
 
 def pull(target: str, config: Optional[Config] = None) -> Path:
