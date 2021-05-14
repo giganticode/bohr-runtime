@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import bohr.dvcwrapper as dvc
-from bohr.config import Config, get_mapper_by_name, load_config
+from bohr.config import Config, get_mapper_by_name, get_preprocessed_path, load_config
 from bohr.datamodel import Dataset, RelativePath, relative_to_safe
 from bohr.lock import bohr_up_to_date, update_lock
 from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline, load_transient_stages
@@ -138,16 +138,19 @@ def add(
             )
         raise ValueError(message)
     mapper = get_mapper_by_name(artifact)
-    relative_destination_path: RelativePath = relative_to_safe(
-        destination_path, config.paths.project_root
+    path_preprocessed: RelativePath = get_preprocessed_path(
+        None,
+        relative_to_safe(destination_path, config.paths.downloaded_data),
+        config.paths.data_dir,
+        preprocessor,
     )
     dataset = Dataset(
         dataset_name,
         author,
         description,
-        relative_destination_path,
+        path_preprocessed,
         config.paths.data_dir / path.name,
-        CsvDatasetLoader(config.paths.data_dir / path.name, mapper()),
+        CsvDatasetLoader(path_preprocessed, mapper()),
         test_set,
         preprocessor,
     )
