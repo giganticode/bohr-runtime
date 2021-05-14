@@ -13,6 +13,10 @@ from bohr.pathconfig import PathConfig
 random.seed(13)
 
 
+class GroundTruthColumnNotFound(Exception):
+    pass
+
+
 def calculate_metrics(
     label_model: LabelModel,
     dataset_name: str,
@@ -100,6 +104,11 @@ def train_label_model(
     stats = {}
     for test_set_name, test_set in task.test_datasets.items():
         df = test_set.load()
+        if task.label_column_name not in df.columns:
+            raise GroundTruthColumnNotFound(
+                f"Dataset {test_set_name} is added as a test set to the {task.name} task.\n"
+                f"However, column with ground-thruth labels '{task.label_column_name}' not found."
+            )
         stats.update(
             calculate_metrics(
                 label_model,

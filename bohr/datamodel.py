@@ -147,7 +147,6 @@ class Dataset(ABC):
     path_preprocessed: RelativePath
     path_dist: RelativePath
     dataloader: DatasetLoader
-    test_set: bool
     preprocessor: str
 
     def serealize(self, **kwargs) -> Dict[str, Any]:
@@ -158,7 +157,6 @@ class Dataset(ABC):
             "path_preprocessed": str(
                 relative_to_safe(self.dataloader.path_preprocessed, kwargs["data_dir"])
             ),
-            "test_set": self.test_set,
             "preprocessor": self.preprocessor,
             "loader": "csv",
         }

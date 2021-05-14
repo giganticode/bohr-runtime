@@ -109,7 +109,6 @@ def extract_format_from_file_name(file_name: str) -> Tuple[str, str]:
 def add(
     path: Path,
     artifact: str,
-    test_set: bool,
     name: Optional[str] = None,
     author: Optional[str] = None,
     description: Optional[str] = "",
@@ -151,7 +150,6 @@ def add(
         path_preprocessed,
         config.paths.data_dir / path.name,
         CsvDatasetLoader(path_preprocessed, mapper()),
-        test_set,
         preprocessor,
     )
     config.datasets[dataset.name] = dataset

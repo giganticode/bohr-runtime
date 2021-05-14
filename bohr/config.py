@@ -263,7 +263,6 @@ def desearialize_dataset(
             path_preprocessed=path_preprocessed,
             path_dist=downloaded_data_dir / dct["path"],
             dataloader=dataset_loader,
-            test_set=dct["test_set"],
             preprocessor=dct["preprocessor"],
         )
     else:
