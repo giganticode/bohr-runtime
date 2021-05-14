@@ -113,7 +113,7 @@ def load_mapper_type(path_to_mapper_obj: str) -> MapperType:
         raise ValueError(f"Mapper {name} not found in module {module}") from e
 
 
-def get_mapper_by_name(name: str) -> str:
+def get_mapper_by_name(name: str) -> MapperType:
     return load_mapper_type(name)
 
 
@@ -199,6 +199,30 @@ path_config={})
     )
 
 
+def get_preprocessed_path(
+    path_preprocessed: Optional[RelativePath],
+    path: RelativePath,
+    data_dir: RelativePath,
+    preprocessor: str,
+) -> RelativePath:
+    """
+    >>> get_preprocessed_path(Path('prep/path.csv'), Path('prep/path.csv.zip'), Path('data'), 'zip').as_posix()
+    'data/prep/path.csv'
+    >>> get_preprocessed_path(None, Path('prep/path.csv.zip'), Path('data'), 'zip').as_posix()
+    'data/prep/path.csv'
+    >>> get_preprocessed_path(None, Path('prep/path.csv.foo'), Path('data'), 'foobar').as_posix()
+    'data/prep/path.csv.foo'
+    """
+    if path_preprocessed is not None:
+        path_preprocessed = data_dir / path_preprocessed
+    elif preprocessor in ["zip", "7z"]:
+        *name, ext = str(path).split(".")
+        path_preprocessed = data_dir / ".".join(name)
+    else:
+        path_preprocessed = data_dir / path
+    return path_preprocessed
+
+
 def desearialize_dataset(
     dct: Dict[str, Any],
     cls,
@@ -221,13 +245,12 @@ def desearialize_dataset(
             extra_args["keep_default_na"] = dct["keep_default_na"]
         if "dtype" in dct:
             extra_args["dtype"] = jsons.load(dct["dtype"])
-        if "path_preprocessed" in dct:
-            path_preprocessed = data_dir / dct["path_preprocessed"]
-        elif dct["preprocessor"] in ["zip", "7z"]:
-            *name, ext = dct["path"].split(".")
-            path_preprocessed = data_dir / ".".join(name)
-        else:
-            path_preprocessed = data_dir / dct["path"]
+        path_preprocessed = get_preprocessed_path(
+            Path(dct.get("path_preprocessed")),
+            Path(dct["path"]),
+            data_dir,
+            dct["preprocessor"],
+        )
 
         dataset_loader = CsvDatasetLoader(
             path_preprocessed=path_preprocessed, **extra_args
@@ -235,8 +258,8 @@ def desearialize_dataset(
 
         return Dataset(
             name=dataset_name,
-            author=dct["author"] if "author" in dct else None,
-            description=dct["description"] if "description" in dct else "",
+            author=dct.get("author"),
+            description=dct.get("description", ""),
             path_preprocessed=path_preprocessed,
             path_dist=downloaded_data_dir / dct["path"],
             dataloader=dataset_loader,

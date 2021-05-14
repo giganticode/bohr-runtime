@@ -61,3 +61,8 @@ jobs:
           cd /usr/src/bohr-framework/test-b2b/scenario1
           dvc metrics diff master
           [ -z "$(dvc metrics diff master)" ]
+      - name: adding-sample-dataset
+        run: |
+          cd /usr/src/bohr-framework/test-b2b/scenario1
+          touch /usr/src/new_dataset.csv.zip
+          bohr dataset add /usr/src/new_dataset.csv.zip -a bohr.templates.datamappers.commitfile.CommitFileMapper
