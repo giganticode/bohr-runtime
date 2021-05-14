@@ -50,10 +50,6 @@ def ls(task: Optional[str], extended_list: bool) -> None:
 @dataset.command()
 @click.argument("path", type=str)
 @click.option("-a", "--artifact", required=True)
-@click.option("-t", "--test-set", is_flag=True)
-def add(path: str, artifact: str, test_set: bool) -> None:
-    dataset = api.add(Path(path), artifact, test_set)
+def add(path: str, artifact: str) -> None:
+    dataset = api.add(Path(path), artifact)
     print(f"Dataset {dataset.name} is added.")
-
-
-# bohr task add-dataset #TODO
