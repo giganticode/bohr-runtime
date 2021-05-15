@@ -7,9 +7,9 @@ import dvc.exceptions
 import dvc.scm.base
 
 from bohr import __version__, api
-
-from bohr.api import refresh_if_necessary, BohrDatasetNotFound
+from bohr.api import BohrDatasetNotFound, refresh_if_necessary
 from bohr.cli.dataset.commands import dataset
+from bohr.cli.task.commands import task
 from bohr.config import load_config
 from bohr.debugging import DataPointDebugger, DatasetDebugger
 from bohr.pathconfig import AppConfig, add_to_local_config
@@ -219,3 +219,4 @@ def train_label_model(task: str, target_dataset: str):
 
 
 bohr.add_command(dataset)
+bohr.add_command(task)

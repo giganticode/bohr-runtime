@@ -54,6 +54,3 @@ def ls(task: Optional[str], extended_list: bool) -> None:
 def add(path: str, artifact: str, test_set: bool) -> None:
     dataset = api.add(Path(path), artifact, test_set)
     print(f"Dataset {dataset.name} is added.")
-
-
-# bohr task add-dataset #TODO

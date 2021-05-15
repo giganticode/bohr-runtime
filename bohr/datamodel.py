@@ -138,6 +138,10 @@ class DatasetLoader(ABC):
     def get_extra_params(self) -> Dict[str, Any]:
         pass
 
+    @abstractmethod
+    def is_column_present(self, column: str) -> bool:
+        pass
+
 
 @dataclass
 class Dataset(ABC):
@@ -170,6 +174,9 @@ class Dataset(ABC):
 
     def load(self):
         return self.dataloader.load()
+
+    def is_column_present(self, column: str) -> bool:
+        return self.dataloader.is_column_present(column)
 
     def get_linked_datasets(self) -> List["Dataset"]:
         return list(map(lambda l: l.to, self.mapper.linkers))
@@ -217,10 +224,23 @@ class Task:
     description: Optional[str]
     top_artifact: Type
     labels: List[str]
-    train_datasets: Dict[str, Dataset]
-    test_datasets: Dict[str, Dataset]
+    _train_datasets: Dict[str, Dataset]
+    _test_datasets: Dict[str, Dataset]
     label_column_name: str
     heuristic_groups: List[str]
+
+    @property
+    def train_datasets(self) -> Dict[str, Dataset]:
+        return self._train_datasets
+
+    @property
+    def test_datasets(self) -> Dict[str, Dataset]:
+        return self._test_datasets
+
+    def add_dataset(self, dataset: Dataset, is_test: bool) -> None:
+        dct = self._train_datasets if not is_test else self._test_datasets
+        self.check_artifact_right(dataset)
+        dct[dataset.name] = dataset
 
     def serealize(self, **kwargs) -> Dict[str, Any]:
         return {
@@ -260,13 +280,16 @@ class Task:
     def test_datapaths(self) -> List[RelativePath]:
         return self._datapaths(self.test_datasets.values())
 
+    def check_artifact_right(self, dataset: Dataset) -> None:
+        if dataset.artifact_type != self.top_artifact:
+            raise ValueError(
+                f"Dataset {dataset} is a dataset of {dataset.artifact_type}, "
+                f"but this task works on {self.top_artifact}"
+            )
+
     def __post_init__(self):
         for dataset in self.datasets.values():
-            if dataset.artifact_type != self.top_artifact:
-                raise ValueError(
-                    f"Dataset {dataset} is a dataset of {dataset.artifact_type}, "
-                    f"but this task works on {self.top_artifact}"
-                )
+            self.check_artifact_right(dataset)
 
 
 class Heuristic:
