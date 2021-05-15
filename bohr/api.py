@@ -18,7 +18,10 @@ class BohrDatasetNotFound(Exception):
 
 
 def repro(
-    task: Optional[str], only_transient: bool, force: bool, config: Config
+    task: Optional[str],
+    only_transient: bool = False,
+    force: bool = False,
+    config: Optional[Config] = None,
 ) -> None:
     """
     # >>> import tempfile
@@ -27,6 +30,7 @@ def repro(
     # ...         print(f.write('{"bohr_framework_version": "0.3.9-rc", "tasks": {}, "datasets": {}}'))
     # ...     get_dvc_commands_to_repro(None, False, load_config(Path(tmpdirname)))
     """
+    config = config or load_config()
     paths_to_pull = [str(d.path_dist) for d in config.datasets.values()]
     if len(paths_to_pull) > 0:
         logger.info(dvc.pull(paths_to_pull))

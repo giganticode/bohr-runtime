@@ -16,7 +16,8 @@ def task():
 @task.command()
 @click.argument("task", type=str)
 @click.argument("dataset", type=str)
-def add_dataset(task: str, dataset: str) -> None:
+@click.option("--repro", is_flag=True)
+def add_dataset(task: str, dataset: str, repro: bool) -> None:
     config = load_config()
     if task not in config.tasks:
         logger.error(f"Task {task} is not defined")
@@ -26,3 +27,6 @@ def add_dataset(task: str, dataset: str) -> None:
         exit(404)
     dataset = api.add_dataset(config.tasks[task], config.datasets[dataset], config)
     print(f"Dataset {dataset} is added to the task {task}.")
+    if repro:
+        logger.info("Re-running the pipeline ...")
+        api.repro(task, config=config)
