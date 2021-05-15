@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 import bohr.dvcwrapper as dvc
 from bohr.config import Config, get_mapper_by_name, get_preprocessed_path, load_config
-from bohr.datamodel import Dataset, RelativePath, relative_to_safe
+from bohr.datamodel import Dataset, RelativePath, Task, relative_to_safe
 from bohr.lock import bohr_up_to_date, update_lock
 from bohr.pipeline.dvc import add_all_tasks_to_dvc_pipeline, load_transient_stages
 from bohr.templates.dataloaders.from_csv import CsvDatasetLoader
@@ -153,5 +153,17 @@ def add(
         preprocessor,
     )
     config.datasets[dataset.name] = dataset
+    config.dump(config.paths.project_root)
+    return dataset
+
+
+def add_dataset(
+    task: Task, dataset: Dataset, config: Optional[Config] = None
+) -> Dataset:
+    is_test_set = dataset.is_column_present(task.label_column_name)
+    logger.info(
+        f'Adding dataset {dataset.name} as a {"test" if is_test_set else "train"} set'
+    )
+    task.add_dataset(dataset, is_test_set)
     config.dump(config.paths.project_root)
     return dataset

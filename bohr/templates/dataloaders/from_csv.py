@@ -28,6 +28,12 @@ class CsvDatasetLoader(DatasetLoader):
             dct["sep"] = self.sep
         return dct
 
+    def is_column_present(self, column: str) -> bool:
+        path = load_path_config().project_root / self.path_preprocessed
+        with open(path) as f:
+            columns = f.readline()
+        return column in map(lambda s: s.strip(), columns.split(self.sep))
+
     def load(self) -> pd.DataFrame:
         absolute_path = load_path_config().project_root / self.path_preprocessed
         mapper = self.mapper

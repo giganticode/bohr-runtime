@@ -143,8 +143,8 @@ def deserialize_task(
         dct["description"] if "description" in dct else "",
         artifact,
         dct["label_categories"],
-        train_datasets=train_datasets,
-        test_datasets=test_datasets,
+        _train_datasets=train_datasets,
+        _test_datasets=test_datasets,
         label_column_name=dct["label_column_name"],
         heuristic_groups=heuristic_groups,
     )
