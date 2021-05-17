@@ -1,8 +1,11 @@
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
 from rich.logging import RichHandler
+
+from bohr.config.appconfig import AppConfig
 
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -31,3 +34,16 @@ def appname() -> str:
 
 
 __version__ = version()
+
+
+def setup_loggers(verbose: Optional[bool] = None):
+    if verbose is None:
+        verbose = AppConfig.load().verbose
+    logging.captureWarnings(True)
+    root = logging.root
+    for (logger_name, logger) in root.manager.loggerDict.items():
+        if logger_name != "bohr" and not logger_name.startswith("bohr."):
+            logger.disabled = True
+        else:
+            if verbose:
+                logging.getLogger("bohr").setLevel(logging.DEBUG)

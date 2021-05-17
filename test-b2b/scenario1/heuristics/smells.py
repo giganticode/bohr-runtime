@@ -2,9 +2,9 @@ from typing import Optional
 
 from labels import SnippetLabel
 
-from bohr.artifacts.method import Method
-from bohr.decorators import Heuristic
-from bohr.labels.labelset import Label
+from bohr.collection.artifacts.method import Method
+from bohr.core import Heuristic
+from bohr.labeling.labelset import Label
 
 
 @Heuristic(Method)

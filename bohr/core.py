@@ -1,21 +1,46 @@
+import functools
 import logging
-from typing import List
+from subprocess import CalledProcessError
+from typing import Any, Callable, List, Mapping, Optional, Type
 
-from bohr.datamodel import ArtifactMapper, Heuristic
-from bohr.labels.cache import CategoryMappingCache
-from bohr.snorkel_util import SnorkelLabelingFunction, to_snorkel_label
+from snorkel.labeling import LabelingFunction
+from snorkel.map import BaseMapper
+from snorkel.preprocess import BasePreprocessor
+
+from bohr.datamodel.artifact import Artifact
+from bohr.datamodel.artifactmapper import ArtifactMapper
+from bohr.datamodel.heuristic import HeuristicObj
+from bohr.labeling.cache import CategoryMappingCache
+from bohr.labeling.labelset import Label, Labels, LabelSet
 
 logger = logging.getLogger(__name__)
 
+HeuristicFunction = Callable[..., Optional[Labels]]
+
 
 def apply_heuristic_and_convert_to_snorkel_label(
-    heuristic: Heuristic, cache: CategoryMappingCache, *args, **kwargs
+    heuristic: HeuristicObj, cache: CategoryMappingCache, *args, **kwargs
 ) -> int:
     return to_snorkel_label(heuristic(*args, **kwargs), cache)
 
 
+class SnorkelLabelingFunction(LabelingFunction):
+    def __init__(
+        self,
+        name: str,
+        f: Callable[..., int],
+        mapper: BaseMapper,
+        resources: Optional[Mapping[str, Any]] = None,
+        pre: Optional[List[BasePreprocessor]] = None,
+    ) -> None:
+        if pre is None:
+            pre = []
+        pre.insert(0, mapper)
+        super().__init__(name, f, resources, pre=pre)
+
+
 def to_labeling_functions(
-    heuristics: List[Heuristic], mapper: ArtifactMapper, labels: List[str]
+    heuristics: List[HeuristicObj], mapper: ArtifactMapper, labels: List[str]
 ) -> List[SnorkelLabelingFunction]:
     category_mapping_cache = CategoryMappingCache(labels, maxsize=10000)
     labeling_functions = list(
@@ -32,3 +57,42 @@ def to_labeling_functions(
         )
     )
     return labeling_functions
+
+
+def to_snorkel_label(labels, category_mapping_cache_map: CategoryMappingCache) -> int:
+    if labels is None:
+        return -1
+    label_set = labels if isinstance(labels, LabelSet) else LabelSet.of(labels)
+    snorkel_label = category_mapping_cache_map[label_set]
+    return snorkel_label
+
+
+class Heuristic:
+    def __init__(self, artifact_type_applied_to: Type[Artifact]):
+        self.artifact_type_applied_to = artifact_type_applied_to
+
+    def get_artifact_safe_func(self, f: HeuristicFunction) -> HeuristicFunction:
+        def func(artifact, *args, **kwargs):
+            if not isinstance(artifact, self.artifact_type_applied_to):
+                raise ValueError("Not right artifact")
+            try:
+                return f(artifact, *args, **kwargs)
+            except (
+                ValueError,
+                KeyError,
+                AttributeError,
+                IndexError,
+                TypeError,
+                CalledProcessError,
+            ):
+                logger.exception(
+                    "Exception thrown while applying heuristic, "
+                    "skipping the heuristic for this datapoint ..."
+                )
+                return None
+
+        return functools.wraps(f)(func)
+
+    def __call__(self, f: Callable[..., Label]) -> HeuristicObj:
+        safe_func = self.get_artifact_safe_func(f)
+        return HeuristicObj(safe_func, self.artifact_type_applied_to)

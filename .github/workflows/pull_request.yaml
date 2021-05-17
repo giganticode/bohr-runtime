@@ -65,4 +65,4 @@ jobs:
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
           touch /usr/src/new_dataset.csv.zip
-          bohr dataset add /usr/src/new_dataset.csv.zip -a bohr.templates.datamappers.commitfile.CommitFileMapper
+          bohr dataset add /usr/src/new_dataset.csv.zip -a bohr.collection.datamappers.commitfile.CommitFileMapper

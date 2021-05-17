@@ -7,7 +7,7 @@ import click
 from tabulate import tabulate
 
 from bohr import api
-from bohr.config import load_config
+from bohr.datamodel.bohrrepo import load_bohr_repo
 
 logger = logging.getLogger(__name__)
 
@@ -21,17 +21,17 @@ def dataset():
 @click.option("-t", "--task", type=str)
 @click.option("-a", "--extended-list", is_flag=True)
 def ls(task: Optional[str], extended_list: bool) -> None:
-    config = load_config()
+    bohr_repo = load_bohr_repo()
     if task:
-        if task not in config.tasks:
+        if task not in bohr_repo.tasks:
             logger.error(
                 f"Task not found in the config: {task}. \n"
-                f"Defined tasks: {list(config.tasks.keys())}"
+                f"Defined tasks: {list(bohr_repo.tasks.keys())}"
             )
             exit(404)
-        datasets = config.tasks[task].datasets
+        datasets = bohr_repo.tasks[task].datasets
     else:
-        datasets = config.datasets
+        datasets = bohr_repo.datasets
     if extended_list:
         print(
             tabulate(

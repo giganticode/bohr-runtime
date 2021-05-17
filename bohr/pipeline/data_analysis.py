@@ -8,7 +8,7 @@ from pandas import Series
 from snorkel.labeling import LabelingFunction, LFAnalysis
 from snorkel.labeling.model import MajorityLabelVoter
 
-from bohr.datamodel import AbsolutePath
+from bohr.util.paths import AbsolutePath
 
 
 def run_analysis(
