@@ -1,26 +1,19 @@
-import json
-from pprint import pprint
+import logging
 from typing import Optional
 
 import click
 import dvc.exceptions
 import dvc.scm.base
 
-from bohr import __version__, api
+from bohr import AppConfig, __version__, api, setup_loggers
 from bohr.api import BohrDatasetNotFound, refresh_if_necessary
 from bohr.cli.dataset.commands import dataset
+from bohr.cli.porcelain.commands import porcelain
 from bohr.cli.task.commands import task
-from bohr.config import load_config
-from bohr.debugging import DataPointDebugger, DatasetDebugger
-from bohr.pathconfig import AppConfig, add_to_local_config
-from bohr.pipeline import stages
-from bohr.pipeline.profiler import Profiler
-from bohr.pipeline.stages.parse_labels import parse_label
+from bohr.config.pathconfig import PathConfig, add_to_local_config
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -37,19 +30,6 @@ class verbosity:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         add_to_local_config("core.verbose", str(self.current_verbosity))
-
-
-def setup_loggers(verbose: Optional[bool] = None):
-    if verbose is None:
-        verbose = AppConfig.load().verbose
-    logging.captureWarnings(True)
-    root = logging.root
-    for (logger_name, logger) in root.manager.loggerDict.items():
-        if logger_name != "bohr" and not logger_name.startswith("bohr."):
-            logger.disabled = True
-        else:
-            if verbose:
-                logging.getLogger("bohr").setLevel(logging.DEBUG)
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -85,6 +65,8 @@ def debug(
     force_refresh: bool,
     verbose: bool = False,
 ) -> None:
+    from bohr.debugging import DataPointDebugger, DatasetDebugger
+
     setup_loggers(verbose)
     try:
         if datapoint is None:
@@ -120,9 +102,9 @@ def repro(
     with verbosity(verbose):
         if only_transient and task:
             raise ValueError("Both --only-transient and task is not supported")
-        config = load_config()
-        refresh_if_necessary(config)
-        api.repro(task, only_transient, force, config)
+        path_config = PathConfig.load()
+        refresh_if_necessary(path_config)
+        api.repro(task, only_transient, force, path_config=path_config)
 
 
 @bohr.command()
@@ -131,11 +113,11 @@ def repro(
 def pull(target: Optional[str], verbose: bool = False):
     try:
         with verbosity(verbose):
-            config = load_config()
-            refresh_if_necessary(config)
-            path = api.pull(target, config)
+            path_config = PathConfig.load()
+            refresh_if_necessary(path_config)
+            path = api.pull(target, path_config=path_config)
             logger.info(
-                f"The dataset is available at {config.paths.project_root / path}"
+                f"The dataset is available at {path_config.project_root / path}"
             )
     except BohrDatasetNotFound as ex:
         logger.error(ex, exc_info=logger.getEffectiveLevel() == logging.DEBUG)
@@ -163,60 +145,6 @@ def config(key: str, value: str):
     add_to_local_config(key, value)
 
 
-@bohr.command()
-def parse_labels():
-    setup_loggers()
-    config = load_config()
-    parse_label(config)
-
-
-@bohr.command()
-@click.argument("task")
-@click.argument("dataset")
-@click.option("--debug", is_flag=True)
-def label_dataset(task: str, dataset: str, debug: bool):
-    setup_loggers()
-    config = load_config()
-    task = config.tasks[task]
-    dataset = config.datasets[dataset]
-    stages.label_dataset(task, dataset, config, debug)
-
-
-@bohr.command()
-@click.argument("task")
-@click.option("--heuristic-group", type=str)
-@click.option("--dataset", type=str)
-@click.option("--profile", is_flag=True)
-def apply_heuristics(
-    task: str, heuristic_group: Optional[str], dataset: Optional[str], profile: bool
-):
-    setup_loggers()
-    config = load_config()
-    path_config = config.paths
-
-    task = config.tasks[task]
-    if heuristic_group:
-        with Profiler(enabled=profile):
-            dataset = config.datasets[dataset]
-            stages.apply_heuristics(task, path_config, heuristic_group, dataset)
-    else:
-        stages.combine_applied_heuristics(task, path_config)
-
-
-@bohr.command()
-@click.argument("task")
-@click.argument("target-dataset")
-def train_label_model(task: str, target_dataset: str):
-    setup_loggers()
-    config = load_config()
-    path_config = config.paths
-    task = config.tasks[task]
-    target_dataset = config.datasets[target_dataset]
-    stats = stages.train_label_model(task, target_dataset, path_config)
-    with open(path_config.metrics / task.name / "label_model_metrics.json", "w") as f:
-        json.dump(stats, f)
-    pprint(stats)
-
-
 bohr.add_command(dataset)
 bohr.add_command(task)
+bohr.add_command(porcelain)

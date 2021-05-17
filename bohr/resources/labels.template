@@ -2,7 +2,7 @@
 
 from enum import auto
 
-from bohr.labels.labelset import Label
+from bohr.labeling.labelset import Label
 {% for hierarchy in hierarchies %}
 
 class {{hierarchy.name}}(Label):{% for row in hierarchy.nodes %}

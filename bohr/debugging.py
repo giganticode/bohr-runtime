@@ -15,13 +15,13 @@ from git import Repo
 from tabulate import tabulate
 
 from bohr import appauthor, appname, version
-from bohr.datamodel import (
+from bohr.config.pathconfig import PathConfig
+from bohr.util.paths import (
     AbsolutePath,
     RelativePath,
     concat_paths_safe,
     relative_to_safe,
 )
-from bohr.pathconfig import load_path_config
 
 logger = logging.getLogger()
 
@@ -53,7 +53,7 @@ def _load_output_matrix_and_weights(
     rev: Optional[str] = None,
     force_update: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    path_config = load_path_config()
+    path_config = PathConfig.load()
     logging.disable(logging.WARNING)
     repo = (
         get_path_to_revision(path_config.project_root, rev, force_update=force_update)
@@ -216,7 +216,7 @@ class DatasetDebugger:
         rev: Optional[str] = "master",
         force_update: bool = False,
     ):
-        path_config = load_path_config()
+        path_config = PathConfig.load()
         path_to_old_revision = get_path_to_revision(
             path_config.project_root, rev, force_update
         )

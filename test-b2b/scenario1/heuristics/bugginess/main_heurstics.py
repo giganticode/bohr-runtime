@@ -3,11 +3,11 @@ from typing import List, Optional
 
 from labels import *
 
-from bohr.artifacts.commit import Commit
-from bohr.decorators import Heuristic
-from bohr.labels.labelset import Labels
-from bohr.nlp_utils import NgramSet
-from bohr.templates.heuristics.keywords import KeywordHeuristics
+from bohr.collection.artifacts.commit import Commit
+from bohr.collection.heuristictypes.keywords import KeywordHeuristics
+from bohr.core import Heuristic
+from bohr.labeling.labelset import Labels
+from bohr.util.nlp import NgramSet
 
 
 @KeywordHeuristics(

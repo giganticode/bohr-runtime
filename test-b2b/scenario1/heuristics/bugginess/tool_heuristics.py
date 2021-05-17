@@ -2,10 +2,10 @@ from typing import Optional
 
 from labels import CommitLabel
 
-from bohr.artifacts.commit import Commit
-from bohr.labels.labelset import Labels
-from bohr.templates.heuristics.tool import ToolOutputHeuristic
-from bohr.templates.heuristics.tools.refactoring_miner import RefactoringMiner
+from bohr.collection.artifacts.commit import Commit
+from bohr.collection.heuristictypes.tool import ToolOutputHeuristic
+from bohr.collection.heuristictypes.tools.refactoring_miner import RefactoringMiner
+from bohr.labeling.labelset import Labels
 
 
 @ToolOutputHeuristic(Commit, tool=RefactoringMiner)
