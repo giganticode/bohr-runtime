@@ -70,14 +70,14 @@ stages:
     outs:
     - data/smells/test.csv
   parse_labels:
-    cmd: bohr parse-labels
+    cmd: bohr porcelain parse-labels
     deps:
     - labels
     outs:
     - labels.py:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_file_heuristics__200k-commits-1k:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.file_heuristics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.file_heuristics
       --dataset 200k-commits-1k
     deps:
     - data/200k-commits-files.csv
@@ -95,7 +95,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.file_heuristics/heuristic_metrics_200k-commits-1k.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_file_heuristics__1151-commits:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.file_heuristics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.file_heuristics
       --dataset 1151-commits
     deps:
     - data/1151-commits.csv
@@ -110,7 +110,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.file_heuristics/heuristic_metrics_1151-commits.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_file_heuristics__berger:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.file_heuristics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.file_heuristics
       --dataset berger
     deps:
     - data/berger.csv
@@ -125,7 +125,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.file_heuristics/heuristic_metrics_berger.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_issue_heuristics__200k-commits-1k:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.issue_heuristics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.issue_heuristics
       --dataset 200k-commits-1k
     deps:
     - data/200k-commits-files.csv
@@ -143,7 +143,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.issue_heuristics/heuristic_metrics_200k-commits-1k.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_issue_heuristics__1151-commits:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.issue_heuristics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.issue_heuristics
       --dataset 1151-commits
     deps:
     - data/1151-commits.csv
@@ -158,7 +158,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.issue_heuristics/heuristic_metrics_1151-commits.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_issue_heuristics__berger:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.issue_heuristics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.issue_heuristics
       --dataset berger
     deps:
     - data/berger.csv
@@ -173,7 +173,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.issue_heuristics/heuristic_metrics_berger.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_main_heurstics__200k-commits-1k:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.main_heurstics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.main_heurstics
       --dataset 200k-commits-1k
     deps:
     - data/200k-commits-files.csv
@@ -191,7 +191,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_metrics_200k-commits-1k.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_main_heurstics__1151-commits:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.main_heurstics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.main_heurstics
       --dataset 1151-commits
     deps:
     - data/1151-commits.csv
@@ -206,7 +206,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_metrics_1151-commits.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_main_heurstics__berger:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.main_heurstics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.main_heurstics
       --dataset berger
     deps:
     - data/berger.csv
@@ -221,7 +221,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.main_heurstics/heuristic_metrics_berger.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_manuallabels__200k-commits-1k:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.manuallabels
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.manuallabels
       --dataset 200k-commits-1k
     deps:
     - data/200k-commits-files.csv
@@ -239,7 +239,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_metrics_200k-commits-1k.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_manuallabels__1151-commits:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.manuallabels
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.manuallabels
       --dataset 1151-commits
     deps:
     - data/1151-commits.csv
@@ -254,7 +254,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_metrics_1151-commits.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_manuallabels__berger:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.manuallabels
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.manuallabels
       --dataset berger
     deps:
     - data/berger.csv
@@ -269,7 +269,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.manuallabels/heuristic_metrics_berger.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_tool_heuristics__200k-commits-1k:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.tool_heuristics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.tool_heuristics
       --dataset 200k-commits-1k
     deps:
     - data/200k-commits-files.csv
@@ -287,7 +287,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.tool_heuristics/heuristic_metrics_200k-commits-1k.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_tool_heuristics__1151-commits:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.tool_heuristics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.tool_heuristics
       --dataset 1151-commits
     deps:
     - data/1151-commits.csv
@@ -302,7 +302,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.tool_heuristics/heuristic_metrics_1151-commits.json:
         cache: false
   bugginess-1k_apply_heuristics__heuristics_bugginess_tool_heuristics__berger:
-    cmd: bohr apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.tool_heuristics
+    cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.tool_heuristics
       --dataset berger
     deps:
     - data/berger.csv
@@ -317,7 +317,7 @@ stages:
     - metrics/bugginess-1k/heuristics.bugginess.tool_heuristics/heuristic_metrics_berger.json:
         cache: false
   bugginess-1k_combine_heuristics:
-    cmd: bohr apply-heuristics bugginess-1k
+    cmd: bohr porcelain apply-heuristics bugginess-1k
     deps:
     - generated/bugginess-1k/heuristics.bugginess.file_heuristics/heuristic_matrix_1151-commits.pkl
     - generated/bugginess-1k/heuristics.bugginess.file_heuristics/heuristic_matrix_200k-commits-1k.pkl
@@ -361,7 +361,7 @@ stages:
     - metrics/bugginess-1k/heuristic_metrics_berger.json:
         cache: false
   bugginess-1k_train_label_model:
-    cmd: bohr train-label-model bugginess-1k 200k-commits-1k
+    cmd: bohr porcelain train-label-model bugginess-1k 200k-commits-1k
     deps:
     - data/1151-commits.csv
     - data/berger.csv
@@ -379,7 +379,7 @@ stages:
     - metrics/bugginess-1k/label_model_metrics.json:
         cache: false
   bugginess-1k_label_dataset_200k-commits-1k:
-    cmd: bohr label-dataset bugginess-1k 200k-commits-1k
+    cmd: bohr porcelain label-dataset bugginess-1k 200k-commits-1k
     deps:
     - data/200k-commits.csv
     - generated/bugginess-1k/heuristic_matrix_200k-commits-1k.pkl
@@ -390,7 +390,7 @@ stages:
     outs:
     - labeled-datasets/200k-commits-1k.labeled.csv
   bugginess-1k_label_dataset_1151-commits:
-    cmd: bohr label-dataset bugginess-1k 1151-commits
+    cmd: bohr porcelain label-dataset bugginess-1k 1151-commits
     deps:
     - data/1151-commits.csv
     - generated/bugginess-1k/heuristic_matrix_1151-commits.pkl
@@ -401,7 +401,7 @@ stages:
     outs:
     - labeled-datasets/1151-commits.labeled.csv
   bugginess-1k_label_dataset_berger:
-    cmd: bohr label-dataset bugginess-1k berger
+    cmd: bohr porcelain label-dataset bugginess-1k berger
     deps:
     - data/berger.csv
     - generated/bugginess-1k/heuristic_matrix_berger.pkl
@@ -412,8 +412,8 @@ stages:
     outs:
     - labeled-datasets/berger.labeled.csv
   smells_10_apply_heuristics__heuristics_smells__smells-train_10:
-    cmd: bohr apply-heuristics smells_10 --heuristic-group heuristics.smells --dataset
-      smells-train_10
+    cmd: bohr porcelain apply-heuristics smells_10 --heuristic-group heuristics.smells
+      --dataset smells-train_10
     deps:
     - data/smells/train.csv
     - heuristics/smells.py
@@ -427,8 +427,8 @@ stages:
     - metrics/smells_10/heuristics.smells/heuristic_metrics_smells-train_10.json:
         cache: false
   smells_10_apply_heuristics__heuristics_smells__smells-test_10:
-    cmd: bohr apply-heuristics smells_10 --heuristic-group heuristics.smells --dataset
-      smells-test_10
+    cmd: bohr porcelain apply-heuristics smells_10 --heuristic-group heuristics.smells
+      --dataset smells-test_10
     deps:
     - data/smells/test.csv
     - heuristics/smells.py
@@ -442,7 +442,7 @@ stages:
     - metrics/smells_10/heuristics.smells/heuristic_metrics_smells-test_10.json:
         cache: false
   smells_10_combine_heuristics:
-    cmd: bohr apply-heuristics smells_10
+    cmd: bohr porcelain apply-heuristics smells_10
     deps:
     - generated/smells_10/heuristics.smells/heuristic_matrix_smells-test_10.pkl
     - generated/smells_10/heuristics.smells/heuristic_matrix_smells-train_10.pkl
@@ -466,7 +466,7 @@ stages:
     - metrics/smells_10/heuristic_metrics_smells-train_10.json:
         cache: false
   smells_10_train_label_model:
-    cmd: bohr train-label-model smells_10 smells-train_10
+    cmd: bohr porcelain train-label-model smells_10 smells-train_10
     deps:
     - data/smells/test.csv
     - generated/smells_10/heuristic_matrix_smells-test_10.pkl
@@ -482,7 +482,7 @@ stages:
     - metrics/smells_10/label_model_metrics.json:
         cache: false
   smells_10_label_dataset_smells-train_10:
-    cmd: bohr label-dataset smells_10 smells-train_10
+    cmd: bohr porcelain label-dataset smells_10 smells-train_10
     deps:
     - data/smells/train.csv
     - generated/smells_10/heuristic_matrix_smells-train_10.pkl
@@ -493,7 +493,7 @@ stages:
     outs:
     - labeled-datasets/smells-train_10.labeled.csv
   smells_10_label_dataset_smells-test_10:
-    cmd: bohr label-dataset smells_10 smells-test_10
+    cmd: bohr porcelain label-dataset smells_10 smells-test_10
     deps:
     - data/smells/test.csv
     - generated/smells_10/heuristic_matrix_smells-test_10.pkl
