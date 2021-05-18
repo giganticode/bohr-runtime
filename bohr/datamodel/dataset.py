@@ -5,12 +5,13 @@ from typing import Any, Dict, List, Optional
 
 import jsons
 
+from bohr.collection.artifacts import artifact_map
 from bohr.collection.dataloaders.from_csv import CsvDatasetLoader
+from bohr.collection.datamappers import default_mappers
 from bohr.datamodel.artifact import ArtifactType
-from bohr.datamodel.artifactmapper import load_mapper_type
 from bohr.datamodel.datasetloader import DatasetLoader
 from bohr.fs import get_preprocessed_path
-from bohr.util.paths import RelativePath, relative_to_safe
+from bohr.util.paths import RelativePath, load_class_by_full_path, relative_to_safe
 
 
 @dataclass
@@ -79,7 +80,10 @@ def desearialize_dataset(
 ) -> "Dataset":
     extra_args = {}
     if "mapper" in dct:
-        mapper = load_mapper_type(dct["mapper"])
+        try:
+            mapper = default_mappers[artifact_map[dct["mapper"]]]
+        except KeyError:
+            mapper = load_class_by_full_path(dct["mapper"])
         extra_args["mapper"] = mapper()
 
     if dct["loader"] == "csv":

@@ -3,10 +3,10 @@ from typing import Any, Dict, Iterable, List, Optional, Type
 
 import jsons
 
-from bohr.datamodel.artifact import load_artifact_class
+from bohr.collection.artifacts import artifact_map
 from bohr.datamodel.dataset import Dataset
 from bohr.datamodel.heuristic import get_heuristic_module_list
-from bohr.util.paths import AbsolutePath, RelativePath
+from bohr.util.paths import AbsolutePath, RelativePath, load_class_by_full_path
 
 
 @dataclass(frozen=True)
@@ -101,8 +101,10 @@ def deserialize_task(
     train_datasets = {
         dataset_name: datasets[dataset_name] for dataset_name in dct["train_datasets"]
     }
-
-    artifact = load_artifact_class(dct["top_artifact"])
+    try:
+        artifact = artifact_map[dct["top_artifact"]]
+    except KeyError:
+        artifact = load_class_by_full_path(dct["top_artifact"])
     heuristic_groups = get_heuristic_module_list(artifact, heuristic_path)
     return Task(
         task_name,

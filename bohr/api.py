@@ -4,15 +4,16 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import bohr.dvc.commands as dvc
+from bohr.collection.artifacts import artifact_map
 from bohr.collection.dataloaders.from_csv import CsvDatasetLoader
+from bohr.collection.datamappers import default_mappers
 from bohr.config.pathconfig import PathConfig
-from bohr.datamodel.artifactmapper import get_mapper_by_name
 from bohr.datamodel.bohrrepo import BohrRepo, load_bohr_repo
 from bohr.datamodel.dataset import Dataset
 from bohr.datamodel.task import Task
 from bohr.dvc.stages import add_all_tasks_to_dvc_pipeline, load_transient_stages
 from bohr.fs import get_preprocessed_path
-from bohr.util.paths import RelativePath, relative_to_safe
+from bohr.util.paths import RelativePath, load_class_by_full_path, relative_to_safe
 from bohr.workspace import bohr_up_to_date, update_lock
 
 logger = logging.getLogger(__name__)
@@ -159,7 +160,10 @@ def add(
                 "If not, please specifying the `name` parameter explicitly."
             )
         raise ValueError(message)
-    mapper = get_mapper_by_name(artifact)
+    try:
+        mapper = default_mappers[artifact_map[artifact]]
+    except KeyError:
+        mapper = load_class_by_full_path(artifact)
     path_preprocessed: RelativePath = get_preprocessed_path(
         None,
         relative_to_safe(destination_path, path_config.downloaded_data),
