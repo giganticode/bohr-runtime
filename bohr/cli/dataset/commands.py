@@ -49,7 +49,7 @@ def ls(task: Optional[str], extended_list: bool) -> None:
 
 @dataset.command()
 @click.argument("path", type=str)
-@click.option("-a", "--artifact", required=True)
+@click.option("-t", "--artifact", required=True)
 def add(path: str, artifact: str) -> None:
     dataset = api.add(Path(path), artifact)
     print(f"Dataset {dataset.name} is added.")

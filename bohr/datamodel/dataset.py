@@ -1,7 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import jsons
 
@@ -121,3 +121,20 @@ def desearialize_dataset(
 
 jsons.set_deserializer(desearialize_dataset, Dataset)
 jsons.set_serializer(Dataset.serealize, Dataset)
+
+
+def get_all_linked_datasets(datasets: Dict[str, Dataset]) -> Dict[str, Dataset]:
+    total = datasets.copy()
+    for dataset_name, dataset in datasets.items():
+        total.update({d.name: d for d in dataset.get_linked_datasets()})
+    return total
+
+
+def train_and_test(
+    all_datasets: Dict[str, Dataset], label_column: str
+) -> Tuple[Dict[str, Dataset], Dict[str, Dataset]]:
+    train, test = {}, {}
+    for name, dataset in all_datasets.items():
+        dct = test if dataset.is_column_present(label_column) else train
+        dct[name] = dataset
+    return train, test

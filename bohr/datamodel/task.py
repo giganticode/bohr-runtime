@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional, Type
 import jsons
 
 from bohr.collection.artifacts import artifact_map
-from bohr.datamodel.dataset import Dataset
+from bohr.datamodel.dataset import Dataset, get_all_linked_datasets
 from bohr.datamodel.heuristic import get_heuristic_module_list
 from bohr.util.paths import AbsolutePath, RelativePath, load_class_by_full_path
 
@@ -52,10 +52,7 @@ class Task:
 
     @property
     def all_affected_datasets(self) -> Dict[str, Dataset]:
-        total = self.datasets
-        for dataset_name, dataset in self.datasets.items():
-            total.update({d.name: d for d in dataset.get_linked_datasets()})
-        return total
+        return get_all_linked_datasets(self.datasets)
 
     def _datapaths(self, datasets: Iterable[Dataset]) -> List[RelativePath]:
         return [dataset.path_preprocessed for dataset in datasets]
@@ -75,7 +72,7 @@ class Task:
     def check_artifact_right(self, dataset: Dataset) -> None:
         if dataset.artifact_type != self.top_artifact:
             raise ValueError(
-                f"Dataset {dataset} is a dataset of {dataset.artifact_type}, "
+                f"Dataset {dataset.name} is a dataset of {dataset.artifact_type}, "
                 f"but this task works on {self.top_artifact}"
             )
 
