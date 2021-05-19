@@ -102,9 +102,7 @@ def repro(
     with verbosity(verbose):
         if only_transient and task:
             raise ValueError("Both --only-transient and task is not supported")
-        path_config = PathConfig.load()
-        refresh_if_necessary(path_config)
-        api.repro(task, only_transient, force, path_config=path_config)
+        api.repro(task, only_transient, force)
 
 
 @bohr.command()
