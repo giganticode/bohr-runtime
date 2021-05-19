@@ -24,7 +24,7 @@ class BohrDatasetNotFound(Exception):
 
 
 def repro(
-    task: Optional[str],
+    task: Optional[str] = None,
     only_transient: bool = False,
     force: bool = False,
     bohr_repo: Optional[BohrRepo] = None,
@@ -184,6 +184,7 @@ def add(
     )
     bohr_repo.datasets[dataset.name] = dataset
     bohr_repo.dump(path_config.project_root)
+    repro(bohr_repo=bohr_repo, path_config=path_config)
     return dataset
 
 
