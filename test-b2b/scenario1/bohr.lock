@@ -4,7 +4,7 @@
         "tasks": {
             "bugginess-1k": {
                 "description": "",
-                "top_artifact": "bohr.collection.artifacts.commit.Commit",
+                "top_artifact": "commit",
                 "label_categories": [
                     "CommitLabel.NonBugFix",
                     "CommitLabel.BugFix"
@@ -20,7 +20,7 @@
             },
             "smells_10": {
                 "description": "desc",
-                "top_artifact": "bohr.collection.artifacts.method.Method",
+                "top_artifact": "method",
                 "label_categories": [
                     "SnippetLabel.NonSmelly",
                     "SnippetLabel.Smelly"
@@ -42,7 +42,7 @@
                 "path_preprocessed": "berger.csv",
                 "preprocessor": "copy",
                 "loader": "csv",
-                "mapper": "bohr.collection.datamappers.commit.CommitMapper"
+                "mapper": "commit"
             },
             "1151-commits": {
                 "author": null,
@@ -51,7 +51,7 @@
                 "path_preprocessed": "1151-commits.csv",
                 "preprocessor": "copy",
                 "loader": "csv",
-                "mapper": "bohr.collection.datamappers.commit.CommitMapper"
+                "mapper": "commit"
             },
             "200k-commits-1k": {
                 "author": null,
@@ -60,7 +60,7 @@
                 "path_preprocessed": "200k-commits.csv",
                 "preprocessor": "copy",
                 "loader": "csv",
-                "mapper": "bohr.collection.datamappers.commit.CommitMapper",
+                "mapper": "commit",
                 "n_rows": 1000
             },
             "200k-commits-issues": {
@@ -70,7 +70,7 @@
                 "path_preprocessed": "200k-commits-issues.csv",
                 "preprocessor": "copy",
                 "loader": "csv",
-                "mapper": "bohr.collection.datamappers.issue.IssueMapper",
+                "mapper": "issue",
                 "dtype": {
                     "labels": "str"
                 },
@@ -83,7 +83,7 @@
                 "path_preprocessed": "200k-commits-files.csv",
                 "preprocessor": "7z",
                 "loader": "csv",
-                "mapper": "bohr.collection.datamappers.commitfile.CommitFileMapper"
+                "mapper": "commit_file"
             },
             "200k-commits-link-issues": {
                 "author": null,
@@ -100,7 +100,7 @@
                 "path_preprocessed": "200k-commits-manual-labels.csv",
                 "preprocessor": "copy",
                 "loader": "csv",
-                "mapper": "bohr.collection.datamappers.manuallabels.ManualLabelMapper"
+                "mapper": "label"
             },
             "smells-train_10": {
                 "author": null,
@@ -109,7 +109,7 @@
                 "path_preprocessed": "smells/train.csv",
                 "preprocessor": "data-preprocessing/smells.sh",
                 "loader": "csv",
-                "mapper": "bohr.collection.datamappers.method.MethodMapper",
+                "mapper": "method",
                 "n_rows": 10,
                 "sep": ";"
             },
@@ -120,7 +120,7 @@
                 "path_preprocessed": "smells/test.csv",
                 "preprocessor": "data-preprocessing/smells.sh",
                 "loader": "csv",
-                "mapper": "bohr.collection.datamappers.method.MethodMapper",
+                "mapper": "method",
                 "n_rows": 10,
                 "sep": ";"
             }

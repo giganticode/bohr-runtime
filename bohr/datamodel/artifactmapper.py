@@ -1,5 +1,4 @@
 import functools
-import importlib
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
 
@@ -84,21 +83,3 @@ class DummyMapper(ArtifactMapper):
 
 ArtifactMapperSubclass = TypeVar("ArtifactMapperSubclass", bound="ArtifactMapper")
 MapperType = Type[ArtifactMapperSubclass]
-
-
-def load_mapper_type(path_to_mapper_obj: str) -> MapperType:
-    # TODO deduplicate
-    *path, name = path_to_mapper_obj.split(".")
-    try:
-        module = importlib.import_module(".".join(path))
-    except ModuleNotFoundError as e:
-        raise ValueError(f'Module {".".join(path)} not defined.') from e
-
-    try:
-        return getattr(module, name)
-    except AttributeError as e:
-        raise ValueError(f"Mapper {name} not found in module {module}") from e
-
-
-def get_mapper_by_name(name: str) -> MapperType:
-    return load_mapper_type(name)

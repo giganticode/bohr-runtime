@@ -1,5 +1,4 @@
 import functools
-import importlib
 import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple, Type, TypeVar, Union
@@ -94,16 +93,3 @@ class ArtifactProxy(Artifact):
 
 
 ArtifactDependencies = Dict[str, Union[Artifact, List[Artifact]]]
-
-
-def load_artifact_class(artifact_name: str) -> ArtifactType:
-    *path, name = artifact_name.split(".")
-    try:
-        module = importlib.import_module(".".join(path))
-    except ModuleNotFoundError as e:
-        raise ValueError(f'Module {".".join(path)} not defined.') from e
-
-    try:
-        return getattr(module, name)
-    except AttributeError as e:
-        raise ValueError(f"Artifact {name} not found in module {module}") from e
