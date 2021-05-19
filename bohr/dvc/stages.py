@@ -149,7 +149,7 @@ class CombineHeuristicsCommand(DvcCommand):
         {% for dataset in task.datasets %} -M {{path_config.metrics_dir}}/{{task.name}}/analysis_{{dataset}}.json{% endfor %}
         {% for dataset in task.datasets %} -M {{path_config.metrics_dir}}/{{task.name}}/heuristic_metrics_{{dataset}}.json{% endfor %}
         
-        bohr porcelain apply-heuristics {{task.name}}`
+        bohr porcelain apply-heuristics {{task.name}}
     """
 
     def __init__(
