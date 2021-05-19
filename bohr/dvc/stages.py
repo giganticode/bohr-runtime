@@ -216,7 +216,7 @@ class LabelDatasetCommand(DvcCommand):
         
         -p bohr.json:bohr_framework_version
         
-        -o {{path_config.labeled_data_dir}}/{{dataset}}.labeled.csv
+        -o {{path_config.labeled_data_dir}}/{{task.name}}/{{dataset}}.labeled.csv
         
         bohr porcelain label-dataset {{task.name}} {{dataset}}
     """

@@ -93,14 +93,15 @@ def repro(
 
 
 @bohr.command()
+@click.argument("task")
 @click.argument("target")
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
-def pull(target: Optional[str], verbose: bool = False):
+def pull(task: str, target: str, verbose: bool = False):
     try:
         with verbosity(verbose):
             path_config = PathConfig.load()
             refresh_if_necessary(path_config)
-            path = api.pull(target, path_config=path_config)
+            path = api.pull(task, target, path_config=path_config)
             logger.info(
                 f"The dataset is available at {path_config.project_root / path}"
             )

@@ -42,7 +42,7 @@ def label_dataset(
         )
         df_labeled["lfs"] = col_lfs
 
-    labeled_data_path = path_config.labeled_data
+    labeled_data_path = path_config.labeled_data / task.name
     if not labeled_data_path.exists():
         labeled_data_path.mkdir(parents=True)
     target_file = labeled_data_path / f"{dataset.name}.labeled.csv"
