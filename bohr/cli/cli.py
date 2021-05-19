@@ -5,31 +5,18 @@ import click
 import dvc.exceptions
 import dvc.scm.base
 
-from bohr import AppConfig, __version__, api, setup_loggers
+from bohr import __version__, api, setup_loggers
 from bohr.api import BohrDatasetNotFound, refresh_if_necessary
 from bohr.cli.dataset.commands import dataset
 from bohr.cli.porcelain.commands import porcelain
 from bohr.cli.task.commands import task
 from bohr.config.pathconfig import PathConfig, add_to_local_config
+from bohr.util.logging import verbosity
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
 logger = logging.getLogger(__name__)
-
-
-class verbosity:
-    def __init__(self, verbose: bool = True):
-        self.current_verbosity = AppConfig.load().verbose
-        self.verbose = verbose or self.current_verbosity
-
-    def __enter__(self):
-        add_to_local_config("core.verbose", str(self.verbose))
-        setup_loggers(self.verbose)
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        add_to_local_config("core.verbose", str(self.current_verbosity))
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
