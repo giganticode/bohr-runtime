@@ -40,6 +40,8 @@ def repro(
     path_config = path_config or PathConfig.load()
     bohr_repo = bohr_repo or load_bohr_repo(path_config.project_root)
 
+    refresh_if_necessary(path_config)
+
     paths_to_pull = [str(d.path_dist) for d in bohr_repo.datasets.values()]
     if len(paths_to_pull) > 0:
         logger.info(dvc.pull(paths_to_pull))
