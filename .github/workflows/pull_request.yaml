@@ -64,6 +64,6 @@ jobs:
       - name: cli-commands
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
-          touch /usr/src/new_dataset.csv.zip
-          bohr dataset add /usr/src/new_dataset.csv.zip -t commit
+          touch /usr/src/new_dataset.csv
+          bohr dataset add /usr/src/new_dataset.csv -t commit
           bohr task add sample-task -d desc -t commit -l TangledCommit.NonTangled,TangledCommit.Tangled -c bug --force --use-all-datasets --repro
