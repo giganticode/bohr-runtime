@@ -35,6 +35,11 @@ class Task:
         dct[dataset.name] = dataset
 
     def serealize(self, **kwargs) -> Dict[str, Any]:
+        """
+        >>> from test.testutils import stub_task
+        >>> stub_task.serealize()
+        {'description': None, 'top_artifact': 'bohr.collection.artifacts.commit.Commit', 'label_categories': ['bug', 'nonbug'], 'test_datasets': ['dataset2'], 'train_datasets': ['dataset1'], 'label_column_name': 'bug'}
+        """
         return {
             "description": self.description,
             "top_artifact": ".".join(
