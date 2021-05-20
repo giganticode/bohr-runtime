@@ -25,6 +25,12 @@ class Dataset(ABC):
     preprocessor: str
 
     def serealize(self, **kwargs) -> Dict[str, Any]:
+        """
+        >>> from test.testutils import stub_dataset1
+        >>> stub_dataset1.serealize(data_dir="prep_path")
+        {'author': 'hlib', 'description': None, 'path': 'dataset1', 'path_preprocessed': 'dataset1', 'preprocessor': 'copy', 'loader': 'csv', 'mapper': 'bohr.collection.datamappers.commit.CommitMapper'}
+
+        """
         dct = {
             "author": self.author,
             "description": self.description,
