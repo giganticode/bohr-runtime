@@ -388,7 +388,7 @@ stages:
     - bohr.json:
       - bohr_framework_version
     outs:
-    - labeled-datasets/200k-commits-1k.labeled.csv
+    - labeled-datasets/bugginess-1k/200k-commits-1k.labeled.csv
   bugginess-1k_label_dataset_1151-commits:
     cmd: bohr porcelain label-dataset bugginess-1k 1151-commits
     deps:
@@ -399,7 +399,7 @@ stages:
     - bohr.json:
       - bohr_framework_version
     outs:
-    - labeled-datasets/1151-commits.labeled.csv
+    - labeled-datasets/bugginess-1k/1151-commits.labeled.csv
   bugginess-1k_label_dataset_berger:
     cmd: bohr porcelain label-dataset bugginess-1k berger
     deps:
@@ -410,7 +410,7 @@ stages:
     - bohr.json:
       - bohr_framework_version
     outs:
-    - labeled-datasets/berger.labeled.csv
+    - labeled-datasets/bugginess-1k/berger.labeled.csv
   smells_10_apply_heuristics__heuristics_smells__smells-train_10:
     cmd: bohr porcelain apply-heuristics smells_10 --heuristic-group heuristics.smells
       --dataset smells-train_10
@@ -491,7 +491,7 @@ stages:
     - bohr.json:
       - bohr_framework_version
     outs:
-    - labeled-datasets/smells-train_10.labeled.csv
+    - labeled-datasets/smells_10/smells-train_10.labeled.csv
   smells_10_label_dataset_smells-test_10:
     cmd: bohr porcelain label-dataset smells_10 smells-test_10
     deps:
@@ -502,4 +502,4 @@ stages:
     - bohr.json:
       - bohr_framework_version
     outs:
-    - labeled-datasets/smells-test_10.labeled.csv
+    - labeled-datasets/smells_10/smells-test_10.labeled.csv

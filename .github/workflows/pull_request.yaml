@@ -49,8 +49,8 @@ jobs:
           bohr config core.verbose false
           bash tools/install-refactoring-miner /usr/src/tools
           bohr status
-          bohr pull -v bugginess-1k berger
           bohr repro bugginess-1k
+          bohr pull -v bugginess-1k berger
       - name: reproduce-smells
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
