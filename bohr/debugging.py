@@ -223,7 +223,7 @@ class DatasetDebugger:
         self.labeled_dataset_name = labeled_dataset_name
         logging.disable(logging.WARNING)
         labeled_dataset_path = (
-            path_config.labeled_data_dir / f"{labeled_dataset_name}.labeled.csv"
+            path_config.labeled_data_dir / task / f"{labeled_dataset_name}.labeled.csv"
         )
         with dvc.api.open(labeled_dataset_path, path_to_old_revision) as f:
             old_df = pd.read_csv(f)

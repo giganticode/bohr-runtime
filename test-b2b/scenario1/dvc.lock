@@ -613,7 +613,7 @@ stages:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
     outs:
-    - path: labeled-datasets/200k-commits-1k.labeled.csv
+    - path: labeled-datasets/bugginess-1k/200k-commits-1k.labeled.csv
       md5: 225263d4009fcd9eefe6600dfeb55e9a
       size: 264120
   preprocess_smells-test_10:
@@ -766,7 +766,7 @@ stages:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
     outs:
-    - path: labeled-datasets/smells-test_10.labeled.csv
+    - path: labeled-datasets/smells_10/smells-test_10.labeled.csv
       md5: 5baf150716f22da066573ce2d27cbe8a
       size: 5676
   bugginess-1k_label_dataset_1151-commits:
@@ -785,7 +785,7 @@ stages:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
     outs:
-    - path: labeled-datasets/1151-commits.labeled.csv
+    - path: labeled-datasets/bugginess-1k/1151-commits.labeled.csv
       md5: 40d2181df724151781ef6d713f6eece6
       size: 360133
   smells_10_label_dataset_smells-train_10:
@@ -804,7 +804,7 @@ stages:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
     outs:
-    - path: labeled-datasets/smells-train_10.labeled.csv
+    - path: labeled-datasets/smells_10/smells-train_10.labeled.csv
       md5: 6d897abda716d09437ee76f60b21e007
       size: 6041
   bugginess-1k_label_dataset_berger:
@@ -823,6 +823,6 @@ stages:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
     outs:
-    - path: labeled-datasets/berger.labeled.csv
+    - path: labeled-datasets/bugginess-1k/berger.labeled.csv
       md5: b5d91afa5372e5cb8c804d3e468475e3
       size: 66911

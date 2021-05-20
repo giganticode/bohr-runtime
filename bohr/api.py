@@ -89,6 +89,7 @@ def status(
 
 
 def pull(
+    task: str,
     target: str,
     bohr_repo: Optional[BohrRepo] = None,
     path_config: Optional[PathConfig] = None,
@@ -96,13 +97,13 @@ def pull(
     path_config = path_config or PathConfig.load()
     bohr_repo = bohr_repo or load_bohr_repo(path_config.project_root)
 
-    if target in bohr_repo.datasets:
-        path = path_config.labeled_data_dir / f"{target}.labeled.csv"
+    path = path_config.labeled_data_dir / task / f"{target}.labeled.csv"
+    if path.exists():
         logger.info(dvc.pull([str(path)]))
         return path
     else:
         raise BohrDatasetNotFound(
-            f"Dataset {target} not found! Available datasets: {list(bohr_repo.datasets.keys())}"
+            f"Dataset {target} in task {task} not found! Available datasets in this task: {list(bohr_repo.tasks[task].datasets.keys())}"
         )
 
 
