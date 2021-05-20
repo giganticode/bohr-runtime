@@ -8,6 +8,7 @@ from tabulate import tabulate
 
 from bohr import api
 from bohr.datamodel.bohrrepo import load_bohr_repo
+from bohr.util.logging import verbosity
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,9 @@ def ls(task: Optional[str], extended_list: bool) -> None:
 
 @dataset.command()
 @click.argument("path", type=str)
-@click.option("-a", "--artifact", required=True)
-def add(path: str, artifact: str) -> None:
-    dataset = api.add(Path(path), artifact)
-    print(f"Dataset {dataset.name} is added.")
+@click.option("-t", "--artifact", required=True)
+@click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
+def add(path: str, artifact: str, verbose: bool) -> None:
+    with verbosity(verbose):
+        dataset = api.add(Path(path), artifact)
+        print(f"Dataset {dataset.name} is added.")
