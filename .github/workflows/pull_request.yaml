@@ -66,4 +66,4 @@ jobs:
           cd /usr/src/bohr-framework/test-b2b/scenario1
           touch /usr/src/new_dataset.csv
           bohr dataset add /usr/src/new_dataset.csv -t commit
-          bohr task add sample-task -d desc -t commit -l TangledCommit.NonTangled,TangledCommit.Tangled -c bug --force --use-all-datasets --repro
+          bohr task add sample-task -d desc -t commit -l TangledCommit.NonTangled,TangledCommit.Tangled -c bug --force --use-all-datasets
