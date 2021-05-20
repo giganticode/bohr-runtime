@@ -177,10 +177,10 @@ def add(
         dataset_name,
         author,
         description,
-        path_preprocessed,
-        path_config.data_dir / path.name,
-        CsvDatasetLoader(path_preprocessed, mapper()),
-        preprocessor,
+        path_preprocessed=path_preprocessed,
+        path_dist=path_config.downloaded_data_dir / path.name,
+        dataloader=CsvDatasetLoader(path_preprocessed, mapper()),
+        preprocessor=preprocessor,
     )
     bohr_repo.datasets[dataset.name] = dataset
     bohr_repo.dump(path_config.project_root)
