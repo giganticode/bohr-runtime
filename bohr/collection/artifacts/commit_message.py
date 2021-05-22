@@ -4,7 +4,6 @@ from typing import List, Set
 
 from bohr.datamodel.artifact import Artifact
 from bohr.util.misc import NgramSet
-from bohr.util.nlp import safe_tokenize
 
 
 @dataclass
@@ -13,6 +12,7 @@ class CommitMessage(Artifact):
 
     @cached_property
     def tokens(self) -> Set[str]:
+        from bohr.util.nlp import safe_tokenize
 
         if self.raw is None:
             return set()
