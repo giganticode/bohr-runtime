@@ -8,7 +8,7 @@ from bohr.collection.artifacts.commit_message import CommitMessage
 from bohr.collection.artifacts.issue import Issue
 from bohr.datamodel.artifact import Artifact
 from bohr.labeling.labelset import Label
-from bohr.util.nlp import NgramSet
+from bohr.util.misc import NgramSet
 
 logger = logging.getLogger(__name__)
 

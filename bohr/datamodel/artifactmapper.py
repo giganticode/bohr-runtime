@@ -6,7 +6,6 @@ from snorkel.map import BaseMapper
 from snorkel.types import DataPoint
 
 from bohr.datamodel.artifact import Artifact, ArtifactProxy, ArtifactType
-from bohr.util.nlp import camel_case_to_snake_case
 
 
 class ArtifactMapper(BaseMapper, ABC):
@@ -40,6 +39,8 @@ class ArtifactMapper(BaseMapper, ABC):
 
     @functools.cached_property
     def proxies(self) -> Dict[str, ArtifactProxy]:
+        from bohr.util.misc import camel_case_to_snake_case
+
         proxies = {}
         for linker in self.linkers:
             name = camel_case_to_snake_case(linker.to.artifact_type.__name__) + "s"

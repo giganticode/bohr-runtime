@@ -7,7 +7,6 @@ from bohr.core import Heuristic
 from bohr.datamodel.artifact import Artifact
 from bohr.datamodel.heuristic import HeuristicObj
 from bohr.labeling.labelset import Labels
-from bohr.util.nlp import camel_case_to_snake_case
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +37,7 @@ class ToolOutputHeuristic(Heuristic):
         self.resources = resources
 
     def __call__(self, f: Callable[[Commit, Tool], Optional[Labels]]) -> HeuristicObj:
+        from bohr.util.misc import camel_case_to_snake_case
 
         safe_func = self.get_artifact_safe_func(f)
         tool = self.tool_class()
