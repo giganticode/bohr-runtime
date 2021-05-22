@@ -5,7 +5,7 @@ from labels import CommitLabel
 from bohr.collection.artifacts.commit import Commit
 from bohr.collection.heuristictypes.keywords import KeywordHeuristics
 from bohr.labeling.labelset import Labels
-from bohr.util.nlp import NgramSet
+from bohr.util.misc import NgramSet
 
 
 @KeywordHeuristics(

@@ -4,7 +4,7 @@ from bohr.core import Heuristic
 from bohr.datamodel.artifact import Artifact
 from bohr.datamodel.heuristic import HeuristicObj
 from bohr.labeling.labelset import Label
-from bohr.util.nlp import NgramSet
+from bohr.util.misc import NgramSet
 
 
 class KeywordHeuristics(Heuristic):

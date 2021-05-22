@@ -15,16 +15,4 @@ def safe_tokenize(text: Any) -> Set[str]:
     return tokens
 
 
-NgramSet = Set[Union[Tuple[str], str]]
 _tokenizer = RegexpTokenizer(r"[\s_\.,%#/\?!\-\'\"\)\(\]\[\:;]", gaps=True)
-
-
-def camel_case_to_snake_case(identifier: str) -> str:
-    parts = [
-        m[0]
-        for m in regex.finditer(
-            "(_|[0-9]+|[[:upper:]]?[[:lower:]]+|[[:upper:]]+(?![[:lower:]])|[^ ])",
-            identifier,
-        )
-    ]
-    return "_".join(parts).lower()
