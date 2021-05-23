@@ -16,14 +16,22 @@ class CommitLabel(Label):
     BogusFix = DocFix | TestFix
     Refactoring = auto()
     NonBugFix = BogusFix | Refactoring
-    Commit = BugFix | NonBugFix
-    Label = Commit
+    CommitLabel = BugFix | NonBugFix
 
     def parent(self):
         return None
 
 
-class SStuBBugFix(Label):
+class CommitLabelTangling(Label):
+    Tangled = auto()
+    NonTangled = auto()
+    CommitLabelTangling = Tangled | NonTangled
+
+    def parent(self):
+        return CommitLabel.CommitLabel
+
+
+class SStuB(Label):
     WrongIdentifier = auto()
     WrongNumericLiteral = auto()
     WrongModifier = auto()
@@ -37,19 +45,9 @@ class SStuBBugFix(Label):
     WrongOperator = WrongBinaryOperator | WrongUnaryOperator
     MissingThrowsException = auto()
     SStuB = WrongIdentifier | WrongNumericLiteral | WrongModifier | WrongBooleanLiteral | WrongFunction | WrongOperator | MissingThrowsException
-    BugFix = SStuB
 
     def parent(self):
-        return CommitLabel.BugFix
-
-
-class TangledCommit(Label):
-    Tangled = auto()
-    NonTangled = auto()
-    Commit = Tangled | NonTangled
-
-    def parent(self):
-        return CommitLabel.Commit
+        return CommitLabelTangling.CommitLabelTangling
 
 
 class SnippetLabel(Label):
@@ -57,8 +55,7 @@ class SnippetLabel(Label):
     LongParameterList = auto()
     Smelly = LongMethod | LongParameterList
     NonSmelly = auto()
-    Snippet = Smelly | NonSmelly
-    Label = Snippet
+    SnippetLabel = Smelly | NonSmelly
 
     def parent(self):
-        return CommitLabel.Label
+        return SStuB.SStuB

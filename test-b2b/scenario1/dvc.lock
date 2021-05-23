@@ -81,13 +81,13 @@ stages:
     cmd: bohr porcelain parse-labels
     deps:
     - path: labels
-      md5: 2bdf7e3a52cf1d386b1edfc4558f2f55.dir
-      size: 552
+      md5: 9458b31794fce64d0a9a8d8be145bbf6.dir
+      size: 534
       nfiles: 3
     outs:
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
   bugginess-1k_apply_heuristics__heuristics_bugginess_main_heurstics__berger:
     cmd: bohr porcelain apply-heuristics bugginess-1k --heuristic-group heuristics.bugginess.main_heurstics
       --dataset berger
@@ -96,11 +96,11 @@ stages:
       md5: 126de41c9204a9e807e72406b1f9d631
       size: 62247
     - path: heuristics/bugginess/main_heurstics.py
-      md5: 68d68a178b93e6442f1c2316662b0ddc
-      size: 2005
+      md5: a6164176e48f79179c50d4ba6d0dbe15
+      size: 2006
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -122,8 +122,8 @@ stages:
       md5: 34236acd540707ef5690c4bc07f03b2d
       size: 1016
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -154,8 +154,8 @@ stages:
       md5: 34236acd540707ef5690c4bc07f03b2d
       size: 1016
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -177,8 +177,8 @@ stages:
       md5: 34236acd540707ef5690c4bc07f03b2d
       size: 1016
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -197,11 +197,11 @@ stages:
       md5: dd000fe19ba4aac9efa3a3856e2acc5e
       size: 346306
     - path: heuristics/bugginess/issue_heuristics.py
-      md5: f5f51b2ab0dd69da156d5198a902c4cf
-      size: 1982
+      md5: bf375e87481ee1b2304239dc55e85a66
+      size: 1983
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -229,11 +229,11 @@ stages:
       md5: 444616adfda81fb362d14f22fe8a00e4
       size: 72735679
     - path: heuristics/bugginess/issue_heuristics.py
-      md5: f5f51b2ab0dd69da156d5198a902c4cf
-      size: 1982
+      md5: bf375e87481ee1b2304239dc55e85a66
+      size: 1983
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -252,11 +252,11 @@ stages:
       md5: 126de41c9204a9e807e72406b1f9d631
       size: 62247
     - path: heuristics/bugginess/issue_heuristics.py
-      md5: f5f51b2ab0dd69da156d5198a902c4cf
-      size: 1982
+      md5: bf375e87481ee1b2304239dc55e85a66
+      size: 1983
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -275,11 +275,11 @@ stages:
       md5: dd000fe19ba4aac9efa3a3856e2acc5e
       size: 346306
     - path: heuristics/bugginess/main_heurstics.py
-      md5: 68d68a178b93e6442f1c2316662b0ddc
-      size: 2005
+      md5: a6164176e48f79179c50d4ba6d0dbe15
+      size: 2006
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -307,11 +307,11 @@ stages:
       md5: 444616adfda81fb362d14f22fe8a00e4
       size: 72735679
     - path: heuristics/bugginess/main_heurstics.py
-      md5: 68d68a178b93e6442f1c2316662b0ddc
-      size: 2005
+      md5: a6164176e48f79179c50d4ba6d0dbe15
+      size: 2006
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -333,8 +333,8 @@ stages:
       md5: a560115e99cf68f12dee26b980b42c85
       size: 285
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -365,8 +365,8 @@ stages:
       md5: a560115e99cf68f12dee26b980b42c85
       size: 285
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -388,8 +388,8 @@ stages:
       md5: a560115e99cf68f12dee26b980b42c85
       size: 285
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -411,8 +411,8 @@ stages:
       md5: 4a3825e29a4fe66fa420a9f0274d9193
       size: 750
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -443,8 +443,8 @@ stages:
       md5: 4a3825e29a4fe66fa420a9f0274d9193
       size: 750
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -466,8 +466,8 @@ stages:
       md5: 4a3825e29a4fe66fa420a9f0274d9193
       size: 750
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -640,8 +640,8 @@ stages:
       md5: 3e17def56e8184b2bb7a7248f0f19b15
       size: 727
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
@@ -676,8 +676,8 @@ stages:
       md5: 3e17def56e8184b2bb7a7248f0f19b15
       size: 727
     - path: labels.py
-      md5: eea8e365dcfc84614ca13c4ef4f416e8
-      size: 1709
+      md5: e518c88d80820168e258c9f902477ff9
+      size: 1694
     params:
       bohr.json:
         bohr_framework_version: 0.4.6-rc
