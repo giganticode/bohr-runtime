@@ -21,21 +21,20 @@ class FlattenedHierarchy:
 @dataclass
 class LabelHierarchy:
     """
-    >>> root_label = LabelHierarchy.create_root("Label")
-    >>> commit, = root_label.add_children(["Commit"])
+    >>> commit = LabelHierarchy.create_root("Commit")
     >>> bug_fix, refactoring, feature = commit.add_children(["BugFix", "Refactoring", "Feature"])
     >>> minor_refactoring, major_refactoring = refactoring.add_children(["MinorRefactoring", "MajorRefactoring"])
-    >>> refactoring.mounted_hierarchy = LabelHierarchy.create_root("Refactoring")
+    >>> refactoring.mounted_hierarchy = LabelHierarchy.create_root("RefactoringType")
     >>> moving, renaming = refactoring.mounted_hierarchy.add_children(["Moving", "Renaming"])
     >>> minor, major, critical, other = bug_fix.add_children(["Minor", "Major", "Critical", "OtherSeverityLevel"])
-    >>> commit.mounted_hierarchy = LabelHierarchy.create_root("Commit")
+    >>> commit.mounted_hierarchy = LabelHierarchy.create_root("CommitTangling")
     >>> tangled, non_tangled = commit.mounted_hierarchy.add_children(["Tangled", "NonTangled"])
 
     >>> from pprint import pprint
-    >>> pprint(root_label.flatten())
-    [FlattenedHierarchy(name='CommitLabel', parent_hierarchy=None, nodes=[('Minor', []), ('Major', []), ('Critical', []), ('OtherSeverityLevel', []), ('BugFix', ['Minor', 'Major', 'Critical', 'OtherSeverityLevel']), ('MinorRefactoring', []), ('MajorRefactoring', []), ('Refactoring', ['MinorRefactoring', 'MajorRefactoring']), ('Feature', []), ('Commit', ['BugFix', 'Refactoring', 'Feature']), ('Label', ['Commit'])]),
-     FlattenedHierarchy(name='MovingRefactoring', parent_hierarchy=ParentHierarchy(name='CommitLabel', mount_point='Refactoring'), nodes=[('Moving', []), ('Renaming', []), ('Refactoring', ['Moving', 'Renaming'])]),
-     FlattenedHierarchy(name='TangledCommit', parent_hierarchy=ParentHierarchy(name='CommitLabel', mount_point='Commit'), nodes=[('Tangled', []), ('NonTangled', []), ('Commit', ['Tangled', 'NonTangled'])])]
+    >>> pprint(commit.flatten())
+    [FlattenedHierarchy(name='Commit', parent_hierarchy=None, nodes=[('Minor', []), ('Major', []), ('Critical', []), ('OtherSeverityLevel', []), ('BugFix', ['Minor', 'Major', 'Critical', 'OtherSeverityLevel']), ('MinorRefactoring', []), ('MajorRefactoring', []), ('Refactoring', ['MinorRefactoring', 'MajorRefactoring']), ('Feature', []), ('Commit', ['BugFix', 'Refactoring', 'Feature'])]),
+     FlattenedHierarchy(name='RefactoringType', parent_hierarchy=ParentHierarchy(name='Commit', mount_point='Refactoring'), nodes=[('Moving', []), ('Renaming', []), ('RefactoringType', ['Moving', 'Renaming'])]),
+     FlattenedHierarchy(name='CommitTangling', parent_hierarchy=ParentHierarchy(name='Commit', mount_point='Commit'), nodes=[('Tangled', []), ('NonTangled', []), ('CommitTangling', ['Tangled', 'NonTangled'])])]
     """
 
     label: str
@@ -65,7 +64,7 @@ class LabelHierarchy:
     def flatten(
         self, parent: Optional[ParentHierarchy] = None
     ) -> List[FlattenedHierarchy]:
-        hirarchy_name = f"{self.children[0].label}{self.label}"
+        hirarchy_name = f"{self.label}"
         hierarchy_tail, other_hierarchies = self._flatten(hirarchy_name)
         return [
             FlattenedHierarchy(hirarchy_name, parent, hierarchy_tail)
