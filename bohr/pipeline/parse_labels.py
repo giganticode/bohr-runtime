@@ -1,12 +1,13 @@
 import logging
 from glob import glob
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from jinja2 import FileSystemLoader
 
 from bohr.config.pathconfig import PathConfig
 from bohr.labeling.hierarchies import LabelHierarchy
+from bohr.util.misc import merge_dicts_
 from bohr.util.paths import AbsolutePath
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,16 @@ FlattenedMultiHierarchy = Dict[str, List[List[str]]]
 
 
 def load(f: List[str]) -> FlattenedMultiHierarchy:
+    """
+    >>> load([])
+    {}
+    >>> load(["Commit: BugFix, NonBugFix"])
+    {'Commit': [['BugFix', 'NonBugFix']]}
+    >>> load(["Commit: BugFix, NonBugFix", "Commit: Tangled, NonTangled"])
+    {'Commit': [['BugFix', 'NonBugFix'], ['Tangled', 'NonTangled']]}
+    >>> load(["Commit: BugFix, NonBugFix", "Commit: Tangled, NonTangled", "BugFix:Minor,Major"])
+    {'Commit': [['BugFix', 'NonBugFix'], ['Tangled', 'NonTangled']], 'BugFix': [['Minor', 'Major']]}
+    """
     res: FlattenedMultiHierarchy = {}
     for line in f:
         spl_line: List[str] = line.strip("\n").split(":")
@@ -30,32 +41,17 @@ def load(f: List[str]) -> FlattenedMultiHierarchy:
     return res
 
 
-def merge_dicts_(
-    a: Dict[str, List[Any]], b: Dict[str, List[Any]]
-) -> Dict[str, List[Any]]:
+def build_label_tree(flattened_multi_hierarchy: FlattenedMultiHierarchy) -> LabelHierarchy:
     """
-    >>> a = {}
-    >>> merge_dicts_(a, {})
-    {}
-    >>> merge_dicts_(a, {'x': ['x1']})
-    {'x': ['x1']}
-    >>> merge_dicts_(a, {'x': ['x2']})
-    {'x': ['x1', 'x2']}
-    >>> merge_dicts_(a, {'x': ['x3'], 'y': ['y1']})
-    {'x': ['x1', 'x2', 'x3'], 'y': ['y1']}
+    >>> build_label_tree({})
+    Label
+    >>> build_label_tree({"Label": [["BugFix", "NonBugFix"]]})
+    Label{BugFix|NonBugFix}-> None
+    >>> build_label_tree({"Label": [["BugFix", "NonBugFix"], ["Tangled", "NonTangled"]]})
+    Label{BugFix|NonBugFix}-> Label{Tangled|NonTangled}-> None
+    >>> build_label_tree({"Label": [["BugFix", "NonBugFix"], ["Tangled", "NonTangled"]], "BugFix": [["MinorBugFix"]]})
+    Label{BugFix{MinorBugFix}-> None|NonBugFix}-> Label{Tangled|NonTangled}-> None
     """
-    for k, v in b.items():
-        if k not in a:
-            a[k] = []
-        a[k].extend(v)
-    return a
-
-
-def build_label_tree(path_to_labels: AbsolutePath) -> LabelHierarchy:
-    flattened_multi_hierarchy: FlattenedMultiHierarchy = {}
-    for label_file in sorted(glob(f"{path_to_labels}/*.txt")):
-        with open(label_file, "r") as f:
-            merge_dicts_(flattened_multi_hierarchy, load(f.readlines()))
     tree = LabelHierarchy.create_root("Label")
     pool = [tree]
     while len(pool) > 0:
@@ -72,9 +68,17 @@ def build_label_tree(path_to_labels: AbsolutePath) -> LabelHierarchy:
     return tree
 
 
+def load_label_tree(path_to_labels: AbsolutePath) -> LabelHierarchy:
+    flattened_multi_hierarchy: FlattenedMultiHierarchy = {}
+    for label_file in sorted(glob(f"{path_to_labels}/*.txt")):
+        with open(label_file, "r") as f:
+            merge_dicts_(flattened_multi_hierarchy, load(f.readlines()))
+    return build_label_tree(flattened_multi_hierarchy)
+
+
 def parse_labels(path_config: Optional[PathConfig] = None) -> None:
     path_config = path_config or PathConfig.load()
-    label_tree = build_label_tree(path_config.labels)
+    label_tree = load_label_tree(path_config.labels)
     from jinja2 import Environment
 
     env = Environment(loader=FileSystemLoader(Path(__file__).parent.parent))
