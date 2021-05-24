@@ -1,6 +1,6 @@
 {
     "config": {
-        "bohr_framework_version": "0.4.6-rc",
+        "bohr_framework_version": "0.4.7-rc",
         "tasks": {
             "bugginess-1k": {
                 "description": "",
