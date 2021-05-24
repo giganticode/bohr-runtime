@@ -1,5 +1,5 @@
 CommitLabel: BugFix, NonBugFix
-CommitLabel(Tangling): Tangled, NonTangled
+CommitLabel(CommitTangling): Tangled, NonTangled
 BugFix: MinorBugFix, MajorBugFix, CriticalBugFix, OtherSeverityLevelBugFix
 NonBugFix: BogusFix, Refactoring
 BogusFix: DocFix, TestFix

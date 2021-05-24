@@ -22,10 +22,10 @@ class CommitLabel(Label):
         return None
 
 
-class CommitLabelTangling(Label):
+class CommitTangling(Label):
     Tangled = auto()
     NonTangled = auto()
-    CommitLabelTangling = Tangled | NonTangled
+    CommitTangling = Tangled | NonTangled
 
     def parent(self):
         return CommitLabel.CommitLabel
@@ -47,7 +47,7 @@ class SStuB(Label):
     SStuB = WrongIdentifier | WrongNumericLiteral | WrongModifier | WrongBooleanLiteral | WrongFunction | WrongOperator | MissingThrowsException
 
     def parent(self):
-        return CommitLabelTangling.CommitLabelTangling
+        return CommitTangling.CommitTangling
 
 
 class SnippetLabel(Label):

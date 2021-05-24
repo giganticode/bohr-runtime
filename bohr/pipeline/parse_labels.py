@@ -30,9 +30,9 @@ def load(f: List[str]) -> FlattenedMultiHierarchy:
     Traceback (most recent call last):
     ...
     ValueError: Commit has to have more than one child.
-    >>> load(["Commit: BugFix, NonBugFix", "Commit(Tangling): Tangled, NonTangled"])
+    >>> load(["Commit: BugFix, NonBugFix", "Commit(CommitTangling): Tangled, NonTangled"])
     {'Commit': [['BugFix', 'NonBugFix'], 'CommitTangling'], 'CommitTangling': [['Tangled', 'NonTangled']]}
-    >>> load(["Commit: BugFix, NonBugFix", "Commit(Tangling): Tangled, NonTangled", "BugFix:Minor,Major"])
+    >>> load(["Commit: BugFix, NonBugFix", "Commit(CommitTangling): Tangled, NonTangled", "BugFix:Minor,Major"])
     {'Commit': [['BugFix', 'NonBugFix'], 'CommitTangling'], 'CommitTangling': [['Tangled', 'NonTangled']], 'BugFix': [['Minor', 'Major']]}
     >>> load(["BugFix, NonBugFix"])
     Traceback (most recent call last):
@@ -72,8 +72,8 @@ def load(f: List[str]) -> FlattenedMultiHierarchy:
             m = re.match('^(\\w+)\((\\w+)\)$', left)
             if m is None:
                 raise ValueError(f"Invalid parent format")
-            add_parent_and_children(m.group(1), m.group(1) + m.group(2), res)
-            add_parent_and_children(m.group(1) + m.group(2), split_list, res)
+            add_parent_and_children(m.group(1), m.group(2), res)
+            add_parent_and_children(m.group(2), split_list, res)
     return res
 
 
