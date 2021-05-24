@@ -1,3 +1,0 @@
-SStuB: WrongIdentifier, WrongNumericLiteral, WrongModifier,  WrongBooleanLiteral, WrongFunction, WrongOperator, MissingThrowsException
-WrongFunction: WrongFunctionName, TooFewArguments, TooManyArguments
-WrongOperator: WrongBinaryOperator, WrongUnaryOperator

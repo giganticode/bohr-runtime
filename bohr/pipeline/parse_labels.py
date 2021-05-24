@@ -102,27 +102,21 @@ def build_label_tree(flattened_multi_hierarchy: FlattenedMultiHierarchy, top_lab
     return tree
 
 
-def load_label_tree(path_to_labels: AbsolutePath) -> LabelHierarchy:
-    top = None
+def load_label_tree(path_to_labels: AbsolutePath) -> List[LabelHierarchy]:
+    top = []
     for label_file in sorted(glob(f"{path_to_labels}/*.txt")):
         with open(label_file, "r") as f:
-            if top is None:
-                top = build_label_tree(load(f.readlines()), Path(label_file).stem)
-                tree = top
-            else:
-                while tree.mounted_hierarchy is not None:
-                    tree = tree.mounted_hierarchy
-                tree.mounted_hierarchy = build_label_tree(load(f.readlines()), Path(label_file).stem)
+            top.append(build_label_tree(load(f.readlines()), Path(label_file).stem))
     return top
 
 
 def parse_labels(path_config: Optional[PathConfig] = None) -> None:
     path_config = path_config or PathConfig.load()
-    label_tree = load_label_tree(path_config.labels)
+    label_tree_list = load_label_tree(path_config.labels)
     from jinja2 import Environment
 
     env = Environment(loader=FileSystemLoader(Path(__file__).parent.parent))
     template = env.get_template("resources/labels.template")
-    s = template.render(hierarchies=label_tree.flatten())
+    s = template.render(hierarchies=[l for label_tree in label_tree_list for l in label_tree.flatten()])
     with open("labels.py", "w") as f:
         f.write(s)
