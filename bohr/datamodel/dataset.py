@@ -102,7 +102,7 @@ def desearialize_dataset(
         if "dtype" in dct:
             extra_args["dtype"] = jsons.load(dct["dtype"])
         path_preprocessed = get_preprocessed_path(
-            Path(dct.get("path_preprocessed")),
+            Path(dct.get("path_preprocessed")) if "path_preprocessed" in dct else None,
             Path(dct["path"]),
             data_dir,
             dct["preprocessor"],
