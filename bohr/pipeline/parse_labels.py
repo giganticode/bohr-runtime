@@ -8,7 +8,6 @@ from jinja2 import FileSystemLoader
 
 from bohr.config.pathconfig import PathConfig
 from bohr.labeling.hierarchies import LabelHierarchy
-from bohr.util.misc import merge_dicts_
 from bohr.util.paths import AbsolutePath
 
 logger = logging.getLogger(__name__)
@@ -30,9 +29,9 @@ def load(f: List[str]) -> FlattenedMultiHierarchy:
     Traceback (most recent call last):
     ...
     ValueError: Commit has to have more than one child.
-    >>> load(["Commit: BugFix, NonBugFix", "Commit(Tangling): Tangled, NonTangled"])
+    >>> load(["Commit: BugFix, NonBugFix", "Commit(CommitTangling): Tangled, NonTangled"])
     {'Commit': [['BugFix', 'NonBugFix'], 'CommitTangling'], 'CommitTangling': [['Tangled', 'NonTangled']]}
-    >>> load(["Commit: BugFix, NonBugFix", "Commit(Tangling): Tangled, NonTangled", "BugFix:Minor,Major"])
+    >>> load(["Commit: BugFix, NonBugFix", "Commit(CommitTangling): Tangled, NonTangled", "BugFix:Minor,Major"])
     {'Commit': [['BugFix', 'NonBugFix'], 'CommitTangling'], 'CommitTangling': [['Tangled', 'NonTangled']], 'BugFix': [['Minor', 'Major']]}
     >>> load(["BugFix, NonBugFix"])
     Traceback (most recent call last):
@@ -42,7 +41,7 @@ def load(f: List[str]) -> FlattenedMultiHierarchy:
     >>> load(["Commit() : BugFix, NonBugFix"])
     Traceback (most recent call last):
     ...
-    ValueError: Invalid parent format
+    ValueError: Invalid parent format: Commit() .
     """
     res: FlattenedMultiHierarchy = {}
 
@@ -71,9 +70,9 @@ def load(f: List[str]) -> FlattenedMultiHierarchy:
         else:
             m = re.match('^(\\w+)\((\\w+)\)$', left)
             if m is None:
-                raise ValueError(f"Invalid parent format")
-            add_parent_and_children(m.group(1), m.group(1) + m.group(2), res)
-            add_parent_and_children(m.group(1) + m.group(2), split_list, res)
+                raise ValueError(f"Invalid parent format: {left}.")
+            add_parent_and_children(m.group(1), m.group(2), res)
+            add_parent_and_children(m.group(2), split_list, res)
     return res
 
 
