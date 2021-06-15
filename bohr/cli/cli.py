@@ -11,6 +11,7 @@ from bohr.cli.dataset.commands import dataset
 from bohr.cli.porcelain.commands import porcelain
 from bohr.cli.task.commands import task
 from bohr.config.pathconfig import PathConfig, add_to_local_config
+from bohr.formatting import tabulate_artifacts
 from bohr.util.logging import verbosity
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -30,6 +31,7 @@ def bohr():
 @click.argument("dataset")
 @click.argument("old_rev", type=str, required=False, default="master")
 @click.option("-i", "--datapoint", type=int, required=False, default=None)
+@click.option("-h", "--heuristic", type=str, required=False, default=None)
 @click.option(
     "-m",
     "--metric",
@@ -46,6 +48,7 @@ def debug(
     dataset: str,
     old_rev: str,
     datapoint: Optional[int],
+    heuristic: Optional[str],
     metric: str,
     n_datapoints: Optional[int],
     reverse: bool,
@@ -56,17 +59,35 @@ def debug(
 
     setup_loggers(verbose)
     try:
-        if datapoint is None:
-            dataset_debugger = DatasetDebugger(
-                task, dataset, old_rev, force_update=force_refresh
+        # TODO clean up everything
+        dataset_debugger = DatasetDebugger(
+            task, dataset, old_rev, force_update=force_refresh
+        )
+        if heuristic is not None:
+            datapoint_debugger = DataPointDebugger(
+                task, dataset, dataset_debugger, old_rev, force_update=force_refresh
             )
+            ones, zeros, stats = DataPointDebugger.get_heuristic_info_(
+                datapoint_debugger.new_matrix, heuristic, dataset_debugger.combined_df
+            )
+            print(
+                "==================             0               ======================"
+            )
+            tabulate_artifacts(zeros.head(n_datapoints))
+            print(
+                "==================             1               ======================"
+            )
+            tabulate_artifacts(ones.head(n_datapoints))
+            print(stats)
+        elif datapoint is None:
             dataset_debugger.show_datapoints(
                 metric, n_datapoints or 10, reverse=reverse
             )
         else:
-            DataPointDebugger(
-                task, dataset, old_rev, force_update=force_refresh
-            ).show_datapoint_info(datapoint)
+            datapoint_debugger = DataPointDebugger(
+                task, dataset, dataset_debugger, old_rev, force_update=force_refresh
+            )
+            datapoint_debugger.show_datapoint_info(datapoint)
     except dvc.scm.base.RevError:
         logger.error(f"Revision does not exist: {old_rev}")
         exit(23)
