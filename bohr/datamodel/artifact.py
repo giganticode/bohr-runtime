@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Artifact:
-    proxies: Dict[str, "ArtifactProxy"] = field(init=False)
-    keys: Union[str, Tuple[str, ...]] = field(init=False)
+    proxies: Dict[str, "ArtifactProxy"] = field(init=False, repr=False)
+    keys: Union[str, Tuple[str, ...]] = field(init=False, repr=False)
 
     def linked(self, item) -> List["ArtifactSubclass"]:
         return (
