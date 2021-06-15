@@ -49,10 +49,16 @@ class ArtifactMapper(BaseMapper, ABC):
             )
         return proxies
 
+    def get_key(self, x: DataPoint):
+        try:
+            return x[self.primary_key]
+        except KeyError:
+            return x.name
+
     def cached_map(self, x: DataPoint) -> Optional[Artifact]:
         # TODO use snorkels cache?
         try:
-            key = x.name
+            key = self.get_key(x)
             cache = type(self).cache
             if key in cache:
                 return cache[key]
