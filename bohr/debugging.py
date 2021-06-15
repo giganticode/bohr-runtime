@@ -7,7 +7,6 @@ from time import time
 from typing import Dict, Optional, Tuple
 
 import appdirs
-import dvc.api
 import git
 import numpy as np
 import pandas as pd
@@ -16,6 +15,7 @@ from tabulate import tabulate
 
 from bohr import appauthor, appname, version
 from bohr.config.pathconfig import PathConfig
+from bohr.formatting import tabulate_artifacts
 from bohr.util.paths import (
     AbsolutePath,
     RelativePath,
@@ -60,6 +60,8 @@ def _load_output_matrix_and_weights(
         if rev is not None
         else None
     )
+    import dvc.api
+
     with dvc.api.open(
         path_config.generated_dir
         / task_name
@@ -82,10 +84,11 @@ class DataPointDebugger:
         self,
         task_name: str,
         labeled_dataset: str,
+        dataset_debugger: "DatasetDebugger",
         rev: Optional[str] = "master",
         force_update: bool = False,
     ):
-        self.dataset_debugger = DatasetDebugger(task_name, labeled_dataset, rev)
+        self.dataset_debugger = dataset_debugger
         self.old_matrix, self.old_weights = _load_output_matrix_and_weights(
             task_name, labeled_dataset, rev, force_update=force_update
         )
@@ -93,9 +96,19 @@ class DataPointDebugger:
             task_name, labeled_dataset
         )
 
+    @staticmethod
     def get_datapoint_info_(
-        self, matrix, weights, datapoint: int, suffix: str
+        matrix: pd.DataFrame, weights: pd.DataFrame, datapoint: int, suffix: str
     ) -> pd.DataFrame:
+        """
+        >>> matrix = pd.DataFrame([[0, -1, 0],[1, -1, -1]], columns=['h1', 'h2', 'h3'])
+        >>> weights = pd.DataFrame([[0.01, 0.99, 0.3, 0.3],[0.2, 0.2, 0.3, 0.3],[0.2, 0.2, 0.3, 0.3]], columns=['00', '01', '10', '11'], index=pd.Series(['h1', 'h2', 'h3'], name='heuristic_name'))
+        >>> DataPointDebugger.get_datapoint_info_(matrix, weights, 0, 'new') # doctest: +NORMALIZE_WHITESPACE
+                        NonBug_new   Bug_new  h_output_new
+        heuristic_name
+        h1                 0.00259  0.983856             0
+        h3                 0.00741  0.006144             0
+        """
         row = matrix.iloc[datapoint]
 
         zero = f"NonBug_{suffix}"
@@ -119,12 +132,49 @@ class DataPointDebugger:
         )
         return weights2
 
+    @staticmethod
+    def get_heuristic_info_(
+        matrix: pd.DataFrame, heuristic: str, artifact_df: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, float]]:
+        """
+        >>> matrix = pd.DataFrame([[0, -1, 0],[1, -1, -1],[1, -1, 1]], columns=['h1', 'h2', 'h3'])
+        >>> artifact_df = pd.DataFrame([['commit1'],['commit2'], ['commit3']], columns=['message'])
+        >>> ones, zeros, stats = DataPointDebugger.get_heuristic_info_(matrix, "h3", artifact_df) # doctest: +NORMALIZE_WHITESPACE
+        >>> ones
+           message
+        2  commit3
+        >>> zeros
+           message
+        0  commit1
+        >>> stats
+        {'total': 3, 'ones': 1, 'zeros': 1}
+        """
+        total = len(matrix)
+        if heuristic not in matrix:
+            raise ValueError(
+                f"Unknown heursitic: {heuristic}. Some possible values: {matrix.columns[:5]}"
+            )
+        column = matrix[heuristic]
+        ones = column[column == 1]
+        zeros = column[column == 0]
+        ones_count = len(ones)
+        zeros_count = len(zeros)
+
+        ones_df = artifact_df.loc[ones.index]
+        zeros_df = artifact_df.loc[zeros.index]
+
+        return (
+            ones_df,
+            zeros_df,
+            {"total": total, "ones": ones_count, "zeros": zeros_count},
+        )
+
     def show_datapoint_info(self, datapoint: int) -> None:
         self.dataset_debugger.show_datapoint(datapoint)
-        old = self.get_datapoint_info_(
+        old = DataPointDebugger.get_datapoint_info_(
             self.old_matrix, self.old_weights, datapoint, "old"
         )
-        new = self.get_datapoint_info_(
+        new = DataPointDebugger.get_datapoint_info_(
             self.new_matrix, self.new_weights, datapoint, "new"
         )
         concat_df = pd.concat([old, new], axis=1)
@@ -221,15 +271,21 @@ class DatasetDebugger:
             path_config.project_root, rev, force_update
         )
         self.labeled_dataset_name = labeled_dataset_name
-        logging.disable(logging.WARNING)
+        # logging.disable(logging.WARNING)
         labeled_dataset_path = (
             path_config.labeled_data_dir / task / f"{labeled_dataset_name}.labeled.csv"
         )
+        import dvc.api
+
+        logger.warning(
+            f"Reading dvc file {labeled_dataset_path}, repo = {path_to_old_revision}"
+        )
         with dvc.api.open(labeled_dataset_path, path_to_old_revision) as f:
             old_df = pd.read_csv(f)
+        logger.warning(f"Reading dvc file {labeled_dataset_path}")
         with dvc.api.open(labeled_dataset_path) as f:
             new_df = pd.read_csv(f)
-        logging.disable(logging.NOTSET)
+        # logging.disable(logging.NOTSET)
 
         self.is_test_set = "bug" in old_df.columns
 
@@ -276,15 +332,7 @@ class DatasetDebugger:
 
         self.combined_df.sort_values(by=value, inplace=True, ascending=reverse)
         df = self.combined_df.head(n)
-        pd.options.mode.chained_assignment = None
-        df.loc[:, "message"] = df["message"].str.wrap(70)
-        print(
-            tabulate(
-                df,
-                headers=df.columns,
-                tablefmt="fancy_grid",
-            )
-        )
+        tabulate_artifacts(df)
 
     def show_datapoint(self, n: int) -> None:
         a = self.combined_df.loc[n].to_frame()
