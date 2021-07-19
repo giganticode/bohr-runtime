@@ -68,7 +68,9 @@ def debug(
                 task, dataset, dataset_debugger, old_rev, force_update=force_refresh
             )
             ones, zeros, stats = DataPointDebugger.get_heuristic_info_(
-                datapoint_debugger.new_matrix, heuristic, dataset_debugger.combined_df
+                datapoint_debugger.new_matrix,
+                heuristic.split(","),
+                dataset_debugger.combined_df,
             )
             print(
                 "==================             0               ======================"

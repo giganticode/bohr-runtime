@@ -4,7 +4,7 @@ from io import BytesIO
 from pathlib import Path
 from shutil import copy
 from time import time
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import appdirs
 import git
@@ -134,12 +134,12 @@ class DataPointDebugger:
 
     @staticmethod
     def get_heuristic_info_(
-        matrix: pd.DataFrame, heuristic: str, artifact_df: pd.DataFrame
+        matrix: pd.DataFrame, heuristics: List[str], artifact_df: pd.DataFrame
     ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, float]]:
         """
         >>> matrix = pd.DataFrame([[0, -1, 0],[1, -1, -1],[1, -1, 1]], columns=['h1', 'h2', 'h3'])
         >>> artifact_df = pd.DataFrame([['commit1'],['commit2'], ['commit3']], columns=['message'])
-        >>> ones, zeros, stats = DataPointDebugger.get_heuristic_info_(matrix, "h3", artifact_df) # doctest: +NORMALIZE_WHITESPACE
+        >>> ones, zeros, stats = DataPointDebugger.get_heuristic_info_(matrix, ["h2", "h3"], artifact_df) # doctest: +NORMALIZE_WHITESPACE
         >>> ones
            message
         2  commit3
@@ -150,13 +150,14 @@ class DataPointDebugger:
         {'total': 3, 'ones': 1, 'zeros': 1}
         """
         total = len(matrix)
-        if heuristic not in matrix:
-            raise ValueError(
-                f"Unknown heursitic: {heuristic}. Some possible values: {matrix.columns[:5].tolist()}. Have you just added a heuristic? Reproduce the pipeline to debug it!"
-            )
-        column = matrix[heuristic]
-        ones = column[column == 1]
-        zeros = column[column == 0]
+        for heuristic in heuristics:
+            if heuristic not in matrix:
+                raise ValueError(
+                    f"Unknown heursitic: {heuristic}. Some possible values: {matrix.columns[:5].tolist()}. Have you just added a heuristic? Reproduce the pipeline to debug it!"
+                )
+        columns = matrix[heuristics]
+        ones = columns[(columns == 1).any(axis=1)]
+        zeros = columns[(columns == 0).any(axis=1)]
         ones_count = len(ones)
         zeros_count = len(zeros)
 
