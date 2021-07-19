@@ -31,6 +31,8 @@ def get_full_github_url(author: str, repo: str) -> str:
     return f"https://github.com/{author}/{repo}"
 
 
+# this class is only for illustration purposes.
+# We are not going to use this anymore, we use CommitExplorer with pre-computed refactoring miner outputs instead
 class RefactoringMiner(Tool):
     def __init__(self):
         super().__init__()

@@ -3,12 +3,13 @@ from typing import Optional
 from labels import CommitLabel
 
 from bohr.collection.artifacts.commit import Commit
-from bohr.collection.heuristictypes.tool import ToolOutputHeuristic
 from bohr.collection.heuristictypes.tools.refactoring_miner import RefactoringMiner
 from bohr.labeling.labelset import Labels
 
 
-@ToolOutputHeuristic(Commit, tool=RefactoringMiner)
+# this class is only for illustration purposes.
+# We are not going to use this anymore, we use CommitExplorer with pre-computed refactoring miner outputs instead
+# @ToolOutputHeuristic(Commit, tool=RefactoringMiner)
 def refactorings_detected(
     commit: Commit, refactoring_miner: RefactoringMiner
 ) -> Optional[Labels]:
