@@ -1,5 +1,7 @@
+import re
 from dataclasses import dataclass
-from typing import Optional
+from functools import cached_property
+from typing import List, Optional, Tuple
 
 from bohr.datamodel.artifact import Artifact
 
@@ -15,11 +17,15 @@ patch = """
      "react-onclickoutside": "^6.6.3",
 """
 
+changes_regex = re.compile(r"(<(del|ins|eq|re)>(.*?)(<to>(.*?))?</\2>)")
+
 
 @dataclass
 class CommitFile(Artifact):
     """
     >>> commit_file = CommitFile("package.json", "modified", patch, '<eq>"radium": "^0.</eq><ins>2</ins><eq>1</eq><del>9</del><eq>.</eq><re>0<to>1</re><eq>",</eq>')
+    >>> commit_file.parsed_changes
+    [('eq', '"radium": "^0.'), ('ins', '2'), ('eq', '1'), ('del', '9'), ('eq', '.'), ('re', '0', '1'), ('eq', '",')]
     >>> commit_file.no_added_lines()
     False
     >>> commit_file.no_removed_lines()
@@ -30,6 +36,17 @@ class CommitFile(Artifact):
     status: str
     patch: Optional[str]
     changes: Optional[str]
+
+    @cached_property
+    def parsed_changes(self) -> List[Tuple[str, ...]]:
+        res = []
+        for c in changes_regex.finditer(self.changes):
+            groups = c.groups()
+            if not groups[3]:
+                res.append((groups[1], groups[2]))
+            else:
+                res.append((groups[1], groups[2], groups[4]))
+        return res
 
     def no_added_lines(self):  # TODO implementations are not correct
         return "<ins>" not in self.changes
