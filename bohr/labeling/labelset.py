@@ -117,6 +117,8 @@ class LabelSet:
     A.A0
     >>> LabelSet.of(A.A2).distribute_into_categories([A.A3, A.A4])
     A.A0
+    >>> LabelSet.of(A.A2, A.A41).distribute_into_categories([A.A3, A.A4])
+    A.A0
     """
 
     labels: Set[LabelSubclass]
