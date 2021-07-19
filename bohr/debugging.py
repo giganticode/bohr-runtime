@@ -152,7 +152,7 @@ class DataPointDebugger:
         total = len(matrix)
         if heuristic not in matrix:
             raise ValueError(
-                f"Unknown heursitic: {heuristic}. Some possible values: {matrix.columns[:5]}"
+                f"Unknown heursitic: {heuristic}. Some possible values: {matrix.columns[:5].tolist()}. Have you just added a heuristic? Reproduce the pipeline to debug it!"
             )
         column = matrix[heuristic]
         ones = column[column == 1]
