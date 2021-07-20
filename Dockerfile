@@ -5,6 +5,8 @@ WORKDIR /usr/src/bohr-framework
 MAINTAINER hlib <hlibbabii@gmail.com>
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG C.UTF-8
+ENV SKLEARN_NO_OPENMP=1
 
 RUN apt-get update && apt-get install -y \
     bc \
@@ -38,12 +40,11 @@ RUN npm -v
 #RUN npm install -g vega-cli vega-lite
 RUN npm i -g @dvcorg/cml
 
-RUN unset PYENV_ROOT
 RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+RUN /root/.pyenv/bin/pyenv install 3.8.0
 
-ENV PATH="/root/.pyenv/bin:$PATH"
-
-RUN pyenv install 3.8.0
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+RUN /root/.poetry/bin/poetry --version
 
 COPY . .
 
@@ -51,16 +52,10 @@ RUN curl -fsSL https://get.docker.com -o get-docker.sh
 RUN sh get-docker.sh
 RUN docker --version
 
-ENV PYTHONPATH="/usr/src/bohr-framework/:$PYTHONPATH"
+RUN $HOME/.poetry/bin/poetry env use /root/.pyenv/versions/3.8.0/bin/python
+RUN $HOME/.poetry/bin/poetry env info
+RUN $HOME/.poetry/bin/poetry run pip install Cython==0.29.23
+RUN $HOME/.poetry/bin/poetry install
 
-RUN /root/.pyenv/versions/3.8.0/bin/pip install --upgrade pip wheel setuptools
-RUN /root/.pyenv/versions/3.8.0/bin/pip install Cython==0.29.21
-RUN /root/.pyenv/versions/3.8.0/bin/pip install -r requirements.txt
-
-RUN bash test-b2b/scenario1/tools/install-refactoring-miner /usr/src/tools/
-ENV SOFTWARE_DIR /usr/src/tools
-
-RUN pyenv global 3.8.0
-RUN echo 'eval "$(pyenv init -)"' >> /etc/profile
 RUN echo "echo \"image built on $(date)\"" >> /etc/profile
 

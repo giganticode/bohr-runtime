@@ -26,44 +26,44 @@ jobs:
           PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
           git fetch origin pull/$PR_NUMBER/head:pr/$PR_NUMBER
           git checkout pr/$PR_NUMBER
-          pip install Cython==0.29.21
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install -e .
-          bohr -h
-      - name: unit-tests
-        run: pytest --doctest-modules --ignore=test-b2b
       - name: build-image
         run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && bash bin/update-docker.sh "origin/$GITHUB_BASE_REF"
+      - name: install-dependencies
+        run: |
+          /root/.poetry/bin/poetry env info
+          /root/.poetry/bin/poetry run pip install Cython==0.29.23
+          export SKLEARN_NO_OPENMP=1 && /root/.poetry/bin/poetry install
+          /root/.poetry/bin/poetry run bohr -h
+      - name: unit-tests
+        run: /root/.poetry/bin/poetry run pytest --doctest-modules --ignore=test-b2b
       - name: setup-dvc
         run: |
-          dvc --version
+          /root/.poetry/bin/poetry run dvc --version
           cd /usr/src/bohr-framework/test-b2b/scenario1
-          dvc remote modify --local ironspeed-test user $DVC_IRONSPEED_USERNAME
-          dvc remote modify --local ironspeed-test password $DVC_IRONSPEED_PASSWORD
-          dvc config core.check_update false
+          /root/.poetry/bin/poetry run dvc remote modify --local ironspeed-test user $DVC_IRONSPEED_USERNAME
+          /root/.poetry/bin/poetry run dvc remote modify --local ironspeed-test password $DVC_IRONSPEED_PASSWORD
+          /root/.poetry/bin/poetry run dvc config core.check_update false
       - name: reproduce-bugginess
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
-          bohr config paths.software_path /usr/src/tools
-          bohr config core.verbose false
-          bash tools/install-refactoring-miner /usr/src/tools
-          bohr status
-          bohr repro bugginess-1k
-          bohr pull -v bugginess-1k berger
+          /root/.poetry/bin/poetry run bohr config paths.software_path /usr/src/tools
+          /root/.poetry/bin/poetry run bohr config core.verbose false
+          /root/.poetry/bin/poetry run bohr status
+          /root/.poetry/bin/poetry run bohr repro bugginess-1k
+          /root/.poetry/bin/poetry run bohr pull -v bugginess-1k berger
       - name: reproduce-smells
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
-          bohr repro smells_10
+          /root/.poetry/bin/poetry run bohr repro smells_10
       - name: report-metrics
         run: |
           git fetch --prune
           cd /usr/src/bohr-framework/test-b2b/scenario1
-          dvc metrics diff master
-          [ -z "$(dvc metrics diff master)" ]
+          /root/.poetry/bin/poetry run dvc metrics diff master
+          [ -z "$(/root/.poetry/bin/poetry run dvc metrics diff master)" ]
       - name: cli-commands
         run: |
           cd /usr/src/bohr-framework/test-b2b/scenario1
           touch /usr/src/new_dataset.csv
-          bohr dataset add /usr/src/new_dataset.csv -t commit
-          bohr task add sample-task -d desc -t commit -l TangledCommit.NonTangled,TangledCommit.Tangled -c bug --force --use-all-datasets
+          /root/.poetry/bin/poetry run bohr dataset add /usr/src/new_dataset.csv -t commit
+          /root/.poetry/bin/poetry run bohr task add sample-task -d desc -t commit -l TangledCommit.NonTangled,TangledCommit.Tangled -c bug --force --use-all-datasets
