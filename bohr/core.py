@@ -42,21 +42,27 @@ class SnorkelLabelingFunction(LabelingFunction):
 def to_labeling_functions(
     heuristics: List[HeuristicObj], mapper: ArtifactMapper, labels: List[str]
 ) -> List[SnorkelLabelingFunction]:
-    category_mapping_cache = CategoryMappingCache(labels, maxsize=10000)
     labeling_functions = list(
         map(
-            lambda h: SnorkelLabelingFunction(
-                name=h.__name__,
-                f=lambda *args, **kwargs: apply_heuristic_and_convert_to_snorkel_label(
-                    h, category_mapping_cache, *args, **kwargs
-                ),
-                mapper=mapper,
-                resources=h.resources,
-            ),
+            lambda h: to_labeling_function(h, mapper, labels),
             heuristics,
         )
     )
     return labeling_functions
+
+
+def to_labeling_function(
+    h: HeuristicObj, mapper: ArtifactMapper, labels: List[str]
+) -> SnorkelLabelingFunction:
+    category_mapping_cache = CategoryMappingCache(labels, maxsize=10000)
+    return SnorkelLabelingFunction(
+        name=h.__name__,
+        f=lambda *args, **kwargs: apply_heuristic_and_convert_to_snorkel_label(
+            h, category_mapping_cache, *args, **kwargs
+        ),
+        mapper=mapper,
+        resources=h.resources,
+    )
 
 
 def to_snorkel_label(labels, category_mapping_cache_map: CategoryMappingCache) -> int:

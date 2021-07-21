@@ -5,7 +5,7 @@ import jsons
 
 from bohr.collection.artifacts import artifact_map
 from bohr.datamodel.dataset import Dataset, get_all_linked_datasets
-from bohr.datamodel.heuristic import get_heuristic_module_list
+from bohr.datamodel.heuristic import get_all_heuristics
 from bohr.util.paths import AbsolutePath, RelativePath, load_class_by_full_path
 
 
@@ -107,7 +107,7 @@ def deserialize_task(
         artifact = artifact_map[dct["top_artifact"]]
     except KeyError:
         artifact = load_class_by_full_path(dct["top_artifact"])
-    heuristic_groups = get_heuristic_module_list(artifact, heuristic_path)
+    heuristic_groups = get_all_heuristics(artifact, heuristic_path)
     return Task(
         task_name,
         dct["author"] if "author" in dct else None,
@@ -117,7 +117,7 @@ def deserialize_task(
         _train_datasets=train_datasets,
         _test_datasets=test_datasets,
         label_column_name=dct["label_column_name"],
-        heuristic_groups=heuristic_groups,
+        heuristic_groups=sorted(heuristic_groups.keys()),
     )
 
 

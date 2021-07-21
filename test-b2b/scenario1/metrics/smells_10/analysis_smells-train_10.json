@@ -5,13 +5,13 @@
         "many_indentation_levels2": 0.0
     },
     "Coverage": {
-        "long_method": 1.0,
-        "many_indentation_levels": 0.3,
+        "long_method": 0.9,
+        "many_indentation_levels": 0.2,
         "many_indentation_levels2": 0.0
     },
     "Overlaps": {
-        "long_method": 0.3,
-        "many_indentation_levels": 0.3,
+        "long_method": 0.2,
+        "many_indentation_levels": 0.2,
         "many_indentation_levels2": 0.0
     },
     "Polarity": {

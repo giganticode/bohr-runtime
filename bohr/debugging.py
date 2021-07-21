@@ -132,44 +132,6 @@ class DataPointDebugger:
         )
         return weights2
 
-    @staticmethod
-    def get_heuristic_info_(
-        matrix: pd.DataFrame, heuristics: List[str], artifact_df: pd.DataFrame
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, Dict[str, float]]:
-        """
-        >>> matrix = pd.DataFrame([[0, -1, 0],[1, -1, -1],[1, -1, 1]], columns=['h1', 'h2', 'h3'])
-        >>> artifact_df = pd.DataFrame([['commit1'],['commit2'], ['commit3']], columns=['message'])
-        >>> ones, zeros, stats = DataPointDebugger.get_heuristic_info_(matrix, ["h2", "h3"], artifact_df) # doctest: +NORMALIZE_WHITESPACE
-        >>> ones
-           message
-        2  commit3
-        >>> zeros
-           message
-        0  commit1
-        >>> stats
-        {'total': 3, 'ones': 1, 'zeros': 1}
-        """
-        total = len(matrix)
-        for heuristic in heuristics:
-            if heuristic not in matrix:
-                raise ValueError(
-                    f"Unknown heursitic: {heuristic}. Some possible values: {matrix.columns[:5].tolist()}. Have you just added a heuristic? Reproduce the pipeline to debug it!"
-                )
-        columns = matrix[heuristics]
-        ones = columns[(columns == 1).any(axis=1)]
-        zeros = columns[(columns == 0).any(axis=1)]
-        ones_count = len(ones)
-        zeros_count = len(zeros)
-
-        ones_df = artifact_df.loc[ones.index]
-        zeros_df = artifact_df.loc[zeros.index]
-
-        return (
-            ones_df,
-            zeros_df,
-            {"total": total, "ones": ones_count, "zeros": zeros_count},
-        )
-
     def show_datapoint_info(self, datapoint: int) -> None:
         self.dataset_debugger.show_datapoint(datapoint)
         old = DataPointDebugger.get_datapoint_info_(

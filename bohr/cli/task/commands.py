@@ -7,7 +7,7 @@ from bohr.collection.artifacts import artifact_map
 from bohr.config.pathconfig import PathConfig
 from bohr.datamodel.bohrrepo import load_bohr_repo
 from bohr.datamodel.dataset import train_and_test
-from bohr.datamodel.heuristic import get_heuristic_module_list
+from bohr.datamodel.heuristic import get_all_heuristics
 from bohr.datamodel.task import Task
 from bohr.fs import find_project_root
 from bohr.util.logging import verbosity
@@ -86,9 +86,7 @@ def add(
                 if d.artifact_type == artifact_type
             }
             train_datasets, test_datasets = train_and_test(all_datasets, label_column)
-        heuristic_groups = get_heuristic_module_list(
-            artifact_type, path_config.heuristics
-        )
+        heuristic_groups = get_all_heuristics(artifact_type, path_config.heuristics)
         task = Task(
             name,
             authors,
@@ -98,7 +96,7 @@ def add(
             train_datasets,
             test_datasets,
             label_column,
-            heuristic_groups,
+            sorted(heuristic_groups.keys()),
         )
         bohr_repo.tasks[name] = task
         bohr_repo.dump(project_root)

@@ -1,6 +1,6 @@
 {
     "config": {
-        "bohr_framework_version": "0.4.8-rc",
+        "bohr_framework_version": "0.4.9-rc",
         "tasks": {
             "bugginess-1k": {
                 "description": "",
@@ -147,7 +147,7 @@
         "heuristics/bugginess/issue_heuristics.py": "bf375e87481ee1b2304239dc55e85a66",
         "heuristics/bugginess/main_heurstics.py": "a6164176e48f79179c50d4ba6d0dbe15",
         "heuristics/bugginess/manuallabels.py": "a560115e99cf68f12dee26b980b42c85",
-        "heuristics/bugginess/tool_heuristics.py": "4a3825e29a4fe66fa420a9f0274d9193"
+        "heuristics/bugginess/tool_heuristics.py": "1b1f6a746a3057feee18d80b58ab5978"
     },
     "manual_stages": {}
 }

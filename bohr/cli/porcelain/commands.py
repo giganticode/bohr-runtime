@@ -45,7 +45,7 @@ def label_dataset(task: str, dataset: str, debug: bool):
 def apply_heuristics(
     task: str, heuristic_group: Optional[str], dataset: Optional[str], profile: bool
 ):
-    from bohr.pipeline.apply_heuristics import apply_heuristics
+    from bohr.pipeline.apply_heuristics import apply_heuristics_and_save_metrics
     from bohr.pipeline.combine_heuristics import combine_applied_heuristics
 
     setup_loggers()
@@ -55,7 +55,7 @@ def apply_heuristics(
     if heuristic_group:
         with Profiler(enabled=profile):
             dataset = bohr_repo.datasets[dataset]
-            apply_heuristics(task, heuristic_group, dataset)
+            apply_heuristics_and_save_metrics(task, heuristic_group, dataset)
     else:
         combine_applied_heuristics(task)
 
