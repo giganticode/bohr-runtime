@@ -3,7 +3,7 @@ import importlib
 import inspect
 import os
 from pathlib import Path
-from typing import Callable, List, Optional, Set, Type
+from typing import Callable, Dict, List, Optional, Set, Type
 
 from bohr.datamodel.artifact import Artifact, ArtifactType
 from bohr.labeling.labelset import Label
@@ -23,12 +23,12 @@ class HeuristicObj:
         return self.func(artifact, *args, **kwargs)
 
 
-def get_heuristic_module_list(
+def get_all_heuristics(
     artifact_type: Type,
     heuristics_path: AbsolutePath,
     limited_to_modules: Optional[Set[str]] = None,
-) -> List[str]:
-    modules: List[str] = []
+) -> Dict[str, List[HeuristicObj]]:
+    modules: Dict[str, List[HeuristicObj]] = {}
     for root, dirs, files in os.walk(heuristics_path):
         for file in files:
             if (
@@ -49,8 +49,8 @@ def get_heuristic_module_list(
             ):
                 hs = load_heuristics_from_module(artifact_type, heuristic_module_path)
                 if len(hs) > 0:
-                    modules.append(heuristic_module_path)
-    return sorted(modules)
+                    modules[heuristic_module_path] = hs
+    return modules
 
 
 def load_heuristics_from_module(
@@ -80,6 +80,16 @@ def load_heuristics_from_module(
             heuristics.extend(obj)
     check_names_unique(heuristics)
     return heuristics
+
+
+def load_heuristic_by_name(
+    name: str, artifact_type: Type, heuristics_path: AbsolutePath
+) -> HeuristicObj:
+    for hs in get_all_heuristics(artifact_type, heuristics_path).values():
+        for h in hs:
+            if h.func.__name__ == name:
+                return h
+    raise ValueError(f"Heuristic {name} does not exist")
 
 
 def check_names_unique(heuristics: List[HeuristicObj]) -> None:

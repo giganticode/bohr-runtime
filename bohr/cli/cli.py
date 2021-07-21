@@ -4,6 +4,7 @@ from typing import Optional
 import click
 import dvc.exceptions
 import dvc.scm.base
+import pandas as pd
 
 from bohr import __version__, api, setup_loggers
 from bohr.api import BohrDatasetNotFound, refresh_if_necessary
@@ -11,7 +12,10 @@ from bohr.cli.dataset.commands import dataset
 from bohr.cli.porcelain.commands import porcelain
 from bohr.cli.task.commands import task
 from bohr.config.pathconfig import PathConfig, add_to_local_config
+from bohr.datamodel.bohrrepo import load_bohr_repo
 from bohr.formatting import tabulate_artifacts
+from bohr.pipeline.apply_heuristics import apply_heuristic_to_dataset
+from bohr.pipeline.data_analysis import calculate_metrics, get_fired_datapoints
 from bohr.util.logging import verbosity
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -67,7 +71,7 @@ def debug(
             datapoint_debugger = DataPointDebugger(
                 task, dataset, dataset_debugger, old_rev, force_update=force_refresh
             )
-            ones, zeros, stats = DataPointDebugger.get_heuristic_info_(
+            ones, zeros, stats = get_fired_datapoints(
                 datapoint_debugger.new_matrix,
                 heuristic.split(","),
                 dataset_debugger.combined_df,
@@ -113,6 +117,43 @@ def repro(
         if only_transient and task:
             raise ValueError("Both --only-transient and task is not supported")
         api.repro(task, only_transient, force)
+
+
+@bohr.command()
+@click.argument("task")
+@click.argument("dataset")
+@click.option("-h", "--heuristic", type=str, required=True, default=None)
+@click.option("-n", "--n-datapoints", type=int, required=False, default=None)
+@click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
+def run(
+    task: str,
+    dataset: str,
+    heuristic: str,
+    n_datapoints: Optional[int],
+    verbose: bool = False,
+) -> None:
+
+    setup_loggers(verbose)
+    bohr_repo = load_bohr_repo()
+    task = bohr_repo.tasks[task]
+    dataset = bohr_repo.datasets[dataset]
+    applied_matrix = apply_heuristic_to_dataset(task, heuristic, dataset)
+    df = pd.DataFrame(applied_matrix, columns=[heuristic])
+    artifact_df = dataset.load()
+    ones, zeros, stats = get_fired_datapoints(df, [heuristic], artifact_df)
+
+    print("==================             0               ======================")
+    tabulate_artifacts(zeros.head(n_datapoints))
+    print("==================             1               ======================")
+    tabulate_artifacts(ones.head(n_datapoints))
+    print(stats)
+    label_series = (
+        artifact_df[task.label_column_name]
+        if task.label_column_name in artifact_df.columns
+        else None
+    )
+    metrics = calculate_metrics(applied_matrix, [heuristic], label_series=label_series)
+    print(metrics)
 
 
 @bohr.command()
