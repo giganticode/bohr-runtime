@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Set
 
 import jsons
 import requests
+from commitexplorer.client import query_commit_explorer
 from requests import Response
 
 from bohr.collection.artifacts.commit_file import CommitFile
@@ -16,21 +17,6 @@ from bohr.labeling.labelset import Label
 from bohr.util.misc import NgramSet
 
 logger = logging.getLogger(__name__)
-
-
-# TODO use existing solution for retries https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
-def query_commit_explorer_ironspeed(sha: str) -> Response:
-    time_to_sleep = 1
-    total_attempts = 7
-    for i in range(total_attempts):
-        try:
-            return requests.get(f"http://10.10.20.160/{sha[:2]}/{sha[2:4]}/{sha[4:]}")
-        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
-            print(
-                f"ConnectionError, attempt {i+1}/{total_attempts}; waiting {time_to_sleep} seconds before retrying ..."
-            )
-            sleep(time_to_sleep)
-            time_to_sleep *= 5
 
 
 @dataclass
@@ -56,7 +42,7 @@ class Commit(Artifact):
 
     @cached_property
     def commit_explorer_data(self) -> Optional[Dict]:
-        response = query_commit_explorer_ironspeed(self.sha)
+        response = query_commit_explorer(self.sha)
         return jsons.loads(response.text) if response.status_code == 200 else None
 
     def __post_init__(self):
