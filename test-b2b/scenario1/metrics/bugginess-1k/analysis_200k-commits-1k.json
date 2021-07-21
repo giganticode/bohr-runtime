@@ -23,7 +23,6 @@
         "manual_labels": 0.003,
         "no_files_have_modified_status": 0.007,
         "refactoring_message_keyword": 0.0,
-        "refactorings_detected": 0.0,
         "version_in_message": 0.004
     },
     "Coverage": {
@@ -50,7 +49,6 @@
         "manual_labels": 0.03,
         "no_files_have_modified_status": 0.149,
         "refactoring_message_keyword": 0.007,
-        "refactorings_detected": 0.0,
         "version_in_message": 0.015
     },
     "Overlaps": {
@@ -77,7 +75,6 @@
         "manual_labels": 0.021,
         "no_files_have_modified_status": 0.048,
         "refactoring_message_keyword": 0.002,
-        "refactorings_detected": 0.0,
         "version_in_message": 0.01
     },
     "Polarity": {
@@ -129,7 +126,6 @@
         "refactoring_message_keyword": [
             0
         ],
-        "refactorings_detected": [],
         "version_in_message": [
             0
         ]

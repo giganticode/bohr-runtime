@@ -23,4 +23,3 @@ version_in_message,20,[0],0.015,0.01,0.004
 bugless_message_keyword_add,21,[0],0.094,0.043,0.011
 bugless_message_keyword_doc,22,[0],0.017,0.01,0.001
 manual_labels,23,"[0, 1]",0.03,0.021,0.003
-refactorings_detected,24,[],0.0,0.0,0.0
