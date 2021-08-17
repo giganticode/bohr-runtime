@@ -58,6 +58,7 @@ def apply_heuristic_to_dataset(
     task: Task,
     heuristic_name: str,
     dataset: Dataset,
+    n_datapoints: Optional[int] = None,
     path_config: Optional[PathConfig] = None,
 ) -> np.ndarray:
     path_config = path_config or PathConfig.load()
@@ -66,7 +67,7 @@ def apply_heuristic_to_dataset(
     )
     labeling_function = to_labeling_function(heuristic, dataset.mapper, task.labels)
     apply_lf_matrix = apply_lfs_to_dataset(
-        [labeling_function], artifact_df=dataset.load()
+        [labeling_function], artifact_df=dataset.load(n_datapoints)
     )
     return apply_lf_matrix
 

@@ -1,13 +1,10 @@
 import logging
 from dataclasses import dataclass, field
 from functools import cached_property
-from time import sleep
 from typing import Dict, List, Optional, Set
 
 import jsons
-import requests
 from commitexplorer.client import query_commit_explorer
-from requests import Response
 
 from bohr.collection.artifacts.commit_file import CommitFile
 from bohr.collection.artifacts.commit_message import CommitMessage

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from dask.dataframe import DataFrame
 
@@ -19,7 +19,7 @@ class DatasetLoader(ABC):
         return self.mapper.artifact_type
 
     @abstractmethod
-    def load(self) -> DataFrame:
+    def load(self, n_datapoints: Optional[int] = None) -> DataFrame:
         pass
 
     @abstractmethod

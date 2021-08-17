@@ -137,15 +137,15 @@ def run(
     bohr_repo = load_bohr_repo()
     task = bohr_repo.tasks[task]
     dataset = bohr_repo.datasets[dataset]
-    applied_matrix = apply_heuristic_to_dataset(task, heuristic, dataset)
+    applied_matrix = apply_heuristic_to_dataset(task, heuristic, dataset, n_datapoints)
     df = pd.DataFrame(applied_matrix, columns=[heuristic])
-    artifact_df = dataset.load()
+    artifact_df = dataset.load(n_datapoints)
     ones, zeros, stats = get_fired_datapoints(df, [heuristic], artifact_df)
 
     print("==================             0               ======================")
-    tabulate_artifacts(zeros.head(n_datapoints))
+    tabulate_artifacts(zeros)
     print("==================             1               ======================")
-    tabulate_artifacts(ones.head(n_datapoints))
+    tabulate_artifacts(ones)
     print(stats)
     label_series = (
         artifact_df[task.label_column_name]
