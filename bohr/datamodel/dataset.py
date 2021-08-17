@@ -47,8 +47,8 @@ class Dataset(ABC):
             )
         return {**dct, **self.dataloader.get_extra_params()}
 
-    def load(self):
-        return self.dataloader.load()
+    def load(self, n_datapoints: Optional[int] = None):
+        return self.dataloader.load(n_datapoints)
 
     def is_column_present(self, column: str) -> bool:
         return self.dataloader.is_column_present(column)

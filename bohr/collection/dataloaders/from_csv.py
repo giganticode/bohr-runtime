@@ -34,7 +34,7 @@ class CsvDatasetLoader(DatasetLoader):
             columns = f.readline()
         return column in map(lambda s: s.strip(), columns.split(self.sep))
 
-    def load(self) -> pd.DataFrame:
+    def load(self, n_datapoints: Optional[int] = None) -> pd.DataFrame:
         absolute_path = find_project_root() / self.path_preprocessed
         mapper = self.mapper
         index = (
@@ -43,7 +43,7 @@ class CsvDatasetLoader(DatasetLoader):
         try:
             artifact_df = pd.read_csv(
                 absolute_path,
-                nrows=self.n_rows,
+                nrows=n_datapoints or self.n_rows,
                 sep=self.sep,
                 dtype=self.dtype,
                 keep_default_na=self.keep_default_na,
