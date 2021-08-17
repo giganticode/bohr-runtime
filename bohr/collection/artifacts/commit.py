@@ -3,8 +3,11 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Dict, List, Optional, Set
 
-import jsons
-from commitexplorer.client import query_commit_explorer
+from commitexplorer.client import (
+    CommitExplorerClientException,
+    CommitNotFoundException,
+    query_commit_explorer,
+)
 
 from bohr.collection.artifacts.commit_file import CommitFile
 from bohr.collection.artifacts.commit_message import CommitMessage
@@ -39,8 +42,11 @@ class Commit(Artifact):
 
     @cached_property
     def commit_explorer_data(self) -> Optional[Dict]:
-        response = query_commit_explorer(self.sha)
-        return jsons.loads(response.text) if response.status_code == 200 else None
+        try:
+            return query_commit_explorer(self.sha)
+        except (CommitExplorerClientException, CommitNotFoundException) as ex:
+            print(ex)
+            return None
 
     def __post_init__(self):
         self.message = CommitMessage(self.raw_message)
