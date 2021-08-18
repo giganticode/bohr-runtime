@@ -48,17 +48,17 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "attrs"
-version = "20.3.0"
+version = "21.2.0"
 description = "Classes Without Boilerplate"
-category = "dev"
+category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "furo", "sphinx", "pre-commit"]
-docs = ["furo", "sphinx", "zope.interface"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six"]
+dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit"]
+docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
+tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface"]
+tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins"]
 
 [[package]]
 name = "bcrypt"
@@ -183,6 +183,18 @@ description = "Cross-platform colored terminal text."
 category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[[package]]
+name = "commit-explorer-client"
+version = "0.1.0"
+description = "Client for Commit Explorer"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[package.dependencies]
+appdirs = ">=1.4.4,<2.0.0"
+requests-cache = ">=0.7.1,<0.8.0"
 
 [[package]]
 name = "commonmark"
@@ -422,7 +434,7 @@ hdfs = ["pyarrow (>=2.0.0)"]
 oss = ["oss2 (==2.6.1)", "pycryptodome (<3.9.9)"]
 s3 = ["boto3 (>=1.9.201)"]
 ssh = ["paramiko[invoke] (>=2.7.0)"]
-ssh_gssapi = ["paramiko[gssapi,invoke] (>=2.7.0)"]
+ssh_gssapi = ["paramiko[invoke,gssapi] (>=2.7.0)"]
 tests = ["wheel (==0.36.2)", "pytest (==6.2.2)", "pytest-cov (==2.11.1)", "pytest-xdist (==2.2.1)", "pytest-mock (==3.5.1)", "pytest-lazy-fixture (==0.6.3)", "pytest-timeout (==1.4.2)", "pytest-docker (==0.10.1)", "flaky (==3.7.0)", "mock (==4.0.3)", "rangehttpserver (==1.2.0)", "mock-ssh-server (==0.9.0)", "moto (==2.0.2)", "beautifulsoup4 (==4.9.3)", "wget (==3.2)", "filelock (==3.0.12)", "wsgidav (==3.1.0)", "crc32c (==2.2)", "xmltodict (==0.12.0)", "google-compute-engine (==2.8.13)", "google-cloud-storage (==1.37.0)", "urllib3 (==1.26.4)", "Pygments (==2.8.1)", "collective.checkdocs (==0.2)", "pydocstyle (==6.0.0)", "jaraco.windows (==5.5.0)", "pylint (==2.7.4)", "pylint-pytest (==1.0.3)", "pylint-plugin-utils (==0.6)", "mypy (==0.812)"]
 webdav = ["webdavclient3 (>=3.14.5)"]
 webhdfs = ["hdfs (==2.5.8)"]
@@ -710,6 +722,14 @@ python-versions = ">=3.6,<4.0"
 pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
 requirements_deprecated_finder = ["pipreqs", "pip-api"]
 colors = ["colorama (>=0.4.3,<0.5.0)"]
+
+[[package]]
+name = "itsdangerous"
+version = "2.0.1"
+description = "Safely pass data to untrusted environments and back."
+category = "main"
+optional = false
+python-versions = ">=3.6"
 
 [[package]]
 name = "jinja2"
@@ -1357,6 +1377,31 @@ security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)"]
 socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 
 [[package]]
+name = "requests-cache"
+version = "0.7.4"
+description = "A transparent, persistent cache for the requests library"
+category = "main"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[package.dependencies]
+attrs = ">=21.2,<22.0"
+itsdangerous = ">=2.0.1"
+pyyaml = ">=5.4"
+requests = ">=2.17,<3.0"
+url-normalize = ">=1.4,<2.0"
+
+[package.extras]
+bson = ["bson (>=0.5)", "cattrs (>=1.7,<2.0)"]
+all = ["cattrs (>=1.7,<2.0)", "ujson (>=4.0)", "boto3 (<1.16)", "pymongo (>=3.0,<4.0)", "redis (>=3.0,<4.0)"]
+json = ["cattrs (>=1.7,<2.0)", "ujson (>=4.0)"]
+yaml = ["cattrs (>=1.7,<2.0)"]
+mongodb = ["cattrs (>=1.7,<2.0)", "pymongo (>=3.0,<4.0)"]
+dynamodb = ["boto3 (<1.16)", "botocore (<1.19)"]
+redis = ["redis (>=3.0,<4.0)"]
+docs = ["furo (>=2021.6.24-beta.37)", "myst-parser (>=0.15.1,<0.16.0)", "Sphinx (==4.1.2)", "sphinx-autodoc-typehints (>=1.11,<2.0)", "sphinx-copybutton (>=0.3,<0.5)", "sphinx-inline-tabs (>=2021.4.11-beta.9,<2022.0.0)", "sphinxcontrib-apidoc (>=0.3,<0.4)", "linkify-it-py (>=1.0.1,<2.0.0)"]
+
+[[package]]
 name = "rich"
 version = "9.13.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
@@ -1574,7 +1619,7 @@ python-versions = ">= 3.5"
 
 [[package]]
 name = "tqdm"
-version = "4.61.2"
+version = "4.62.1"
 description = "Fast, Extensible Progress Meter"
 category = "main"
 optional = false
@@ -1606,7 +1651,7 @@ python-versions = "*"
 
 [[package]]
 name = "typish"
-version = "1.9.2"
+version = "1.9.3"
 description = "Functionality for types"
 category = "main"
 optional = false
@@ -1622,6 +1667,17 @@ description = "URI templates"
 category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+
+[[package]]
+name = "url-normalize"
+version = "1.4.3"
+description = "URL normalization for Python"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
+
+[package.dependencies]
+six = "*"
 
 [[package]]
 name = "urllib3"
@@ -1738,7 +1794,7 @@ heapdict = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ae186533551a4e8df3b8cd6bb4619a239079d175b768341037e44e169635c420"
+content-hash = "e509ee2e0f091cde990cdb6eecce9371d30e1138566599fa7b4fe0cd334ae6f7"
 
 [metadata.files]
 absl-py = [
@@ -1761,8 +1817,8 @@ atpublic = [
     {file = "atpublic-2.3.tar.gz", hash = "sha256:d6b9167fc3e09a2de2d2adcfc9a1b48d84eab70753c97de3800362e1703e3367"},
 ]
 attrs = [
-    {file = "attrs-20.3.0-py2.py3-none-any.whl", hash = "sha256:31b2eced602aa8423c2aea9c76a724617ed67cf9513173fd3a4f03e3a929c7e6"},
-    {file = "attrs-20.3.0.tar.gz", hash = "sha256:832aa3cde19744e49938b91fea06d69ecb9e649c93ba974535d08ad92164f700"},
+    {file = "attrs-21.2.0-py2.py3-none-any.whl", hash = "sha256:149e90d6d8ac20db7a955ad60cf0e6881a3f20d37096140088356da6c716b0b1"},
+    {file = "attrs-21.2.0.tar.gz", hash = "sha256:ef6aaac3ca6cd92904cdd0d83f629a15f18053ec84e6432106f7a4d04ae4f5fb"},
 ]
 bcrypt = [
     {file = "bcrypt-3.2.0-cp36-abi3-macosx_10_9_x86_64.whl", hash = "sha256:c95d4cbebffafcdd28bd28bb4e25b31c50f6da605c81ffd9ad8a3d1b2ab7b1b6"},
@@ -1861,6 +1917,10 @@ cloudpickle = [
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
+]
+commit-explorer-client = [
+    {file = "commit-explorer-client-0.1.0.tar.gz", hash = "sha256:854baa9e44184943abc0828534ac1a2940219d0d83e6566661f6014d660e013c"},
+    {file = "commit_explorer_client-0.1.0-py3-none-any.whl", hash = "sha256:b1bf8845a5100b61cd78c491e7fd2e50526b766e5f1791001772cd6b55ae183f"},
 ]
 commonmark = [
     {file = "commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"},
@@ -2128,6 +2188,10 @@ invoke = [
 isort = [
     {file = "isort-5.7.0-py3-none-any.whl", hash = "sha256:fff4f0c04e1825522ce6949973e83110a6e907750cd92d128b0d14aaaadbffdc"},
     {file = "isort-5.7.0.tar.gz", hash = "sha256:c729845434366216d320e936b8ad6f9d681aab72dc7cbc2d51bedc3582f3ad1e"},
+]
+itsdangerous = [
+    {file = "itsdangerous-2.0.1-py3-none-any.whl", hash = "sha256:5174094b9637652bdb841a3029700391451bd092ba3db90600dea710ba28e97c"},
+    {file = "itsdangerous-2.0.1.tar.gz", hash = "sha256:9e724d68fc22902a1435351f84c3fb8623f303fffcc566a4cb952df8c572cff0"},
 ]
 jinja2 = [
     {file = "Jinja2-2.11.3-py2.py3-none-any.whl", hash = "sha256:03e47ad063331dd6a3f04a43eddca8a966a26ba0c5b7207a9a9e4e08f1b29419"},
@@ -2645,6 +2709,10 @@ requests = [
     {file = "requests-2.25.1-py2.py3-none-any.whl", hash = "sha256:c210084e36a42ae6b9219e00e48287def368a26d03a048ddad7bfee44f75871e"},
     {file = "requests-2.25.1.tar.gz", hash = "sha256:27973dd4a904a4f13b263a19c866c13b92a39ed1c964655f025f3f8d3d75b804"},
 ]
+requests-cache = [
+    {file = "requests-cache-0.7.4.tar.gz", hash = "sha256:4786190991b5f9e8ecfa97a1a6fd02475486e522a6d62f4bea53c32a7c1172c9"},
+    {file = "requests_cache-0.7.4-py3-none-any.whl", hash = "sha256:ca7b7d138033dffb07922856a55d51934497024f1d5b8425acbcfa58ee97269f"},
+]
 rich = [
     {file = "rich-9.13.0-py3-none-any.whl", hash = "sha256:9004f6449c89abadf689dad6f92393e760b8c3a8a8c4ea6d8d474066307c0e66"},
     {file = "rich-9.13.0.tar.gz", hash = "sha256:d59e94a0e3e686f0d268fe5c7060baa1bd6744abca71b45351f5850a3aaa6764"},
@@ -2841,8 +2909,8 @@ tornado = [
     {file = "tornado-6.1.tar.gz", hash = "sha256:33c6e81d7bd55b468d2e793517c909b139960b6c790a60b7991b9b6b76fb9791"},
 ]
 tqdm = [
-    {file = "tqdm-4.61.2-py2.py3-none-any.whl", hash = "sha256:5aa445ea0ad8b16d82b15ab342de6b195a722d75fc1ef9934a46bba6feafbc64"},
-    {file = "tqdm-4.61.2.tar.gz", hash = "sha256:8bb94db0d4468fea27d004a0f1d1c02da3cdedc00fe491c0de986b76a04d6b0a"},
+    {file = "tqdm-4.62.1-py2.py3-none-any.whl", hash = "sha256:07856e19a1fe4d2d9621b539d3f072fa88c9c1ef1f3b7dd4d4953383134c3164"},
+    {file = "tqdm-4.62.1.tar.gz", hash = "sha256:35540feeaca9ac40c304e916729e6b78045cbbeccd3e941b2868f09306798ac9"},
 ]
 typed-ast = [
     {file = "typed_ast-1.4.2-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:7703620125e4fb79b64aa52427ec192822e9f45d37d4b6625ab37ef403e1df70"},
@@ -2882,11 +2950,15 @@ typing-extensions = [
     {file = "typing_extensions-3.10.0.0.tar.gz", hash = "sha256:50b6f157849174217d0656f99dc82fe932884fb250826c18350e159ec6cdf342"},
 ]
 typish = [
-    {file = "typish-1.9.2-py3-none-any.whl", hash = "sha256:36f940e39d0f4d2bd4c524d167936024308bc52ef22ec718ce5c4e38a3ba5a95"},
+    {file = "typish-1.9.3-py3-none-any.whl", hash = "sha256:03cfee5e6eb856dbf90244e18f4e4c41044c8790d5779f4e775f63f982e2f896"},
 ]
 uritemplate = [
     {file = "uritemplate-3.0.1-py2.py3-none-any.whl", hash = "sha256:07620c3f3f8eed1f12600845892b0e036a2420acf513c53f7de0abd911a5894f"},
     {file = "uritemplate-3.0.1.tar.gz", hash = "sha256:5af8ad10cec94f215e3f48112de2022e1d5a37ed427fbd88652fa908f2ab7cae"},
+]
+url-normalize = [
+    {file = "url-normalize-1.4.3.tar.gz", hash = "sha256:d23d3a070ac52a67b83a1c59a0e68f8608d1cd538783b401bc9de2c0fac999b2"},
+    {file = "url_normalize-1.4.3-py2.py3-none-any.whl", hash = "sha256:ec3c301f04e5bb676d333a7fa162fa977ad2ca04b7e652bfc9fac4e405728eed"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.6-py2.py3-none-any.whl", hash = "sha256:39fb8672126159acb139a7718dd10806104dec1e2f0f6c88aab05d17df10c8d4"},
