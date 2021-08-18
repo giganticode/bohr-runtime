@@ -434,7 +434,7 @@ hdfs = ["pyarrow (>=2.0.0)"]
 oss = ["oss2 (==2.6.1)", "pycryptodome (<3.9.9)"]
 s3 = ["boto3 (>=1.9.201)"]
 ssh = ["paramiko[invoke] (>=2.7.0)"]
-ssh_gssapi = ["paramiko[gssapi,invoke] (>=2.7.0)"]
+ssh_gssapi = ["paramiko[invoke,gssapi] (>=2.7.0)"]
 tests = ["wheel (==0.36.2)", "pytest (==6.2.2)", "pytest-cov (==2.11.1)", "pytest-xdist (==2.2.1)", "pytest-mock (==3.5.1)", "pytest-lazy-fixture (==0.6.3)", "pytest-timeout (==1.4.2)", "pytest-docker (==0.10.1)", "flaky (==3.7.0)", "mock (==4.0.3)", "rangehttpserver (==1.2.0)", "mock-ssh-server (==0.9.0)", "moto (==2.0.2)", "beautifulsoup4 (==4.9.3)", "wget (==3.2)", "filelock (==3.0.12)", "wsgidav (==3.1.0)", "crc32c (==2.2)", "xmltodict (==0.12.0)", "google-compute-engine (==2.8.13)", "google-cloud-storage (==1.37.0)", "urllib3 (==1.26.4)", "Pygments (==2.8.1)", "collective.checkdocs (==0.2)", "pydocstyle (==6.0.0)", "jaraco.windows (==5.5.0)", "pylint (==2.7.4)", "pylint-pytest (==1.0.3)", "pylint-plugin-utils (==0.6)", "mypy (==0.812)"]
 webdav = ["webdavclient3 (>=3.14.5)"]
 webhdfs = ["hdfs (==2.5.8)"]
@@ -1304,7 +1304,7 @@ six = ">=1.5"
 
 [[package]]
 name = "python-fsutil"
-version = "0.4.0"
+version = "0.5.0"
 description = "file-system utilities for lazy devs."
 category = "main"
 optional = false
@@ -1795,7 +1795,7 @@ heapdict = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e1e15687ec09814362f910c3a75c0f434f48aad83e647f2cf6ecf1f7fd5f4590"
+content-hash = "bc9fa944d449fd503c9e92abc13bf6a8ce90e98ac65fd40509a75c47fbae5917"
 
 [metadata.files]
 absl-py = [
@@ -2612,8 +2612,8 @@ python-dateutil = [
     {file = "python_dateutil-2.8.1-py2.py3-none-any.whl", hash = "sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a"},
 ]
 python-fsutil = [
-    {file = "python-fsutil-0.4.0.tar.gz", hash = "sha256:873eceb11fb488fc2d7675cd1bc74a743502f674f0be88f5e7b920c7baeefed6"},
-    {file = "python_fsutil-0.4.0-py3-none-any.whl", hash = "sha256:3e93c919b96a146de78900b644c9d9f957b1d50ae67c510a39f866d30ab626c7"},
+    {file = "python-fsutil-0.5.0.tar.gz", hash = "sha256:02a347540d10c1616390a536ced73fd67df8d01c499f497d0ab3de3fbb236f0e"},
+    {file = "python_fsutil-0.5.0-py3-none-any.whl", hash = "sha256:dc8de800c9915e6a3333ff2e917207a1a7cc20d0e7ea0e165473fa29e16be566"},
 ]
 python-slugify = [
     {file = "python-slugify-4.0.1.tar.gz", hash = "sha256:69a517766e00c1268e5bbfc0d010a0a8508de0b18d30ad5a1ff357f8ae724270"},
