@@ -434,7 +434,7 @@ hdfs = ["pyarrow (>=2.0.0)"]
 oss = ["oss2 (==2.6.1)", "pycryptodome (<3.9.9)"]
 s3 = ["boto3 (>=1.9.201)"]
 ssh = ["paramiko[invoke] (>=2.7.0)"]
-ssh_gssapi = ["paramiko[gssapi,invoke] (>=2.7.0)"]
+ssh_gssapi = ["paramiko[invoke,gssapi] (>=2.7.0)"]
 tests = ["wheel (==0.36.2)", "pytest (==6.2.2)", "pytest-cov (==2.11.1)", "pytest-xdist (==2.2.1)", "pytest-mock (==3.5.1)", "pytest-lazy-fixture (==0.6.3)", "pytest-timeout (==1.4.2)", "pytest-docker (==0.10.1)", "flaky (==3.7.0)", "mock (==4.0.3)", "rangehttpserver (==1.2.0)", "mock-ssh-server (==0.9.0)", "moto (==2.0.2)", "beautifulsoup4 (==4.9.3)", "wget (==3.2)", "filelock (==3.0.12)", "wsgidav (==3.1.0)", "crc32c (==2.2)", "xmltodict (==0.12.0)", "google-compute-engine (==2.8.13)", "google-cloud-storage (==1.37.0)", "urllib3 (==1.26.4)", "Pygments (==2.8.1)", "collective.checkdocs (==0.2)", "pydocstyle (==6.0.0)", "jaraco.windows (==5.5.0)", "pylint (==2.7.4)", "pylint-pytest (==1.0.3)", "pylint-plugin-utils (==0.6)", "mypy (==0.812)"]
 webdav = ["webdavclient3 (>=3.14.5)"]
 webhdfs = ["hdfs (==2.5.8)"]
@@ -1272,14 +1272,14 @@ testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xm
 
 [[package]]
 name = "python-benedict"
-version = "0.23.2"
-description = "python-benedict is a dict subclass with keylist/keypath support, I/O shortcuts (base64, csv, json, pickle, plist, query-string, toml, xml, yaml) and many utilities... for humans, obviously."
+version = "0.24.2"
+description = "python-benedict is a dict subclass with keylist/keypath support, normalized I/O operations (base64, csv, ini, json, pickle, plist, query-string, toml, xml, yaml) and many utilities... for humans, obviously."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-ftfy = {version = "*", markers = "python_version > \"2.7\""}
+ftfy = {version = "*", markers = "python_version >= \"3.6\""}
 mailchecker = "*"
 phonenumbers = "*"
 python-dateutil = "*"
@@ -1795,7 +1795,7 @@ heapdict = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e1e15687ec09814362f910c3a75c0f434f48aad83e647f2cf6ecf1f7fd5f4590"
+content-hash = "07dd080e4a3d257388fbbbd2049537e833692b15ebc383731f3fc0d1a62ee13b"
 
 [metadata.files]
 absl-py = [
@@ -2604,8 +2604,8 @@ pytest = [
     {file = "pytest-6.2.1.tar.gz", hash = "sha256:66e419b1899bc27346cb2c993e12c5e5e8daba9073c1fbce33b9807abc95c306"},
 ]
 python-benedict = [
-    {file = "python-benedict-0.23.2.tar.gz", hash = "sha256:b7bdffd92ba1c9b9e044bda08ed545a48a45bd7a5207f93b4b2a8eb2660d1b4c"},
-    {file = "python_benedict-0.23.2-py3-none-any.whl", hash = "sha256:b484901d94eb5b8aabd3e612cf1c504b42a92b6f17506428c60dbf93c3a88c6e"},
+    {file = "python-benedict-0.24.2.tar.gz", hash = "sha256:7c19aea66d864204f9d190381f0bedb043e5a087826fcfd5fc09ee6f53a6cf3d"},
+    {file = "python_benedict-0.24.2-py3-none-any.whl", hash = "sha256:bca095b5a97069f308a749502a06db07ce72a3a8d464f0200d42a519e624e932"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.1.tar.gz", hash = "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c"},
