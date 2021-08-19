@@ -139,7 +139,7 @@ pyparsing = "2.4.7"
 pytest = "6.2.4"
 toml = "0.10.2"
 typed-ast = "1.4.3"
-virtualenv = "20.7.2"
+virtualenv = "20.2.2"
 wrapt = "1.12.1"
 
 [tool.poetry.scripts]
