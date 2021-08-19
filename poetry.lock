@@ -768,14 +768,14 @@ six = "*"
 
 [[package]]
 name = "jsons"
-version = "1.4.0"
+version = "1.5.0"
 description = "For serializing Python objects to JSON (dicts) and back"
 category = "main"
 optional = false
 python-versions = ">=3.5"
 
 [package.dependencies]
-typish = ">=1.9.1"
+typish = ">=1.9.2"
 
 [[package]]
 name = "lazy-object-proxy"
@@ -1794,7 +1794,7 @@ heapdict = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ae652597ed5a8f23f43f08cc27280d0ad92b1028c462dd4a7ac6287007dc874b"
+content-hash = "321d72543ec9afba599c1180d5054f8d4db4d6d3d1aec4119bc4b94e66dec70d"
 
 [metadata.files]
 absl-py = [
@@ -2208,7 +2208,7 @@ jsonpath-ng = [
     {file = "jsonpath_ng-1.5.2-py3-none-any.whl", hash = "sha256:93d1f248be68e485eb6635c3a01b2d681f296dc349d71e37c8755837b8944d36"},
 ]
 jsons = [
-    {file = "jsons-1.4.0-py3-none-any.whl", hash = "sha256:73273a3862ff034318a48c0bf9f6b480f100f34edbf731a9716dd2ed73da88fb"},
+    {file = "jsons-1.5.0-py3-none-any.whl", hash = "sha256:a3d8388d5aa488fb2c859808a208695d2cfca9d92a53a559c950375e7ecb0132"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.4.3.tar.gz", hash = "sha256:f3900e8a5de27447acbf900b4750b0ddfd7ec1ea7fbaf11dfa911141bc522af0"},
