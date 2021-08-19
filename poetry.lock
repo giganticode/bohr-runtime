@@ -1489,7 +1489,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "shtab"
-version = "1.3.5"
+version = "1.3.10"
 description = "Automatically generate shell tab completion scripts for python CLI apps"
 category = "main"
 optional = false
@@ -1794,7 +1794,7 @@ heapdict = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ae652597ed5a8f23f43f08cc27280d0ad92b1028c462dd4a7ac6287007dc874b"
+content-hash = "b48d645321683d76c0939449c9a2aab31dedf2adec26e1df4350a8957550daa3"
 
 [metadata.files]
 absl-py = [
@@ -2804,8 +2804,8 @@ shortuuid = [
     {file = "shortuuid-1.0.1.tar.gz", hash = "sha256:3c11d2007b915c43bee3e10625f068d8a349e04f0d81f08f5fa08507427ebf1f"},
 ]
 shtab = [
-    {file = "shtab-1.3.5-py2.py3-none-any.whl", hash = "sha256:540ee72e1d1dc1c1ef72b8d168f5f4f85738eae56c0cededaf814f5a3a548c60"},
-    {file = "shtab-1.3.5.tar.gz", hash = "sha256:3e7880f2778b659f4f01af07ab7b815b2786c257efa8ec52d6057e06a398a103"},
+    {file = "shtab-1.3.10-py2.py3-none-any.whl", hash = "sha256:a152506b5cc5ce835ecb0ff5cfa4770f898e680f7fa38eb85b05dd519891926d"},
+    {file = "shtab-1.3.10.tar.gz", hash = "sha256:2740cb128bfd78382ddf300639a1378ef7e4658a562b268b1b52b5c73607c798"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
