@@ -9,8 +9,8 @@ from snorkel.labeling import LabelingFunction
 from snorkel.labeling.apply.core import LFApplier
 
 from bohrruntime.config.pathconfig import PathConfig
-from bohrruntime.core import load_dataset, to_labeling_function, to_labeling_functions
-from bohrruntime.heuristics import load_heuristic_by_name, load_heuristics_from_file
+from bohrruntime.core import load_dataset, to_labeling_functions
+from bohrruntime.heuristics import load_heuristics_from_file
 from bohrruntime.labeling.cache import CategoryMappingCache
 from bohrruntime.util.paths import AbsolutePath
 
@@ -46,29 +46,6 @@ def get_labeling_functions_from_path(
     return labeling_functions
 
 
-def apply_heuristic_to_dataset(
-    task: Task,
-    heuristic_name: str,
-    dataset: Dataset,
-    n_datapoints: Optional[int] = None,
-    path_config: Optional[PathConfig] = None,
-) -> np.ndarray:
-    path_config = path_config or PathConfig.load()
-    heuristic = load_heuristic_by_name(
-        heuristic_name, task.top_artifact, path_config.heuristics
-    )
-    category_mapping_cache = CategoryMappingCache(
-        list(map(lambda x: str(x), task.labels)), maxsize=10000
-    )
-    labeling_function = to_labeling_function(
-        heuristic, dataset.top_artifact, category_mapping_cache
-    )
-    apply_lf_matrix = apply_lfs_to_dataset(
-        [labeling_function], artifacts=load_dataset(dataset, n_datapoints=n_datapoints)
-    )
-    return apply_lf_matrix
-
-
 def apply_heuristics_to_dataset(
     heuristic_group: str,
     dataset: Dataset,
@@ -79,7 +56,6 @@ def apply_heuristics_to_dataset(
     save_to_matrix = path_config.heuristic_matrix_file(dataset, heuristic_group)
 
     heuristic_file = path_config.heuristics / heuristic_group
-    # heuristics = load_heuristics_from_path(heuristic_file, task.top_artifact)
     category_mapping_cache = CategoryMappingCache(
         list(map(lambda x: str(x), [CommitLabel.NonBugFix, CommitLabel.BugFix])),
         maxsize=10000,

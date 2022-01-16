@@ -13,15 +13,17 @@ def load_all_heuristics(
     artifact_type: Type,
     heuristics_root: AbsolutePath,
     limited_to_modules: Optional[Set[str]] = None,
-) -> Dict[str, List[HeuristicObj]]:
-    modules: Dict[str, List[HeuristicObj]] = {}
+) -> Dict[RelativePath, List[HeuristicObj]]:
+    modules: Dict[RelativePath, List[HeuristicObj]] = {}
     for path in get_heuristic_files(heuristics_root):
-        path: RelativePath = relative_to_safe(path, heuristics_root.parent)
-        heuristic_module_path = ".".join(str(path).replace("/", ".").split(".")[:-1])
+        rel_path: RelativePath = relative_to_safe(path, heuristics_root.parent)
+        heuristic_module_path = ".".join(
+            str(rel_path).replace("/", ".").split(".")[:-1]
+        )
         if limited_to_modules is None or heuristic_module_path in limited_to_modules:
-            hs = load_heuristics_from_file(heuristic_module_path, artifact_type)
+            hs = load_heuristics_from_file(path, artifact_type)
             if len(hs) > 0:
-                modules[heuristic_module_path] = hs
+                modules[rel_path] = hs
     return modules
 
 
@@ -85,12 +87,15 @@ def load_heuristics_from_file(
 
 
 def load_heuristic_by_name(
-    name: str, artifact_type: Type, heuristics_path: AbsolutePath
+    name: str,
+    artifact_type: Type,
+    heuristics_path: AbsolutePath,
+    return_path: bool = False,
 ) -> HeuristicObj:
-    for hs in load_all_heuristics(artifact_type, heuristics_path).values():
+    for path, hs in load_all_heuristics(artifact_type, heuristics_path).items():
         for h in hs:
             if h.func.__name__ == name:
-                return h
+                return h if not return_path else (h, path)
     raise ValueError(f"Heuristic {name} does not exist")
 
 
