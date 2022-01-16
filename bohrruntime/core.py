@@ -100,8 +100,9 @@ def to_snorkel_label(labels, category_mapping_cache_map: CategoryMappingCache) -
     return snorkel_label
 
 
-def load_workspace() -> Workspace:
-    file = find_project_root() / "bohr.py"
+def load_workspace(project_root: Optional[AbsolutePath] = None) -> Workspace:
+    project_root = project_root or find_project_root()
+    file = project_root / "bohr.py"
     import importlib.util
 
     spec = importlib.util.spec_from_file_location("heuristic.module", file)
