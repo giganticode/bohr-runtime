@@ -19,7 +19,6 @@ bugginess = Task(
     description="bug or not",
     top_artifact=Commit,
     labels=[CommitLabel.NonBugFix, CommitLabel.BugFix],
-    training_dataset=berger,
     test_datasets={
         herzig: lambda c: (
             CommitLabel.BugFix
@@ -32,6 +31,7 @@ bugginess = Task(
 keywords_in_message = Experiment(
     "keywords_in_message",
     bugginess,
+    berger,
     f"bugginess/keywords/bug_keywords_lookup_in_message.py:bugginess/keywords/buggless_keywords_lookup_in_message.py@{HEURISTIC_REVISION}",
 )
 

@@ -1,3 +1,5 @@
 bohr_runtime_version: 0.5.0rc2
-keywords_in_message:
-  heuristics_classifier: bugginess/keywords/bug_keywords_lookup_in_message.py:bugginess/keywords/buggless_keywords_lookup_in_message.py
+experiments:
+  keywords_in_message:
+    heuristics_classifier: bugginess/keywords/bug_keywords_lookup_in_message.py:bugginess/keywords/buggless_keywords_lookup_in_message.py
+    train_set: manual_labels.berger

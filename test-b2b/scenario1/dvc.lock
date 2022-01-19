@@ -2058,13 +2058,13 @@ stages:
     cmd: bohr porcelain combine-heuristics "keywords_in_message" --dataset "manual_labels.berger"
     deps:
     - path: runs/__heuristics/manual_labels.berger
-      md5: c636c543ac46fa49b0b40e58567a135c.dir
-      size: 1066772
-      nfiles: 77
+      md5: 4c01a823ffaac33e5b35b574ea67b6e6.dir
+      size: 1066794
+      nfiles: 78
     params:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
-        keywords_in_message.heuristics_classifier: bugginess/keywords/bug_keywords_lookup_in_message.py:bugginess/keywords/buggless_keywords_lookup_in_message.py
+        experiments.keywords_in_message.heuristics_classifier: bugginess/keywords/bug_keywords_lookup_in_message.py:bugginess/keywords/buggless_keywords_lookup_in_message.py
     outs:
     - path: runs/bugginess/keywords_in_message/manual_labels.berger/analysis.json
       md5: 122bc4c54c4f64ca832ec877dafa8c69
@@ -2085,7 +2085,7 @@ stages:
     params:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
-        keywords_in_message.heuristics_classifier: bugginess/keywords/bug_keywords_lookup_in_message.py:bugginess/keywords/buggless_keywords_lookup_in_message.py
+        experiments.keywords_in_message.heuristics_classifier: bugginess/keywords/bug_keywords_lookup_in_message.py:bugginess/keywords/buggless_keywords_lookup_in_message.py
     outs:
     - path: runs/bugginess/keywords_in_message/manual_labels.herzig/analysis.json
       md5: 77797aa6dd68f15b5bc7283edf7903ff
@@ -2108,9 +2108,10 @@ stages:
     params:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
+        experiments.keywords_in_message.train_set: manual_labels.berger
     outs:
     - path: runs/bugginess/keywords_in_message/label_model.pkl
-      md5: 1a3eed9d6dab2687c8180e8543e1cd23
+      md5: 8031b98a2297a5781409a31069f1f7ab
       size: 441383
     - path: runs/bugginess/keywords_in_message/label_model_metrics.json
       md5: 5c897a1a8a7ef5042da11ef9676a376f
@@ -2122,7 +2123,7 @@ stages:
     cmd: bohr porcelain label-dataset "keywords_in_message" "manual_labels.berger"
     deps:
     - path: runs/bugginess/keywords_in_message/label_model.pkl
-      md5: 1a3eed9d6dab2687c8180e8543e1cd23
+      md5: 8031b98a2297a5781409a31069f1f7ab
       size: 441383
     - path: runs/bugginess/keywords_in_message/manual_labels.berger/heuristic_matrix.pkl
       md5: 15ad49a12f4a9c0da82151262bba8db6
@@ -2258,7 +2259,7 @@ stages:
     cmd: bohr porcelain label-dataset "keywords_in_message" "manual_labels.herzig"
     deps:
     - path: runs/bugginess/keywords_in_message/label_model.pkl
-      md5: 1a3eed9d6dab2687c8180e8543e1cd23
+      md5: 8031b98a2297a5781409a31069f1f7ab
       size: 441383
     - path: runs/bugginess/keywords_in_message/manual_labels.herzig/heuristic_matrix.pkl
       md5: 31a176ad4eaf35a79a1b660f1b38669e
