@@ -3,10 +3,10 @@ from typing import Optional
 
 from bohrapi.core import Workspace
 
-import bohrruntime.dvc.commands as dvc
+import bohrruntime.dvc as dvc
 from bohrruntime.config.pathconfig import PathConfig
 from bohrruntime.core import load_workspace
-from bohrruntime.dvc.stages import write_tasks_to_dvc_file
+from bohrruntime.pipeline import write_tasks_to_dvc_file
 
 logger = logging.getLogger(__name__)
 

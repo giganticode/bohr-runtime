@@ -1,4 +1,3 @@
-from pprint import pprint
 from typing import Optional
 
 import numpy as np
@@ -7,11 +6,10 @@ from bohrapi.core import Dataset, Experiment
 from bohrlabels.core import LabelSet
 
 from bohrruntime.config.pathconfig import PathConfig
-from bohrruntime.core import to_labeling_functions
+from bohrruntime.core import load_ground_truth_labels, to_labeling_functions
+from bohrruntime.data_analysis import calculate_metrics, run_analysis
 from bohrruntime.heuristics import get_heuristic_files, load_heuristics_from_file
 from bohrruntime.labeling.cache import CategoryMappingCache
-from bohrruntime.pipeline.apply_heuristics import load_ground_truth_labels
-from bohrruntime.pipeline.data_analysis import calculate_metrics, run_analysis
 from bohrruntime.util.paths import relative_to_safe
 
 

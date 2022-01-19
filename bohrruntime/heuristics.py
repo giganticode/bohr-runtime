@@ -4,8 +4,9 @@ import pathlib
 from typing import Dict, List, Optional, Set, Type
 
 from bohrapi.core import ArtifactType, HeuristicObj
+from snorkel.labeling import LabelingFunction
 
-from bohrruntime.core import is_heuristic_file
+from bohrruntime.core import to_labeling_functions
 from bohrruntime.util.paths import AbsolutePath, RelativePath, relative_to_safe
 
 
@@ -106,3 +107,28 @@ def check_names_unique(heuristics: List[HeuristicObj]) -> None:
         if name in name_set:
             raise ValueError(f"Heuristic with name {name} already exists.")
         name_set.add(name)
+
+
+def is_heuristic_file(file: AbsolutePath) -> bool:
+    """
+    >>> from pathlib import Path
+    >>> is_heuristic_file(Path('/home/user/heuristics/mult.py'))
+    True
+    >>> is_heuristic_file(Path('/home/user/heuristics/_mult.py'))
+    False
+    >>> is_heuristic_file(Path('/home/user/heuristics/__pycache__/mult.py'))
+    False
+    """
+    return (
+        not str(file.name).startswith("_")
+        and not str(file.parent).endswith("__pycache__")
+        and str(file.name).endswith(".py")
+    )
+
+
+def get_labeling_functions_from_path(
+    heuristic_file: AbsolutePath, category_mapping_cache
+) -> List[LabelingFunction]:
+    heuristics = load_heuristics_from_file(heuristic_file)
+    labeling_functions = to_labeling_functions(heuristics, category_mapping_cache)
+    return labeling_functions

@@ -6,13 +6,10 @@ from bohrapi.core import Dataset, Task
 from bohrlabels.core import LabelSet
 
 from bohrruntime.config.pathconfig import PathConfig
-from bohrruntime.core import load_dataset
+from bohrruntime.core import load_dataset, load_ground_truth_labels
+from bohrruntime.data_analysis import calculate_metrics
+from bohrruntime.heuristics import get_labeling_functions_from_path
 from bohrruntime.labeling.cache import CategoryMappingCache
-from bohrruntime.pipeline.apply_heuristics import (
-    get_labeling_functions_from_path,
-    load_ground_truth_labels,
-)
-from bohrruntime.pipeline.data_analysis import calculate_metrics
 
 
 def calculate_metrics_for_heuristic(task: Task, heuristic_group: str, dataset: Dataset, path_config: Optional[PathConfig] = None) -> None:

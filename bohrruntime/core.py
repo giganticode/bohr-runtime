@@ -1,11 +1,10 @@
 import inspect
 import json
 import logging
-import os
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Mapping, Optional, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Union
 
-from bohrlabels.core import Labels, LabelSet
+import pandas as pd
+from bohrlabels.core import Label, Labels, LabelSet
 from jsonlines import jsonlines
 from pymongo import MongoClient
 from snorkel.labeling import LabelingFunction
@@ -25,7 +24,7 @@ HeuristicFunction = Callable[..., Optional[Labels]]
 from abc import ABC
 from typing import Optional, Type, TypeVar
 
-from bohrapi.core import ArtifactType, Dataset, HeuristicObj, Workspace
+from bohrapi.core import ArtifactType, Dataset, HeuristicObj, Task, Workspace
 from snorkel.map import BaseMapper
 from snorkel.types import DataPoint
 
@@ -255,80 +254,16 @@ def get_projection(heuristics: List[HeuristicObj]) -> Dict:
     return mock.projection
 
 
-def is_heuristic_file(file: AbsolutePath) -> bool:
-    """
-    >>> from pathlib import Path
-    >>> is_heuristic_file(Path('/home/user/heuristics/mult.py'))
-    True
-    >>> is_heuristic_file(Path('/home/user/heuristics/_mult.py'))
-    False
-    >>> is_heuristic_file(Path('/home/user/heuristics/__pycache__/mult.py'))
-    False
-    """
-    return (
-        not str(file.name).startswith("_")
-        and not str(file.parent).endswith("__pycache__")
-        and str(file.name).endswith(".py")
-    )
-
-
-def normalize_paths(paths: List[str], base_dir: Path, predicate: Callable) -> List[str]:
-    """
-    >>> import tempfile
-    >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    ...     os.makedirs(tmpdirname / Path('root'))
-    ...     os.makedirs(tmpdirname / Path('root/dir1'))
-    ...     os.makedirs(tmpdirname / Path('root/dir2'))
-    ...     open(tmpdirname / Path('root/file0.txt'), 'a').close()
-    ...     open(tmpdirname / Path('root/dir1/file11.txt'), 'a').close()
-    ...     open(tmpdirname / Path('root/dir1/file12.txt'), 'a').close()
-    ...     open(tmpdirname / Path('root/dir2/file21.txt'), 'a').close()
-    ...     open(tmpdirname / Path('root/dir2/file22.txt'), 'a').close()
-    ...
-    ...     absolute_paths = normalize_paths(['root/file0.txt'], Path(tmpdirname), lambda x: True)
-    ...     res1 = [str(Path(path)) for path in absolute_paths]
-    ...
-    ...     absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1/file11.txt'], Path(tmpdirname), lambda x: True)
-    ...     res2 = [str(Path(path)) for path in absolute_paths]
-    ...     absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1/file11.txt', 'root/dir1/file12.txt'], Path(tmpdirname), lambda x: True)
-    ...     res3 = [str(Path(path)) for path in absolute_paths]
-    ...     absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1', 'root/dir1/file12.txt'], Path(tmpdirname), lambda x: True)
-    ...     res4 = [str(Path(path)) for path in absolute_paths]
-    ...     absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1', 'root/dir1/file11.txt', 'root/dir1/file12.txt'], Path(tmpdirname), lambda x: True)
-    ...     res5 = [str(Path(path)) for path in absolute_paths]
-    ...     res1, res2, res3, res4, res5
-    (['root/file0.txt'], ['root/dir1/file11.txt', 'root/file0.txt'], ['root/dir1', 'root/file0.txt'], ['root/dir1', 'root/file0.txt'], ['root/dir1', 'root/file0.txt'])
-    """
-    non_collapsable = set()
-
-    absolute_paths = [base_dir / path for path in paths]
-    grouped = {}
-    for path in absolute_paths:
-        if path.parent not in grouped:
-            grouped[path.parent] = set()
-        grouped[path.parent].add(path.name)
-    while len(grouped) > 0:
-        group, children = next(iter(grouped.items()))
-        if not group.exists():
-            raise ValueError(f"Path {group} does not exist")
-        if (
-            not group.parent in grouped or not group.name in grouped[group.parent]
-        ) and not str(group.relative_to(base_dir)) in non_collapsable:
-            all_children_included = True
-            _, dirs, files = next(os.walk(str(group)))
-            for file in files + dirs:
-                path = Path(file)
-                if path.parts[0] not in children and predicate(path):
-                    all_children_included = False
-                    break
-            if all_children_included:
-                if group.parent not in grouped:
-                    grouped[group.parent] = set()
-                grouped[group.parent].add(group.name)
-            else:
-                non_collapsable = non_collapsable.union(
-                    [str((group / child).relative_to(base_dir)) for child in children]
-                )
-        del grouped[group]
-
-    return sorted(non_collapsable)
+def load_ground_truth_labels(
+    task: Task, dataset: Dataset, pre_loaded_artifacts: Optional[pd.DataFrame] = None
+) -> Optional[Sequence[Label]]:
+    if pre_loaded_artifacts is None:
+        pre_loaded_artifacts = load_dataset(dataset)
+    if dataset in task.test_datasets and task.test_datasets[dataset] is not None:
+        label_from_datapoint_function = task.test_datasets[dataset]
+        label_series = [
+            label_from_datapoint_function(artifact) for artifact in pre_loaded_artifacts
+        ]
+    else:
+        label_series = None
+    return label_series

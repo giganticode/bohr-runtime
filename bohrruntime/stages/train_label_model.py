@@ -4,13 +4,13 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import pandas as pd
-from bohrapi.core import Dataset, Experiment
+from bohrapi.core import Experiment
 from bohrlabels.core import LabelSet
 from snorkel.labeling.model import LabelModel
 
 from bohrruntime.config.pathconfig import PathConfig
+from bohrruntime.core import load_ground_truth_labels
 from bohrruntime.labeling.cache import CategoryMappingCache
-from bohrruntime.pipeline.apply_heuristics import load_ground_truth_labels
 from bohrruntime.util.paths import AbsolutePath
 
 random.seed(13)
@@ -77,10 +77,10 @@ def fit_label_model(lines_train: np.ndarray) -> LabelModel:
 
 
 def train_label_model(
-    exp: Experiment, training_dataset: Dataset, path_config: Optional[PathConfig] = None
+    exp: Experiment, path_config: Optional[PathConfig] = None
 ) -> Dict[str, Any]:
     path_config = path_config or PathConfig.load()
-    dataset_dir = path_config.exp_dataset_dir(exp, training_dataset)
+    dataset_dir = path_config.exp_dataset_dir(exp, exp.train_dataset)
     task_dir = path_config.exp_dir(exp)
 
     lines_train = pd.read_pickle(str(dataset_dir / f"heuristic_matrix.pkl"))

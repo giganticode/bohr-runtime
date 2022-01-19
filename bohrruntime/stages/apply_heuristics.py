@@ -1,33 +1,16 @@
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-from bohrapi.core import Dataset, Task
-from bohrlabels.core import Label
+from bohrapi.core import Dataset
 from bohrlabels.labels import CommitLabel
 from snorkel.labeling import LabelingFunction
 from snorkel.labeling.apply.core import LFApplier
 
 from bohrruntime.config.pathconfig import PathConfig
-from bohrruntime.core import load_dataset, to_labeling_functions
-from bohrruntime.heuristics import load_heuristics_from_file
+from bohrruntime.core import load_dataset
+from bohrruntime.heuristics import get_labeling_functions_from_path
 from bohrruntime.labeling.cache import CategoryMappingCache
-from bohrruntime.util.paths import AbsolutePath
-
-
-def load_ground_truth_labels(
-    task: Task, dataset: Dataset, pre_loaded_artifacts: Optional[pd.DataFrame] = None
-) -> Optional[Sequence[Label]]:
-    if pre_loaded_artifacts is None:
-        pre_loaded_artifacts = load_dataset(dataset)
-    if dataset in task.test_datasets and task.test_datasets[dataset] is not None:
-        label_from_datapoint_function = task.test_datasets[dataset]
-        label_series = [
-            label_from_datapoint_function(artifact) for artifact in pre_loaded_artifacts
-        ]
-    else:
-        label_series = None
-    return label_series
 
 
 def apply_lfs_to_dataset(
@@ -36,14 +19,6 @@ def apply_lfs_to_dataset(
     applier = LFApplier(lfs=lfs)
     applied_lf_matrix = applier.apply(artifacts)
     return applied_lf_matrix
-
-
-def get_labeling_functions_from_path(
-    heuristic_file: AbsolutePath, category_mapping_cache
-) -> List[LabelingFunction]:
-    heuristics = load_heuristics_from_file(heuristic_file)
-    labeling_functions = to_labeling_functions(heuristics, category_mapping_cache)
-    return labeling_functions
 
 
 def apply_heuristics_to_dataset(

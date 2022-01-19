@@ -11,9 +11,8 @@ from bohrapi.core import Dataset, Experiment, Task, Workspace
 from git import Repo
 
 from bohrruntime.config.pathconfig import PathConfig
-from bohrruntime.core import is_heuristic_file, normalize_paths
-from bohrruntime.heuristics import get_heuristic_files
-from bohrruntime.util.paths import AbsolutePath, relative_to_safe
+from bohrruntime.heuristics import get_heuristic_files, is_heuristic_file
+from bohrruntime.util.paths import AbsolutePath, normalize_paths, relative_to_safe
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +76,7 @@ class DvcCommand(ABC):
     ) -> Dict[str, Dict[str, str]]:
         foreach = {}
         for experiment in self.experiments:
-            for dataset in experiment.task.datasets:
+            for dataset in experiment.datasets:
                 heuristic_groups = get_heuristic_files(
                     self.path_config.heuristics, experiment.task.top_artifact
                 )
@@ -106,7 +105,7 @@ class LoadDatasetsCommand(DvcCommand):
                 ): {"cache": False}
             },
         ]
-        dataset_set = {d.id for run in self.experiments for d in run.task.datasets}
+        dataset_set = {d.id for exp in self.experiments for d in exp.datasets}
         foreach = sorted(dataset_set)
 
         return self._to_template_dict(
@@ -141,7 +140,7 @@ class ApplyHeuristicsCommand(DvcCommand):
     def generate_foreach(
         self, iterate_heuristics: bool = False
     ) -> Dict[str, Dict[str, str]]:
-        all_datasets = {d for exp in self.experiments for d in exp.task.datasets}
+        all_datasets = {d for exp in self.experiments for d in exp.datasets}
         foreach = {}
 
         for dataset in all_datasets:
@@ -203,7 +202,7 @@ class ComputeSingleHeuristicMetrics(DvcCommand):
         foreach = {}
 
         for task in all_tasks:
-            for dataset in task.datasets:
+            for dataset in task.test_datasets.keys():
                 heuristic_groups = get_heuristic_files(
                     self.path_config.heuristics, dataset.top_artifact
                 )
@@ -225,7 +224,7 @@ class CombineHeuristicsCommand(DvcCommand):
     def to_dvc_template_dict(self) -> Dict:
         cmd = 'bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"'
         deps = [str(self.path_config.runs_dir / "__heuristics" / "${item.dataset}")]
-        params = [{"bohr.lock": ["${item.exp}.heuristics_classifier"]}]
+        params = [{"bohr.lock": ["experiments.${item.exp}.heuristics_classifier"]}]
         outs = [
             str(
                 self.path_config.runs_dir
@@ -267,6 +266,7 @@ class TrainLabelModelCommand(DvcCommand):
 
     def to_dvc_template_dict(self) -> Dict:
         cmd = f"bohr porcelain train-label-model {self.exp.name}"
+        params = [{"bohr.lock": [f"experiments.{self.exp.name}.train_set"]}]
         deps = [
             str(
                 self.path_config.runs_dir
@@ -275,7 +275,7 @@ class TrainLabelModelCommand(DvcCommand):
                 / dataset.id
                 / "heuristic_matrix.pkl"
             )
-            for dataset in self.exp.task.datasets
+            for dataset in self.exp.datasets
         ]
         outs = [
             str(
@@ -301,7 +301,7 @@ class TrainLabelModelCommand(DvcCommand):
         ]
         foreach = [0]
 
-        return self._to_template_dict(foreach, cmd, [], deps, outs, metrics)
+        return self._to_template_dict(foreach, cmd, params, deps, outs, metrics)
 
 
 class LabelDatasetCommand(DvcCommand):
@@ -365,8 +365,8 @@ def dvc_config_from_tasks(
         raise ValueError("At least of task should be specified")
 
     train_model_commands = [
-        TrainLabelModelCommand(path_config, all_experiments, run)
-        for run in all_experiments
+        TrainLabelModelCommand(path_config, all_experiments, exp)
+        for exp in all_experiments
     ]
     commands: List[DvcCommand] = [
         LoadDatasetsCommand(path_config, all_experiments),
@@ -418,17 +418,18 @@ def write_tasks_to_dvc_file(
         workspace.experiments[0].revision, path_config.cloned_bohr
     )
     dvc_config = dvc_config_from_tasks(workspace.experiments, path_config)
-    params = {"bohr_runtime_version": workspace.bohr_runtime_version}
-    for run in workspace.experiments:
-        heuristic_groups = run.heuristic_groups
-        params[run.name] = {
+    params = {"bohr_runtime_version": workspace.bohr_runtime_version, "experiments": {}}
+    for exp in workspace.experiments:
+        heuristic_groups = exp.heuristic_groups
+        params["experiments"][exp.name] = {
+            "train_set": exp.train_dataset.id,
             "heuristics_classifier": ":".join(
                 normalize_paths(
                     heuristic_groups, path_config.heuristics, is_heuristic_file
                 )
             )
             if heuristic_groups is not None
-            else "."
+            else ".",
         }
     params_yaml = yaml.dump(params)
     with (path_config.project_root / "bohr.lock").open("w") as f:

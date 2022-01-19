@@ -20,12 +20,12 @@ def porcelain():
 @click.argument("dataset")
 @click.option("--debug", is_flag=True)
 def label_dataset(exp: str, dataset: str, debug: bool):
-    from bohrruntime.pipeline.label_dataset import label_dataset
+    from bohrruntime.stages.label_dataset import label_dataset
 
     setup_loggers()
     workspace = load_workspace()
     exp = workspace.get_experiment_by_name(exp)
-    dataset = exp.task.get_dataset_by_id(dataset)
+    dataset = exp.get_dataset_by_id(dataset)
     label_dataset(exp, dataset, debug=debug)
 
 
@@ -36,7 +36,7 @@ def label_dataset(exp: str, dataset: str, debug: bool):
 def apply_heuristics(
     heuristic_group: Optional[str], dataset: Optional[str], profile: bool
 ):
-    from bohrruntime.pipeline.apply_heuristics import apply_heuristics_to_dataset
+    from bohrruntime.stages.apply_heuristics import apply_heuristics_to_dataset
 
     setup_loggers()
     workspace = load_workspace()
@@ -53,7 +53,7 @@ def apply_heuristics(
 def compute_single_heuristic_metric(
     task: Optional[str], heuristic_group: Optional[str], dataset: Optional[str]
 ):
-    from bohrruntime.pipeline.single_heuristic_metrics import (
+    from bohrruntime.stages.single_heuristic_metrics import (
         calculate_metrics_for_heuristic,
     )
 
@@ -69,13 +69,13 @@ def compute_single_heuristic_metric(
 @click.argument("exp")
 @click.option("--dataset", type=str)
 def combine_heuristics(exp: Optional[str], dataset: Optional[str]):
-    from bohrruntime.pipeline.combine_heuristics import combine_applied_heuristics
+    from bohrruntime.stages.combine_heuristics import combine_applied_heuristics
 
     setup_loggers()
     workspace = load_workspace()
 
     exp = workspace.get_experiment_by_name(exp)
-    dataset = exp.task.get_dataset_by_id(dataset)
+    dataset = exp.get_dataset_by_id(dataset)
     combine_applied_heuristics(exp, dataset)
 
 
@@ -95,13 +95,13 @@ def load_dataset(dataset: str):
 @porcelain.command()
 @click.argument("exp")
 def train_label_model(exp: str):
-    from bohrruntime.pipeline.train_label_model import train_label_model
+    from bohrruntime.stages.train_label_model import train_label_model
 
     # setup_loggers()
     workspace = load_workspace()
     path_config = PathConfig.load()
     exp = workspace.get_experiment_by_name(exp)
-    stats = train_label_model(exp, exp.task.training_dataset, path_config)
+    stats = train_label_model(exp, path_config)
     with open(path_config.exp_dir(exp) / "label_model_metrics.json", "w") as f:
         json.dump(stats, f)
     pprint(stats)
