@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-bohr-api = { git = "https://github.com/giganticode/bohr-api", branch = "v0.2.1" }
+bohr-api = { git = "https://github.com/giganticode/bohr-api", branch = "v0.2.2" }
 bohr-labels = { git = "https://github.com/giganticode/bohr-labels", branch = "v0.1.0" }
 snorkel = "^0.9"
 jsonlines = "^3.0"
