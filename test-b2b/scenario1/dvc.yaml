@@ -252,13 +252,9 @@ stages:
       cmd: bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"
       deps:
       - runs/__heuristics/${item.dataset}
-      metrics:
-      - runs/${item.task}/${item.exp}/${item.dataset}/heuristic_metrics.json:
-          cache: false
+      metrics: []
       outs:
       - runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl
-      - runs/${item.task}/${item.exp}/${item.dataset}/analysis.json:
-          cache: false
       params:
       - bohr.lock:
         - experiments.${item.exp}.heuristics_classifier
@@ -283,7 +279,7 @@ stages:
       - runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl
       metrics: []
       outs:
-      - runs/__single_heuristic_metrics/${item.task}/${item.dataset}/${item.heuristic_group}/heuristic_metrics.json:
+      - runs/__single_heuristic_metrics/${item.task}/${item.dataset}/${item.heuristic_group}/metrics.txt:
           cache: false
       params:
       - bohr.lock:
@@ -481,15 +477,39 @@ stages:
     foreach:
     - manual_labels.berger
     - manual_labels.herzig
+  RunMetricsAndAnalysis:
+    do:
+      cmd: bohr porcelain run-metrics-and-analysis "${item.exp}" "${item.dataset}"
+      deps:
+      - runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl
+      - runs/${item.task}/${item.exp}/label_model.pkl
+      metrics:
+      - runs/${item.task}/${item.exp}/${item.dataset}/metrics.txt:
+          cache: false
+      outs:
+      - runs/${item.task}/${item.exp}/${item.dataset}/analysis.json:
+          cache: false
+      - runs/${item.task}/${item.exp}/${item.dataset}/analysis.csv:
+          cache: false
+      params:
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+      keywords_in_message__manual_labels.berger:
+        dataset: manual_labels.berger
+        exp: keywords_in_message
+        task: bugginess
+      keywords_in_message__manual_labels.herzig:
+        dataset: manual_labels.herzig
+        exp: keywords_in_message
+        task: bugginess
   TrainLabelModel@keywords_in_message:
     do:
       cmd: bohr porcelain train-label-model keywords_in_message
       deps:
       - runs/bugginess/keywords_in_message/manual_labels.herzig/heuristic_matrix.pkl
       - runs/bugginess/keywords_in_message/manual_labels.berger/heuristic_matrix.pkl
-      metrics:
-      - runs/bugginess/keywords_in_message/label_model_metrics.json:
-          cache: false
+      metrics: []
       outs:
       - runs/bugginess/keywords_in_message/label_model.pkl
       - runs/bugginess/keywords_in_message/label_model_weights.csv

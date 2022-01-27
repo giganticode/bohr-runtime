@@ -101,7 +101,18 @@ def train_label_model(exp: str):
     workspace = load_workspace()
     path_config = PathConfig.load()
     exp = workspace.get_experiment_by_name(exp)
-    stats = train_label_model(exp, path_config)
-    with open(path_config.exp_dir(exp) / "label_model_metrics.json", "w") as f:
-        json.dump(stats, f)
-    pprint(stats)
+    train_label_model(exp, path_config)
+
+
+@porcelain.command()
+@click.argument("exp")
+@click.argument("dataset")
+def run_metrics_and_analysis(exp: str, dataset: str):
+    from bohrruntime.stages.experiment_metrics import calculate_experiment_metrics
+
+    setup_loggers()
+    workspace = load_workspace()
+    path_config = PathConfig.load()
+    exp = workspace.get_experiment_by_name(exp)
+    dataset = workspace.get_dataset_by_id(dataset)
+    calculate_experiment_metrics(exp, dataset, path_config)

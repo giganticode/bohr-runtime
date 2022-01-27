@@ -180,9 +180,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_message.py/heuristic_metrics.json
-      md5: 67b4b444ccef2599c68c82abb14acc44
-      size: 88
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_message.py/metrics.txt
+      md5: 9c7cd38220ae99a7e13389534110035d
+      size: 116
   ApplyHeuristics@manual_labels.berger__bugginess/filemetrics/no_files_have_modified_status.py:
     cmd: bohr porcelain apply-heuristics --heuristic-group "bugginess/filemetrics/no_files_have_modified_status.py"
       --dataset "manual_labels.berger"
@@ -234,9 +234,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_removed_file.py/heuristic_metrics.json
-      md5: a474188c2618640605df4bbff8b106f3
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_removed_file.py/metrics.txt
+      md5: 85018d11bc85bf6c022286c5e716624e
+      size: 116
   ApplyHeuristics@manual_labels.herzig__bugginess/keywords/init_commit_message_keywords.py:
     cmd: bohr porcelain apply-heuristics --heuristic-group "bugginess/keywords/init_commit_message_keywords.py"
       --dataset "manual_labels.herzig"
@@ -413,9 +413,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/maven_plugin_version_bump.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/maven_plugin_version_bump.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ApplyHeuristics@manual_labels.berger__bugginess/filemetrics/all_files_test_fix.py:
     cmd: bohr porcelain apply-heuristics --heuristic-group "bugginess/filemetrics/all_files_test_fix.py"
       --dataset "manual_labels.berger"
@@ -521,9 +521,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/no_files_have_modified_status.py/heuristic_metrics.json
-      md5: 3649138e1cb82bd10451f2bf817a9fbd
-      size: 88
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/no_files_have_modified_status.py/metrics.txt
+      md5: f71ee333683ed7b7d864ac82048279ae
+      size: 115
   ApplyHeuristics@manual_labels.berger__bugginess/keywords/bug_keywords_lookup_in_issue_label.py:
     cmd: bohr porcelain apply-heuristics --heuristic-group "bugginess/keywords/bug_keywords_lookup_in_issue_label.py"
       --dataset "manual_labels.berger"
@@ -670,9 +670,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py/heuristic_metrics.json
-      md5: 3a1cbb19689742dd3c789a41daac0404
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py/metrics.txt
+      md5: 034a461f5a9b761d0837232f012dc835
+      size: 116
   ApplyHeuristics@manual_labels.herzig__bugginess/keywords/version_in_message.py:
     cmd: bohr porcelain apply-heuristics --heuristic-group "bugginess/keywords/version_in_message.py"
       --dataset "manual_labels.herzig"
@@ -707,9 +707,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/version_in_message.py/heuristic_metrics.json
-      md5: a474188c2618640605df4bbff8b106f3
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/version_in_message.py/metrics.txt
+      md5: 85018d11bc85bf6c022286c5e716624e
+      size: 116
   ApplyHeuristics@manual_labels.herzig__bugginess/wip/removed_todo.py:
     cmd: bohr porcelain apply-heuristics --heuristic-group "bugginess/wip/removed_todo.py"
       --dataset "manual_labels.herzig"
@@ -852,9 +852,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/buggless_if_many_lines_changed.py/heuristic_metrics.json
-      md5: ddc31dabedcd26f11af15d75c78ec532
-      size: 87
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/buggless_if_many_lines_changed.py/metrics.txt
+      md5: 6cccc0bb06afeb07b020dfb291b9e0eb
+      size: 114
   ApplyHeuristics@manual_labels.herzig__bugginess/keywords/buggless_keywords_lookup_in_message.py:
     cmd: bohr porcelain apply-heuristics --heuristic-group "bugginess/keywords/buggless_keywords_lookup_in_message.py"
       --dataset "manual_labels.herzig"
@@ -889,9 +889,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/buggless_keywords_lookup_in_message.py/heuristic_metrics.json
-      md5: c17a14b05b42a537e486a08c7de79d64
-      size: 87
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/buggless_keywords_lookup_in_message.py/metrics.txt
+      md5: 5d2015c21ffc2cdcf80ce19e297bfe60
+      size: 115
   ApplyHeuristics@manual_labels.herzig__bugginess/keywords/github_ref_in_message.py:
     cmd: bohr porcelain apply-heuristics --heuristic-group "bugginess/keywords/github_ref_in_message.py"
       --dataset "manual_labels.herzig"
@@ -960,9 +960,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py/heuristic_metrics.json
-      md5: c6976bd885c44d8b644187eafac2ae6d
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py/metrics.txt
+      md5: a62f15ae56ea031f8ed75c553296f646
+      size: 116
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/keywords/init_commit_message_keywords.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/keywords/init_commit_message_keywords.py" --dataset "manual_labels.herzig"
@@ -980,9 +980,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/init_commit_message_keywords.py/heuristic_metrics.json
-      md5: aee2f16842ebfa33d3c3567f6a2c52ef
-      size: 90
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/init_commit_message_keywords.py/metrics.txt
+      md5: 6a6d0f2a0a19649e2baeab0d15fa5942
+      size: 117
   ApplyHeuristics@manual_labels.herzig__bugginess/filemetrics/refactoring_if_at_least_2_renamed.py:
     cmd: bohr porcelain apply-heuristics --heuristic-group "bugginess/filemetrics/refactoring_if_at_least_2_renamed.py"
       --dataset "manual_labels.herzig"
@@ -1768,9 +1768,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_not_code_files.py/heuristic_metrics.json
-      md5: 7dff5577120239da88a6756429f62007
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_not_code_files.py/metrics.txt
+      md5: 12f9d6b07a62915ae777bfd6aa0b944e
+      size: 116
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/sstubs/commit_explorer_output_sstubs.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/sstubs/commit_explorer_output_sstubs.py" --dataset "manual_labels.herzig"
@@ -1788,9 +1788,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_sstubs.py/heuristic_metrics.json
-      md5: 51761ab1937d17980d065e77238a0ccb
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_sstubs.py/metrics.txt
+      md5: 4d5dabf4b9ce8ebef962c12062650fc5
+      size: 116
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/filemetrics/bugless_if_at_least_2_removed_files.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/filemetrics/bugless_if_at_least_2_removed_files.py" --dataset "manual_labels.berger"
@@ -1889,9 +1889,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py/metrics.txt
+      md5: 6ef89e48a32835164f21481ca99976c0
+      size: 85
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/keywords/bugless_keywords_lookup_in_issue_label.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/keywords/bugless_keywords_lookup_in_issue_label.py" --dataset "manual_labels.herzig"
@@ -1909,9 +1909,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py/metrics.txt
+      md5: bf21b84518f41446984da14b4f313256
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/versionbump/version_bump_keywords_lookup_in_message.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/versionbump/version_bump_keywords_lookup_in_message.py" --dataset
@@ -1950,9 +1950,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/removed_todo.py/heuristic_metrics.json
-      md5: 3b21ffbd6d8f5f7cee006fd804ce682a
-      size: 88
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/removed_todo.py/metrics.txt
+      md5: 5d281b8894c8182ee9f7f142a9468696
+      size: 115
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/sstubs/commit_explorer_output_init.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/sstubs/commit_explorer_output_init.py" --dataset "manual_labels.herzig"
@@ -1970,9 +1970,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_init.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_init.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/filemetrics/all_files_test_add.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/filemetrics/all_files_test_add.py" --dataset "manual_labels.herzig"
@@ -1990,9 +1990,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/all_files_test_add.py/heuristic_metrics.json
-      md5: 19fa7efb54c1b8c1a30d919c5cbebb79
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/all_files_test_add.py/metrics.txt
+      md5: 0f9526e56fcb1ed8901bc664380820e1
+      size: 116
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/keywords/bugless_keywords_lookup_in_issue_label.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/keywords/bugless_keywords_lookup_in_issue_label.py" --dataset "manual_labels.berger"
@@ -2030,9 +2030,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/all_files_test_fix.py/heuristic_metrics.json
-      md5: 25a562285acaa5060339987a7aa7d37a
-      size: 74
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/all_files_test_fix.py/metrics.txt
+      md5: 80645dceabe53b8415e46119f2e4c349
+      size: 101
   ? ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py
   : cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py" --dataset
@@ -2051,9 +2051,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   CombineHeuristics@keywords_in_message__manual_labels.berger:
     cmd: bohr porcelain combine-heuristics "keywords_in_message" --dataset "manual_labels.berger"
     deps:
@@ -2152,9 +2152,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_many_files_changes.py/heuristic_metrics.json
-      md5: 9a531397534a133eaf5e49c0f0d5aef2
-      size: 87
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_many_files_changes.py/metrics.txt
+      md5: 42447e116d1c48f681cd8562e23410c1
+      size: 114
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/sstubs/commit_explorer_output_merge.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/sstubs/commit_explorer_output_merge.py" --dataset "manual_labels.berger"
@@ -2308,9 +2308,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_label.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_label.py/metrics.txt
+      md5: 50a66e512f5816ce2ab86855225fa1c3
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/keywords/bugless_keywords_lookup_in_issue_body.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/keywords/bugless_keywords_lookup_in_issue_body.py" --dataset "manual_labels.berger"
@@ -2348,9 +2348,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_body.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_body.py/metrics.txt
+      md5: 45db4e6b6ab3508cf0ad1783f914d1ff
+      size: 85
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/versionbump/version_regex3.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/versionbump/version_regex3.py" --dataset "manual_labels.herzig"
@@ -2368,9 +2368,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_regex3.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_regex3.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/versionbump/contains_python_version_file.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/versionbump/contains_python_version_file.py" --dataset "manual_labels.berger"
@@ -2408,9 +2408,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_refactoring_miner.py/heuristic_metrics.json
-      md5: 6c421cd56d8b512baec88ff2ec32337d
-      size: 74
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_refactoring_miner.py/metrics.txt
+      md5: c4f179aedac745a2b7e676410b73c74d
+      size: 101
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/versionbump/contains_python_version_file.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/versionbump/contains_python_version_file.py" --dataset "manual_labels.herzig"
@@ -2428,9 +2428,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_python_version_file.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_python_version_file.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/filemetrics/refactoring_if_at_least_2_renamed.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/filemetrics/refactoring_if_at_least_2_renamed.py" --dataset "manual_labels.berger"
@@ -2488,9 +2488,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_package_lock_file.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_package_lock_file.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/versionbump/version_bump_keywords_lookup_in_message.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/versionbump/version_bump_keywords_lookup_in_message.py" --dataset
@@ -2509,9 +2509,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_bump_keywords_lookup_in_message.py/heuristic_metrics.json
-      md5: aa018d148fbf735b516dcca5a940b637
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_bump_keywords_lookup_in_message.py/metrics.txt
+      md5: 670ce3ae68d8a8fbab62ec6e7d921841
+      size: 116
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/filemetrics/bugless_if_one_added_file.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/filemetrics/bugless_if_one_added_file.py" --dataset "manual_labels.berger"
@@ -2630,9 +2630,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/wip_keyword_in_message.py/heuristic_metrics.json
-      md5: 44c6531eb939f15b5ca0c20d13796f0a
-      size: 74
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/wip_keyword_in_message.py/metrics.txt
+      md5: 24c09ac446453a0cb2f79080cf1ab389
+      size: 101
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/sstubs/commit_explorer_output_merge.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/sstubs/commit_explorer_output_merge.py" --dataset "manual_labels.herzig"
@@ -2650,9 +2650,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_merge.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_merge.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/filemetrics/bugless_if_one_added_file.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/filemetrics/bugless_if_one_added_file.py" --dataset "manual_labels.herzig"
@@ -2670,9 +2670,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_added_file.py/heuristic_metrics.json
-      md5: 2ac152240896b4cf6c70c7b5f013e3ba
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_added_file.py/metrics.txt
+      md5: 87e782e09f5a40c2b618212a47b8f771
+      size: 116
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/conventional_commit_regex.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/conventional_commit_regex.py" --dataset "manual_labels.herzig"
@@ -2690,9 +2690,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/conventional_commit_regex.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/conventional_commit_regex.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/versionbump/version_regex.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/versionbump/version_regex.py" --dataset "manual_labels.herzig"
@@ -2710,9 +2710,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_regex.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_regex.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/wip/removed_fixme.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/wip/removed_fixme.py" --dataset "manual_labels.herzig"
@@ -2730,9 +2730,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/removed_fixme.py/heuristic_metrics.json
-      md5: ddfd556a860daec7d7bd191c9fb2d359
-      size: 90
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/removed_fixme.py/metrics.txt
+      md5: 36285c0df85f125156f0f7e3feb8d6a5
+      size: 117
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/wip/removed_todo.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/wip/removed_todo.py" --dataset "manual_labels.berger"
@@ -2790,9 +2790,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_regex2.py/heuristic_metrics.json
-      md5: 5cae15eeae1c7b0d6a429ca36027eb1c
-      size: 74
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_regex2.py/metrics.txt
+      md5: 04752f63829f9a17d378aafd4e8d11bb
+      size: 101
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/filemetrics/refactoring_if_at_least_2_renamed.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/filemetrics/refactoring_if_at_least_2_renamed.py" --dataset "manual_labels.herzig"
@@ -2810,9 +2810,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py/heuristic_metrics.json
-      md5: 1c7d8f9640f5721d880a981b01029019
-      size: 88
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py/metrics.txt
+      md5: afc499cad37b5c3014045cb34b73c11a
+      size: 115
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/filemetrics/bugless_if_at_least_5_added_files.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/filemetrics/bugless_if_at_least_5_added_files.py" --dataset "manual_labels.berger"
@@ -2890,9 +2890,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_5_added_files.py/heuristic_metrics.json
-      md5: 4dd9e987290c7b183503c10b39d6feb6
-      size: 87
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_5_added_files.py/metrics.txt
+      md5: e3d9663d7701758503fbbe32108b9e03
+      size: 114
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/keywords/github_ref_in_message.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/keywords/github_ref_in_message.py" --dataset "manual_labels.herzig"
@@ -2910,9 +2910,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/github_ref_in_message.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/github_ref_in_message.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.herzig__bugginess/versionbump/contains_ruby_version_file.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/versionbump/contains_ruby_version_file.py" --dataset "manual_labels.herzig"
@@ -2930,9 +2930,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_ruby_version_file.py/heuristic_metrics.json
-      md5: a4d1d09df7ab084e63444e9e360c4dbe
-      size: 57
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_ruby_version_file.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/wip/removed_fixme.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/wip/removed_fixme.py" --dataset "manual_labels.berger"
@@ -2990,9 +2990,9 @@ stages:
       bohr.lock:
         bohr_runtime_version: 0.5.0rc2
     outs:
-    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_digit_replacement_change.py/heuristic_metrics.json
-      md5: 10438c8c98eb311b1bf7f1c033a22cfa
-      size: 89
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_digit_replacement_change.py/metrics.txt
+      md5: d941c46c2fbc06949c15c2bfa2b487db
+      size: 116
   ComputeSingleHeuristic@bugginess__manual_labels.berger__bugginess/keywords/version_in_message.py:
     cmd: bohr porcelain compute-single-heuristic-metric --task "bugginess" --heuristic-group
       "bugginess/keywords/version_in_message.py" --dataset "manual_labels.berger"
@@ -3013,3 +3013,47 @@ stages:
     - path: runs/__single_heuristic_metrics/bugginess/manual_labels.berger/bugginess/keywords/version_in_message.py/heuristic_metrics.json
       md5: 02b26031305cf8fed4a50a47750c7f69
       size: 33
+  RunMetricsAndAnalysis@keywords_in_message__manual_labels.berger:
+    cmd: bohr porcelain run-metrics-and-analysis "keywords_in_message" "manual_labels.berger"
+    deps:
+    - path: runs/bugginess/keywords_in_message/label_model.pkl
+      md5: 8031b98a2297a5781409a31069f1f7ab
+      size: 441383
+    - path: runs/bugginess/keywords_in_message/manual_labels.berger/heuristic_matrix.pkl
+      md5: 15ad49a12f4a9c0da82151262bba8db6
+      size: 440503
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.5.0rc2
+    outs:
+    - path: runs/bugginess/keywords_in_message/manual_labels.berger/analysis.csv
+      md5: 8e4a5f0abd83b5bef45f1b14498b8628
+      size: 10317
+    - path: runs/bugginess/keywords_in_message/manual_labels.berger/analysis.json
+      md5: 122bc4c54c4f64ca832ec877dafa8c69
+      size: 31894
+    - path: runs/bugginess/keywords_in_message/manual_labels.berger/metrics.txt
+      md5: 75f4961cda83a351ecd2bfe36c20deb2
+      size: 57
+  RunMetricsAndAnalysis@keywords_in_message__manual_labels.herzig:
+    cmd: bohr porcelain run-metrics-and-analysis "keywords_in_message" "manual_labels.herzig"
+    deps:
+    - path: runs/bugginess/keywords_in_message/label_model.pkl
+      md5: 8031b98a2297a5781409a31069f1f7ab
+      size: 441383
+    - path: runs/bugginess/keywords_in_message/manual_labels.herzig/heuristic_matrix.pkl
+      md5: 31a176ad4eaf35a79a1b660f1b38669e
+      size: 5974863
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.5.0rc2
+    outs:
+    - path: runs/bugginess/keywords_in_message/manual_labels.herzig/analysis.csv
+      md5: 8e026a47256a84af19d5ee777276d8c8
+      size: 16052
+    - path: runs/bugginess/keywords_in_message/manual_labels.herzig/analysis.json
+      md5: 77797aa6dd68f15b5bc7283edf7903ff
+      size: 56844
+    - path: runs/bugginess/keywords_in_message/manual_labels.herzig/metrics.txt
+      md5: 72bc97a613ba63acdd7a0c42aa6cdeab
+      size: 210

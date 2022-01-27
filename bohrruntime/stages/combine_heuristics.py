@@ -1,16 +1,21 @@
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 from bohrapi.core import Dataset, Experiment
-from bohrlabels.core import LabelSet
 
 from bohrruntime.config.pathconfig import PathConfig
-from bohrruntime.core import load_ground_truth_labels, to_labeling_functions
-from bohrruntime.data_analysis import calculate_metrics, run_analysis
 from bohrruntime.heuristics import get_heuristic_files, load_heuristics_from_file
-from bohrruntime.labeling.cache import CategoryMappingCache
 from bohrruntime.util.paths import relative_to_safe
+
+
+def check_duplicate_heuristics(all_heuristics_matrix: pd.DataFrame):
+    if sum(all_heuristics_matrix.columns.duplicated()) != 0:
+        s = set()
+        for c in all_heuristics_matrix.columns:
+            if c in s:
+                raise ValueError(f"Duplicate heuristics are present: {c}")
+            s.add(c)
+        raise AssertionError()
 
 
 def combine_applied_heuristics(
@@ -39,43 +44,6 @@ def combine_applied_heuristics(
             )
             all_heuristics.extend(heuristics)
 
-    category_mapping_cache = CategoryMappingCache(
-        list(map(lambda x: str(x), exp.task.labels)), maxsize=10000
-    )
-    labeling_functions = to_labeling_functions(all_heuristics, category_mapping_cache)
     all_heuristics_matrix = pd.concat(matrix_list, axis=1)
-    if sum(all_heuristics_matrix.columns.duplicated()) != 0:
-        s = set()
-        for c in all_heuristics_matrix.columns:
-            if c in s:
-                raise ValueError(f"Duplicate heuristics are present: {c}")
-            s.add(c)
-        raise AssertionError()
+    check_duplicate_heuristics(all_heuristics_matrix)
     all_heuristics_matrix.to_pickle(str(all_heuristics_file))
-    label_series = load_ground_truth_labels(exp.task, dataset)
-    category_mapping_cache = CategoryMappingCache(
-        list(map(lambda x: str(x), exp.task.labels)), maxsize=10000
-    )
-    if label_series is not None:
-        label_series = np.array(
-            list(map(lambda x: category_mapping_cache[LabelSet.of(x)], label_series))
-        )
-        label_series = np.array(label_series)
-    save_csv_to = dataset_dir / f"analysis.csv"
-    save_json_to = dataset_dir / f"analysis.json"
-    save_metrics_to = dataset_dir / f"heuristic_metrics.json"
-
-    run_analysis(
-        all_heuristics_matrix.to_numpy(),
-        labeling_functions,
-        save_csv_to,
-        save_json_to,
-        label_series,
-    )
-
-    stats = calculate_metrics(
-        all_heuristics_matrix.to_numpy(),
-        labeling_functions,
-        label_series,
-        save_to=save_metrics_to,
-    )

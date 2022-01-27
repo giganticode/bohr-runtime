@@ -78,7 +78,7 @@ class PathConfig:
         )
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
-        return path / "heuristic_metrics.json"
+        return path / "metrics.txt"
 
     @staticmethod
     def deserialize(dct, cls, project_root: AbsolutePath, **kwargs) -> "PathConfig":

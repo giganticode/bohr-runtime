@@ -10,14 +10,11 @@ from snorkel.labeling.model import MajorityLabelVoter
 from bohrruntime.util.paths import AbsolutePath
 
 
-def run_analysis(
-    applied_lf_matrix: np.ndarray,
-    lfs: List[LabelingFunction],
+def save_analysis(
+    lf_analysis_summary,
     save_csv_to: AbsolutePath,
     save_json_to: AbsolutePath,
-    label_series: Optional[np.ndarray] = None,
 ) -> None:
-    lf_analysis_summary = LFAnalysis(applied_lf_matrix, lfs).lf_summary(label_series)
     lf_analysis_summary.to_csv(save_csv_to)
     analysis_dict = lf_analysis_summary.to_dict()
     del analysis_dict["j"]
@@ -33,19 +30,17 @@ def majority_acc(line: np.ndarray, label_series: np.ndarray) -> float:
     return maj_model_train_acc
 
 
-def calculate_metrics(
-    applied_lf_matrix: np.ndarray,
-    lfs: List[LabelingFunction],
+def calculate_lf_metrics(
+    label_matrix: np.ndarray,
     label_series: np.ndarray = None,
     save_to: Optional[Path] = None,
 ) -> Dict[str, Any]:
     metrics = {}
-    coverage = sum((applied_lf_matrix != -1).any(axis=1)) / len(applied_lf_matrix)
+    coverage = sum((label_matrix != -1).any(axis=1)) / len(label_matrix)
     if label_series is not None:
-        majority_accuracy = majority_acc(applied_lf_matrix, label_series)
+        majority_accuracy = majority_acc(label_matrix, label_series)
         metrics["majority_accuracy_not_abstained"] = majority_accuracy
-    else:
-        metrics["n_labeling_functions"]: len(lfs)
+    metrics["n_labeling_functions"] = label_matrix.shape[1]
     metrics[f"coverage"] = coverage
     if save_to:
         with open(save_to, "w") as f:

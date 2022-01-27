@@ -1,0 +1,1 @@
+{"majority_accuracy_not_abstained": 0.6902607770090473, "n_labeling_functions": 1, "coverage": 0.3651379712397979}

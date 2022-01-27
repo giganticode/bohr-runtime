@@ -186,7 +186,7 @@ class ComputeSingleHeuristicMetrics(DvcCommand):
                     / "${item.task}"
                     / "${item.dataset}"
                     / "${item.heuristic_group}"
-                    / "heuristic_metrics.json"
+                    / "metrics.txt"
                 ): {"cache": False}
             }
         ]
@@ -232,7 +232,35 @@ class CombineHeuristicsCommand(DvcCommand):
                 / "${item.exp}"
                 / "${item.dataset}"
                 / "heuristic_matrix.pkl"
+            )
+        ]
+        metrics = []
+        foreach = self.generate_foreach()
+
+        return self._to_template_dict(foreach, cmd, params, deps, outs, metrics)
+
+
+@dataclass
+class RunMetricsAndAnalysisCommand(DvcCommand):
+    def to_dvc_template_dict(self) -> Dict:
+        cmd = 'bohr porcelain run-metrics-and-analysis "${item.exp}" "${item.dataset}"'
+        deps = [
+            str(
+                self.path_config.runs_dir
+                / "${item.task}"
+                / "${item.exp}"
+                / "${item.dataset}"
+                / "heuristic_matrix.pkl"
             ),
+            str(
+                self.path_config.runs_dir
+                / "${item.task}"
+                / "${item.exp}"
+                / "label_model.pkl"
+            ),
+        ]
+        params = []
+        outs = [
             {
                 str(
                     self.path_config.runs_dir
@@ -242,6 +270,15 @@ class CombineHeuristicsCommand(DvcCommand):
                     / "analysis.json"
                 ): {"cache": False}
             },
+            {
+                str(
+                    self.path_config.runs_dir
+                    / "${item.task}"
+                    / "${item.exp}"
+                    / "${item.dataset}"
+                    / "analysis.csv"
+                ): {"cache": False}
+            },
         ]
         metrics = [
             str(
@@ -249,7 +286,7 @@ class CombineHeuristicsCommand(DvcCommand):
                 / "${item.task}"
                 / "${item.exp}"
                 / "${item.dataset}"
-                / "heuristic_metrics.json"
+                / "metrics.txt"
             )
         ]
         foreach = self.generate_foreach()
@@ -291,14 +328,7 @@ class TrainLabelModelCommand(DvcCommand):
                 / "label_model_weights.csv"
             ),
         ]
-        metrics = [
-            str(
-                self.path_config.runs_dir
-                / self.exp.task.name
-                / self.exp.name
-                / "label_model_metrics.json"
-            )
-        ]
+        metrics = []
         foreach = [0]
 
         return self._to_template_dict(foreach, cmd, params, deps, outs, metrics)
@@ -373,6 +403,7 @@ def dvc_config_from_tasks(
         ApplyHeuristicsCommand(path_config, all_experiments),
         ComputeSingleHeuristicMetrics(path_config, all_experiments),
         CombineHeuristicsCommand(path_config, all_experiments),
+        RunMetricsAndAnalysisCommand(path_config, all_experiments),
         LabelDatasetCommand(path_config, all_experiments),
     ] + train_model_commands
 
