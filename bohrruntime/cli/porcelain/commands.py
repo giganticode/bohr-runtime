@@ -47,12 +47,8 @@ def apply_heuristics(
 
 
 @porcelain.command()
-@click.option("--task", type=str)
-@click.option("--heuristic-group", type=str)
-@click.option("--dataset", type=str)
-def compute_single_heuristic_metric(
-    task: Optional[str], heuristic_group: Optional[str], dataset: Optional[str]
-):
+@click.argument("task", type=str)
+def compute_single_heuristic_metric(task: Optional[str]):
     from bohrruntime.stages.single_heuristic_metrics import (
         calculate_metrics_for_heuristic,
     )
@@ -61,8 +57,7 @@ def compute_single_heuristic_metric(
     path_config = PathConfig.load()
     workspace = load_workspace()
     task = workspace.get_task_by_name(task)
-    dataset = workspace.get_dataset_by_id(dataset)
-    calculate_metrics_for_heuristic(task, heuristic_group, dataset, path_config)
+    calculate_metrics_for_heuristic(task, path_config)
 
 
 @porcelain.command()

@@ -2123,7 +2123,7 @@ stages:
     cmd: bohr porcelain label-dataset "keywords_in_message" "manual_labels.berger"
     deps:
     - path: runs/bugginess/keywords_in_message/label_model.pkl
-      md5: 8031b98a2297a5781409a31069f1f7ab
+      md5: 148d62ec97a51e4b6b433c70a52be504
       size: 441383
     - path: runs/bugginess/keywords_in_message/manual_labels.berger/heuristic_matrix.pkl
       md5: 15ad49a12f4a9c0da82151262bba8db6
@@ -2259,7 +2259,7 @@ stages:
     cmd: bohr porcelain label-dataset "keywords_in_message" "manual_labels.herzig"
     deps:
     - path: runs/bugginess/keywords_in_message/label_model.pkl
-      md5: 8031b98a2297a5781409a31069f1f7ab
+      md5: 148d62ec97a51e4b6b433c70a52be504
       size: 441383
     - path: runs/bugginess/keywords_in_message/manual_labels.herzig/heuristic_matrix.pkl
       md5: 31a176ad4eaf35a79a1b660f1b38669e
@@ -3017,7 +3017,7 @@ stages:
     cmd: bohr porcelain run-metrics-and-analysis "keywords_in_message" "manual_labels.berger"
     deps:
     - path: runs/bugginess/keywords_in_message/label_model.pkl
-      md5: 8031b98a2297a5781409a31069f1f7ab
+      md5: 148d62ec97a51e4b6b433c70a52be504
       size: 441383
     - path: runs/bugginess/keywords_in_message/manual_labels.berger/heuristic_matrix.pkl
       md5: 15ad49a12f4a9c0da82151262bba8db6
@@ -3039,7 +3039,7 @@ stages:
     cmd: bohr porcelain run-metrics-and-analysis "keywords_in_message" "manual_labels.herzig"
     deps:
     - path: runs/bugginess/keywords_in_message/label_model.pkl
-      md5: 8031b98a2297a5781409a31069f1f7ab
+      md5: 148d62ec97a51e4b6b433c70a52be504
       size: 441383
     - path: runs/bugginess/keywords_in_message/manual_labels.herzig/heuristic_matrix.pkl
       md5: 31a176ad4eaf35a79a1b660f1b38669e
@@ -3057,3 +3057,384 @@ stages:
     - path: runs/bugginess/keywords_in_message/manual_labels.herzig/metrics.txt
       md5: 72bc97a613ba63acdd7a0c42aa6cdeab
       size: 210
+  TrainLabelModel__keywords_in_message:
+    cmd: bohr porcelain train-label-model keywords_in_message
+    deps:
+    - path: runs/bugginess/keywords_in_message/manual_labels.berger/heuristic_matrix.pkl
+      md5: 15ad49a12f4a9c0da82151262bba8db6
+      size: 440503
+    - path: runs/bugginess/keywords_in_message/manual_labels.herzig/heuristic_matrix.pkl
+      md5: 31a176ad4eaf35a79a1b660f1b38669e
+      size: 5974863
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.5.0rc2
+        experiments.keywords_in_message.train_set: manual_labels.berger
+    outs:
+    - path: runs/bugginess/keywords_in_message/label_model.pkl
+      md5: 148d62ec97a51e4b6b433c70a52be504
+      size: 441383
+    - path: runs/bugginess/keywords_in_message/label_model_weights.csv
+      md5: cfab245636aa823ac442cf38d5957a55
+      size: 8721
+  ComputeSingleHeuristicMetrics__bugginess:
+    cmd: bohr porcelain compute-single-heuristic-metric bugginess
+    deps:
+    - path: cached-datasets/manual_labels.herzig.jsonl
+      md5: 531fa982dbe7064f3d345677df510c58
+      size: 294446290
+    - path: cloned-bohr/heuristics/bugginess/conventional_commit_regex.py
+      md5: a5ec15e40c1ee774fcd13a0000778858
+      size: 2101
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/all_files_test_add.py
+      md5: 5b56250431bb0d0393d5562c86483e6c
+      size: 786
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/all_files_test_fix.py
+      md5: 320e7977918d1a3e54e3832dc5859799
+      size: 682
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py
+      md5: 1b393af7083d6f955f6a479cdba0303d
+      size: 887
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/buggless_if_many_lines_changed.py
+      md5: c03f71bc9cab09bd7063d078c9dd7b13
+      size: 438
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py
+      md5: 10087bbb593c4b85b7d547d4587e81fb
+      size: 468
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_at_least_5_added_files.py
+      md5: d7219806858c57cea7def5a503fedb14
+      size: 458
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_many_files_changes.py
+      md5: 3ef24fb213ba54caa265773f6f9cebdc
+      size: 375
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_not_code_files.py
+      md5: 5a7f541eef8a2bb3817167efb97a7bfc
+      size: 813
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_one_added_file.py
+      md5: 627163dff3728f270ac613c86797fd4d
+      size: 402
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_one_removed_file.py
+      md5: 7c02eb29bffea4c1f84407f6cac84bed
+      size: 406
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/no_files_have_modified_status.py
+      md5: 1bf54ba234035409e5a5809cc58afce9
+      size: 505
+    - path: cloned-bohr/heuristics/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py
+      md5: b53510dd828e3a3a9813997c9187200a
+      size: 468
+    - path: cloned-bohr/heuristics/bugginess/keywords/bug_keywords_lookup_in_issue_body.py
+      md5: 70dea368e622c65852ab0572e4af975d
+      size: 1590
+    - path: cloned-bohr/heuristics/bugginess/keywords/bug_keywords_lookup_in_issue_label.py
+      md5: 6f8a61d2877133dc0e4af0a82ab3226d
+      size: 561
+    - path: cloned-bohr/heuristics/bugginess/keywords/bug_keywords_lookup_in_message.py
+      md5: b68d96806180214829f17731b27126ce
+      size: 1585
+    - path: cloned-bohr/heuristics/bugginess/keywords/buggless_keywords_lookup_in_message.py
+      md5: 5bebce43372bb7508d6208dbf38c137b
+      size: 2397
+    - path: cloned-bohr/heuristics/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py
+      md5: 52f04f7c7f37758c886d5dc1b89fa358
+      size: 2402
+    - path: cloned-bohr/heuristics/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py
+      md5: 51c0b441a48cf3d53e96c3c86d119959
+      size: 608
+    - path: cloned-bohr/heuristics/bugginess/keywords/github_ref_in_message.py
+      md5: d85bdb55213898f7e67fe638e01af517
+      size: 803
+    - path: cloned-bohr/heuristics/bugginess/keywords/init_commit_message_keywords.py
+      md5: 907117e806cd2c29d5ce24c2ac813d80
+      size: 595
+    - path: cloned-bohr/heuristics/bugginess/keywords/version_in_message.py
+      md5: 80d02f9e4b665477a3fd00da56e8e869
+      size: 401
+    - path: cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_init.py
+      md5: 2b9b4ebb2b554e03671d5b46f6c4ea56
+      size: 518
+    - path: cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_merge.py
+      md5: 5f714a44f5807da4312f74e79cdeba07
+      size: 507
+    - path: cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_refactoring_miner.py
+      md5: bc179de446dbf4b14a912fb0a32eccbc
+      size: 768
+    - path: cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_sstubs.py
+      md5: 9ee224adde00be52a736adf2e1b22b32
+      size: 390
+    - path: cloned-bohr/heuristics/bugginess/versionbump/contains_digit_replacement_change.py
+      md5: 4757ba69d3dbf78893ada464908597d3
+      size: 682
+    - path: cloned-bohr/heuristics/bugginess/versionbump/contains_package_lock_file.py
+      md5: 3cf0426635b3e4d66508ec1f34c35bbf
+      size: 452
+    - path: cloned-bohr/heuristics/bugginess/versionbump/contains_python_version_file.py
+      md5: 3db64aa2fd115182b9b2437941b10628
+      size: 452
+    - path: cloned-bohr/heuristics/bugginess/versionbump/contains_ruby_version_file.py
+      md5: e1e953135428528bef17db29ad1850ac
+      size: 448
+    - path: cloned-bohr/heuristics/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py
+      md5: f56c2882564181d5372dc34dde0a49ef
+      size: 582
+    - path: cloned-bohr/heuristics/bugginess/versionbump/maven_plugin_version_bump.py
+      md5: 6d1070cc2ffe75b031004118fff10d84
+      size: 376
+    - path: cloned-bohr/heuristics/bugginess/versionbump/version_bump_keywords_lookup_in_message.py
+      md5: 20094ae7abb52aac94f627d5502f7cce
+      size: 752
+    - path: cloned-bohr/heuristics/bugginess/versionbump/version_regex.py
+      md5: df7bab733b5a55e0e27846a36c2234f7
+      size: 472
+    - path: cloned-bohr/heuristics/bugginess/versionbump/version_regex2.py
+      md5: 64651116851d15e23dae5dc9e2ed32ee
+      size: 416
+    - path: cloned-bohr/heuristics/bugginess/versionbump/version_regex3.py
+      md5: c8b889a7477a8e9f221b3b1de2db5740
+      size: 408
+    - path: cloned-bohr/heuristics/bugginess/wip/removed_fixme.py
+      md5: 9a3fab2ebb210e5bcd9f95a2004cf208
+      size: 784
+    - path: cloned-bohr/heuristics/bugginess/wip/removed_todo.py
+      md5: 721a8b43d79a4a24568fcff5ab846bb1
+      size: 544
+    - path: cloned-bohr/heuristics/bugginess/wip/wip_keyword_in_message.py
+      md5: 1597b0ef2df9a5d32bc7e58235ef881c
+      size: 342
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/conventional_commit_regex.py/heuristic_matrix.pkl
+      md5: 65a93f9813e5baebd52f1797f303c172
+      size: 41925
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/all_files_test_add.py/heuristic_matrix.pkl
+      md5: a5dc29c7e46ae2dfd1d147f25eb2c51c
+      size: 41918
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/all_files_test_fix.py/heuristic_matrix.pkl
+      md5: 79ce2adec1abfb12f646e0aa7d8fdc12
+      size: 41918
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py/heuristic_matrix.pkl
+      md5: 7309ef2df240e4656214193373670b7c
+      size: 41942
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/buggless_if_many_lines_changed.py/heuristic_matrix.pkl
+      md5: 821cbf130f0767af652a595486bd6f9b
+      size: 41930
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py/heuristic_matrix.pkl
+      md5: cd2a467428939d2b845ebfdad96b6862
+      size: 41935
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_5_added_files.py/heuristic_matrix.pkl
+      md5: 7000a6df3ff36d204a9822f205c46505
+      size: 41933
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_many_files_changes.py/heuristic_matrix.pkl
+      md5: 8686861a86ebbf02e9c25978d9280905
+      size: 41929
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_not_code_files.py/heuristic_matrix.pkl
+      md5: 5dee8730792125b5b496fec94106aa19
+      size: 41925
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_added_file.py/heuristic_matrix.pkl
+      md5: 5c030df8a96c0cf5bc792db6d6db713d
+      size: 41925
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_removed_file.py/heuristic_matrix.pkl
+      md5: b5ee1ea657dcedf4fb6c165b10f3853a
+      size: 41927
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/no_files_have_modified_status.py/heuristic_matrix.pkl
+      md5: d1c9f280a8dc87f7a2a1561b195435e4
+      size: 41929
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py/heuristic_matrix.pkl
+      md5: 6c6c6639bcfc16b85b54268ac642d06e
+      size: 41933
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_body.py/heuristic_matrix.pkl
+      md5: 0059c887bfe1e8b550bb87de9f08a374
+      size: 1978355
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_label.py/heuristic_matrix.pkl
+      md5: f00cf4603f633cce981f7b6e28b32a56
+      size: 165535
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_message.py/heuristic_matrix.pkl
+      md5: d5196f1bd21c55e16072d232b7c1836a
+      size: 1978211
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/keywords/buggless_keywords_lookup_in_message.py/heuristic_matrix.pkl
+      md5: 0ce2b240418dcef4d576edfd150116d9
+      size: 3997281
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py/heuristic_matrix.pkl
+      md5: e0fd5b7268f3088938addb71dee22acb
+      size: 3997572
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py/heuristic_matrix.pkl
+      md5: 50ed159fafe90b16f148bfc240a64c30
+      size: 247977
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/keywords/github_ref_in_message.py/heuristic_matrix.pkl
+      md5: 2fde9c1fd7d2fbb3ea6c77af5f44a21c
+      size: 41921
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/keywords/init_commit_message_keywords.py/heuristic_matrix.pkl
+      md5: f30309069c13646936316d97262d8faf
+      size: 124352
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/keywords/version_in_message.py/heuristic_matrix.pkl
+      md5: a88c948f3e159805ea6011542a5a4617
+      size: 41918
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_init.py/heuristic_matrix.pkl
+      md5: d9a32edbe6620904a71bec4b16dc7d8d
+      size: 41927
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_merge.py/heuristic_matrix.pkl
+      md5: a5afc8d53eeff6b191b3462eced69d2b
+      size: 41928
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_refactoring_miner.py/heuristic_matrix.pkl
+      md5: 52f5ad5297c5eb5e1d32e32b59b29022
+      size: 41940
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_sstubs.py/heuristic_matrix.pkl
+      md5: f65d7e71d8fde54ea53b7ba5514baae8
+      size: 41929
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/contains_digit_replacement_change.py/heuristic_matrix.pkl
+      md5: d66759f04aec8d8292693b935af5b467
+      size: 41933
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/contains_package_lock_file.py/heuristic_matrix.pkl
+      md5: 2a730b91a9fdbbec081a2e69c54d061f
+      size: 41926
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/contains_python_version_file.py/heuristic_matrix.pkl
+      md5: 6ada50f2aac006b9bb4076fd8f731b95
+      size: 41928
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/contains_ruby_version_file.py/heuristic_matrix.pkl
+      md5: a62ff46b8e7b4c62f2194d7e58ea3bce
+      size: 41926
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py/heuristic_matrix.pkl
+      md5: 1246fe5f96df7432fd9b2aa3f3b2b128
+      size: 41948
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/maven_plugin_version_bump.py/heuristic_matrix.pkl
+      md5: 5316aeec37a88904aacb6ed656d6531f
+      size: 41925
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/version_bump_keywords_lookup_in_message.py/heuristic_matrix.pkl
+      md5: 0dce8c194aa4f22ac0cc7741ff0810dd
+      size: 330439
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/version_regex.py/heuristic_matrix.pkl
+      md5: 9afd568601b91aba855780678fd814b2
+      size: 41913
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/version_regex2.py/heuristic_matrix.pkl
+      md5: 1233fd2ad09f9be1ec0a9f9b7e354826
+      size: 41914
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/versionbump/version_regex3.py/heuristic_matrix.pkl
+      md5: 31867c3202ab18116eb715f3082006c2
+      size: 41914
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/wip/removed_fixme.py/heuristic_matrix.pkl
+      md5: fb91d67c5459e5e81e7bebdadb5fe569
+      size: 41913
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/wip/removed_todo.py/heuristic_matrix.pkl
+      md5: d9a8f6e1e4c7dfc6d7c6521c4147fe92
+      size: 41912
+    - path: runs/__heuristics/manual_labels.herzig/bugginess/wip/wip_keyword_in_message.py/heuristic_matrix.pkl
+      md5: 52e56710798479cd9aa41fc0153c8245
+      size: 41922
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.5.0rc2
+    outs:
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/conventional_commit_regex.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/all_files_test_add.py/metrics.txt
+      md5: 0f9526e56fcb1ed8901bc664380820e1
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/all_files_test_fix.py/metrics.txt
+      md5: 80645dceabe53b8415e46119f2e4c349
+      size: 101
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py/metrics.txt
+      md5: 034a461f5a9b761d0837232f012dc835
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/buggless_if_many_lines_changed.py/metrics.txt
+      md5: 6cccc0bb06afeb07b020dfb291b9e0eb
+      size: 114
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py/metrics.txt
+      md5: a62f15ae56ea031f8ed75c553296f646
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_5_added_files.py/metrics.txt
+      md5: e3d9663d7701758503fbbe32108b9e03
+      size: 114
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_many_files_changes.py/metrics.txt
+      md5: 42447e116d1c48f681cd8562e23410c1
+      size: 114
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_not_code_files.py/metrics.txt
+      md5: 12f9d6b07a62915ae777bfd6aa0b944e
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_added_file.py/metrics.txt
+      md5: 87e782e09f5a40c2b618212a47b8f771
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_removed_file.py/metrics.txt
+      md5: 85018d11bc85bf6c022286c5e716624e
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/no_files_have_modified_status.py/metrics.txt
+      md5: f71ee333683ed7b7d864ac82048279ae
+      size: 115
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py/metrics.txt
+      md5: afc499cad37b5c3014045cb34b73c11a
+      size: 115
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_body.py/metrics.txt
+      md5: 45db4e6b6ab3508cf0ad1783f914d1ff
+      size: 85
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_label.py/metrics.txt
+      md5: 50a66e512f5816ce2ab86855225fa1c3
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_message.py/metrics.txt
+      md5: 9c7cd38220ae99a7e13389534110035d
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/buggless_keywords_lookup_in_message.py/metrics.txt
+      md5: 5d2015c21ffc2cdcf80ce19e297bfe60
+      size: 115
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py/metrics.txt
+      md5: 6ef89e48a32835164f21481ca99976c0
+      size: 85
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py/metrics.txt
+      md5: bf21b84518f41446984da14b4f313256
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/github_ref_in_message.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/init_commit_message_keywords.py/metrics.txt
+      md5: 6a6d0f2a0a19649e2baeab0d15fa5942
+      size: 117
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/keywords/version_in_message.py/metrics.txt
+      md5: 85018d11bc85bf6c022286c5e716624e
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_init.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_merge.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_refactoring_miner.py/metrics.txt
+      md5: c4f179aedac745a2b7e676410b73c74d
+      size: 101
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_sstubs.py/metrics.txt
+      md5: 4d5dabf4b9ce8ebef962c12062650fc5
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_digit_replacement_change.py/metrics.txt
+      md5: d941c46c2fbc06949c15c2bfa2b487db
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_package_lock_file.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_python_version_file.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/contains_ruby_version_file.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/maven_plugin_version_bump.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_bump_keywords_lookup_in_message.py/metrics.txt
+      md5: 670ce3ae68d8a8fbab62ec6e7d921841
+      size: 116
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_regex.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_regex2.py/metrics.txt
+      md5: 04752f63829f9a17d378aafd4e8d11bb
+      size: 101
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/versionbump/version_regex3.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/removed_fixme.py/metrics.txt
+      md5: 36285c0df85f125156f0f7e3feb8d6a5
+      size: 117
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/removed_todo.py/metrics.txt
+      md5: 5d281b8894c8182ee9f7f142a9468696
+      size: 115
+    - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/wip_keyword_in_message.py/metrics.txt
+      md5: 24c09ac446453a0cb2f79080cf1ab389
+      size: 101
