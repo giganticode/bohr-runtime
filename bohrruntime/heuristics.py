@@ -1,23 +1,25 @@
 import inspect
 import os
-import pathlib
 from typing import Dict, List, Optional, Set, Type
 
 from bohrapi.core import ArtifactType, HeuristicObj
 from snorkel.labeling import LabelingFunction
 
+from bohrruntime.bohrfs import BohrFileSystem, BohrFsPath
 from bohrruntime.core import to_labeling_functions
-from bohrruntime.util.paths import AbsolutePath, RelativePath, relative_to_safe
+from bohrruntime.util.paths import AbsolutePath
 
 
 def load_all_heuristics(
     artifact_type: Type,
     heuristics_root: AbsolutePath,
     limited_to_modules: Optional[Set[str]] = None,
-) -> Dict[RelativePath, List[HeuristicObj]]:
-    modules: Dict[RelativePath, List[HeuristicObj]] = {}
+) -> Dict[BohrFsPath, List[HeuristicObj]]:
+    modules: Dict[BohrFsPath, List[HeuristicObj]] = {}
     for path in get_heuristic_files(heuristics_root):
-        rel_path: RelativePath = relative_to_safe(path, heuristics_root.parent)
+        rel_path: BohrFsPath = BohrFsPath.from_absolute_path(
+            path, heuristics_root.parent
+        )
         heuristic_module_path = ".".join(
             str(rel_path).replace("/", ".").split(".")[:-1]
         )
@@ -28,17 +30,26 @@ def load_all_heuristics(
     return modules
 
 
+def get_all_heuristics_for_artifact(
+    fs: BohrFileSystem, top_artifact: Optional[ArtifactType] = None
+) -> List[BohrFsPath]:
+    return get_heuristic_files(fs.heuristics, top_artifact)
+
+
 def get_heuristic_files(
-    path: AbsolutePath, top_artifact: Optional[ArtifactType] = None
-) -> List[AbsolutePath]:
+    path: BohrFsPath,
+    top_artifact: Optional[ArtifactType] = None,
+    with_anchor: Optional[AbsolutePath] = None,
+) -> List[BohrFsPath]:
+    with_anchor = with_anchor or path.to_absolute_path()
     heuristic_files = []
-    if path.is_file() and is_heuristic_file(path):
-        heuristic_files.append(path)
+    if path.is_heuristic_file():
+        heuristic_files.append(path.with_anchor(with_anchor))
     else:
-        for root, dirs, files in os.walk(path):
+        for root, dirs, files in os.walk(path.to_absolute_path()):
             for file in files:
-                path = AbsolutePath(pathlib.Path(os.path.join(root, file)))
-                if is_heuristic_file(path):
+                path = BohrFsPath(file, root).with_anchor(with_anchor)
+                if path.is_heuristic_file():
                     heuristic_files.append(path)
     if top_artifact is not None:
         res = []
@@ -52,11 +63,13 @@ def get_heuristic_files(
 
 
 def load_heuristics_from_file(
-    heuristic_file: AbsolutePath, artifact_type: Optional[Type] = None
+    heuristic_file: BohrFsPath, artifact_type: Optional[Type] = None
 ) -> List[HeuristicObj]:
     import importlib.util
 
-    spec = importlib.util.spec_from_file_location("heuristic.module", heuristic_file)
+    spec = importlib.util.spec_from_file_location(
+        "heuristic.module", heuristic_file.to_absolute_path()
+    )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
@@ -127,7 +140,7 @@ def is_heuristic_file(file: AbsolutePath) -> bool:
 
 
 def get_labeling_functions_from_path(
-    heuristic_file: AbsolutePath, category_mapping_cache
+    heuristic_file: BohrFsPath, category_mapping_cache
 ) -> List[LabelingFunction]:
     heuristics = load_heuristics_from_file(heuristic_file)
     labeling_functions = to_labeling_functions(heuristics, category_mapping_cache)

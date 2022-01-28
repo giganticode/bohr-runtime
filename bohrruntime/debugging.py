@@ -15,15 +15,10 @@ from git import Repo
 from tabulate import tabulate
 
 from bohrruntime import appauthor, appname, version
-from bohrruntime.config.pathconfig import PathConfig
+from bohrruntime.bohrfs import BohrFileSystem, BohrFsPath
 from bohrruntime.core import load_workspace
 from bohrruntime.formatting import tabulate_artifacts
-from bohrruntime.util.paths import (
-    AbsolutePath,
-    RelativePath,
-    concat_paths_safe,
-    relative_to_safe,
-)
+from bohrruntime.util.paths import AbsolutePath
 
 logger = logging.getLogger()
 
@@ -55,10 +50,10 @@ def _load_output_matrix_and_weights(
     rev: Optional[str] = None,
     force_update: bool = False,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    path_config = PathConfig.load()
+    fs = BohrFileSystem.init()
     logging.disable(logging.WARNING)
     repo = (
-        get_path_to_revision(path_config.project_root, rev, force_update=force_update)
+        get_path_to_revision(fs.root, rev, force_update=force_update)
         if rev is not None
         else None
     )
@@ -69,18 +64,14 @@ def _load_output_matrix_and_weights(
     dataset = exp.task.get_dataset_by_id(labeled_dataset)
 
     with dvc.api.open(
-        relative_to_safe(
-            path_config.exp_dataset_dir(exp, dataset), path_config.project_root
-        )
-        / f"heuristic_matrix.pkl",
+        str(fs.exp_dataset_dir(exp, dataset) / f"heuristic_matrix.pkl"),
         repo,
         mode="rb",
     ) as f:
         matrix = pd.read_pickle(BytesIO(f.read()))
 
     with dvc.api.open(
-        relative_to_safe(path_config.exp_dir(exp), path_config.project_root)
-        / f"label_model_weights.csv",
+        str(fs.exp_dir(exp) / f"label_model_weights.csv"),
         repo,
     ) as f:
         weights = pd.read_csv(f, index_col="heuristic_name")
@@ -202,17 +193,17 @@ def is_update_needed(git_revision: Repo) -> bool:
 
 
 def update(
-    repo: Repo, dvc_project_root: AbsolutePath, rel_path_to_dvc_root: RelativePath
+    repo: Repo, dvc_project_root: AbsolutePath, rel_path_to_dvc_root: BohrFsPath
 ) -> None:
     logger.info("Updating the repo... ")
     repo.remotes.origin.pull()
     move_local_config_to_old_revision(
-        dvc_project_root, concat_paths_safe(repo.working_tree_dir, rel_path_to_dvc_root)
+        dvc_project_root, repo.working_tree_dir / str(rel_path_to_dvc_root)
     )
 
 
 def move_local_config_to_old_revision(src: AbsolutePath, dst: AbsolutePath):
-    config_path: RelativePath = Path(".dvc/config.local")
+    config_path = Path(".dvc") / "config.local"
     if (src / config_path).exists():
         logger.debug(f"Copying config from {src / config_path} to {dst / config_path}")
         copy(src / config_path, dst / config_path)
@@ -226,7 +217,7 @@ def get_path_to_revision(
         return None
     remote = current_repo.remote()
     old_revision: Repo = get_cloned_rev(remote.url, rev)
-    dvc_root: RelativePath = relative_to_safe(
+    dvc_root: BohrFsPath = BohrFsPath.from_absolute_path(
         dvc_project_root, current_repo.working_tree_dir
     )
     logger.info(
@@ -240,7 +231,7 @@ def get_path_to_revision(
         update(old_revision, dvc_project_root, dvc_root)
     else:
         logger.info(f"Pass `--force-refresh` to refresh the repository.")
-    return concat_paths_safe(old_revision.working_tree_dir, dvc_root)
+    return old_revision.working_tree_dir / dvc_root
 
 
 class DatasetDebugger:
@@ -255,18 +246,11 @@ class DatasetDebugger:
         exp = workspace.get_experiment_by_name(exp)
         dataset = exp.task.get_dataset_by_id(labeled_dataset_name)
 
-        path_config = PathConfig.load()
-        path_to_old_revision = get_path_to_revision(
-            path_config.project_root, rev, force_update
-        )
+        fs = BohrFileSystem.init()
+        path_to_old_revision = get_path_to_revision(fs.root, rev, force_update)
         self.labeled_dataset_name = labeled_dataset_name
         logging.disable(logging.WARNING)
-        labeled_dataset_path = (
-            relative_to_safe(
-                path_config.exp_dataset_dir(exp, dataset), path_config.project_root
-            )
-            / "labeled.csv"
-        )
+        labeled_dataset_path = str(fs.exp_dataset_dir(exp, dataset) / "labeled.csv")
         import dvc.api
 
         label_to_int = {str(label): i for i, label in enumerate(exp.task.labels)}

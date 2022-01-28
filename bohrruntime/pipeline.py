@@ -10,20 +10,25 @@ from bohrapi.artifacts import Commit
 from bohrapi.core import Dataset, Experiment, Task, Workspace
 from git import Repo
 
-from bohrruntime.config.pathconfig import PathConfig
+from bohrruntime.bohrfs import (
+    DATASET_TEMPLATE,
+    EXPERIMENT_TEMPLATE,
+    BohrFileSystem,
+    BohrFsPath,
+)
 from bohrruntime.heuristics import get_heuristic_files, is_heuristic_file
-from bohrruntime.util.paths import normalize_paths, relative_to_safe
+from bohrruntime.util.paths import AbsolutePath, normalize_paths
 
 logger = logging.getLogger(__name__)
 
 
 # todo move this to bohr api
 def iterate_workspace(
-    workspace: Workspace, path_config: PathConfig, iterate_heuristics: bool = True
+    workspace: Workspace, fs: BohrFileSystem, iterate_heuristics: bool = True
 ) -> Union[List[Tuple[Experiment, Dataset]], List[Tuple[Experiment, Dataset, str]]]:
     for experiment in sorted(workspace.experiments, key=lambda x: x.name):
         heuristic_groups = get_heuristic_files(
-            path_config.heuristics, experiment.task.top_artifact
+            fs.heuristics, experiment.task.top_artifact
         )
         for dataset in experiment.datasets:
             if iterate_heuristics:
@@ -33,17 +38,36 @@ def iterate_workspace(
                 yield (experiment, dataset, None)
 
 
+def stringify_paths(
+    paths: List[Union[BohrFsPath, Dict[BohrFsPath, Any]]]
+) -> List[Union[str, Dict[str, Any]]]:
+    res = []
+    for path in paths:
+        if isinstance(path, BohrFsPath):
+            res.append(str(path))
+        elif isinstance(path, Dict):
+            if len(path) != 1:
+                raise AssertionError()
+            key, value = next(iter(path.items()))
+            if not isinstance(key, BohrFsPath):
+                raise AssertionError()
+            res.append({str(key): value})
+        else:
+            raise AssertionError()
+    return res
+
+
 @dataclass
 class DvcCommand(ABC):
-    path_config: PathConfig
+    fs: BohrFileSystem
 
     def to_dvc_config_dict(
         self,
     ) -> Dict:
         cmd = self.get_cmd()
         params = self.get_params()
-        deps = self.get_deps()
-        outs = self.get_outs()
+        deps = stringify_paths(self.get_deps())
+        outs = stringify_paths(self.get_outs())
         metrics = [{m: {"cache": False}} for m in self.get_metrics()]
         dct = {
             self.stage_name(): {
@@ -94,7 +118,7 @@ class ForEachDvcCommand(DvcCommand):
         for entry in self.get_iterating_over():
             foreach = {
                 **foreach,
-                **self.generate_for_each_entry(entry, self.path_config),
+                **self.generate_for_each_entry(entry, self.fs),
             }
         return foreach
 
@@ -115,17 +139,12 @@ class ForEachDvcCommand(DvcCommand):
 
     def get_iterating_over(self) -> Sequence:
         return sorted(
-            {
-                (e, d)
-                for e, d, h in iterate_workspace(
-                    self.workspace, self.path_config, False
-                )
-            },
+            {(e, d) for e, d, h in iterate_workspace(self.workspace, self.fs, False)},
             key=lambda d: (d[0].name, d[1].id),
         )
 
     def generate_for_each_entry(
-        self, entry, path_config: PathConfig
+        self, entry, fs: BohrFileSystem
     ) -> Dict[str, Dict[str, str]]:
         experiment, dataset = entry
         return {
@@ -151,12 +170,8 @@ class LoadDatasetsCommand(ForEachDvcCommand):
 
     def get_outs(self) -> List:
         outs = [
-            str(self.path_config.cached_dataset_dir / "${item}.jsonl"),
-            {
-                str(
-                    self.path_config.cached_dataset_dir / "${item}.jsonl.metadata.json"
-                ): {"cache": False}
-            },
+            self.fs.dataset("${item}"),
+            {self.fs.dataset_metadata("${item}"): {"cache": False}},
         ]
         return outs
 
@@ -167,49 +182,33 @@ class ApplyHeuristicsCommand(ForEachDvcCommand):
 
     def get_deps(self) -> List[str]:
         deps = [
-            str(
-                self.path_config.cloned_bohr_dir
-                / self.path_config.heuristics_dir
-                / "${item.heuristic_group}"
-            ),
-            str(self.path_config.cached_dataset_dir / "${item.dataset}.jsonl"),
+            self.fs.heuristic_group("${item.heuristic_group}"),
+            self.fs.dataset("${item.dataset}"),
         ]
         return deps
 
     def get_outs(self) -> List[Any]:
         outs = [
-            str(
-                self.path_config.runs_dir
-                / "__heuristics"
-                / "${item.dataset}"
-                / "${item.heuristic_group}"
-                / "heuristic_matrix.pkl"
-            )
+            self.fs.heuristic_matrix_file(DATASET_TEMPLATE, "${item.heuristic_group}")
         ]
         return outs
 
     def get_iterating_over(self) -> Sequence:
         return sorted(
-            {
-                (d, h)
-                for _, d, h in iterate_workspace(self.workspace, self.path_config, True)
-            },
+            {(d, h) for _, d, h in iterate_workspace(self.workspace, self.fs, True)},
             key=lambda d: (d[0].id, d[1]),
         )
 
     def generate_for_each_entry(
-        self, entry, path_config: PathConfig
+        self, entry, fs: BohrFileSystem
     ) -> Dict[str, Dict[str, str]]:
         dataset, heuristic_group = entry
-        relative_heuristic_group = str(
-            relative_to_safe(heuristic_group, self.path_config.heuristics)
-        )
+        relative_heuristic_group = str(heuristic_group)
+
         return {
             f"{dataset.id}__{relative_heuristic_group}": {
                 "dataset": dataset.id,
-                "heuristic_group": str(
-                    relative_to_safe(heuristic_group, self.path_config.heuristics)
-                ),
+                "heuristic_group": str(heuristic_group),
             }
         }
 
@@ -227,50 +226,26 @@ class ComputeSingleHeuristicMetricsCommand(DvcCommand):
     def get_deps(self) -> List:
         deps = []
         for dataset in self.task.test_datasets:
-            deps.append(
-                str(self.path_config.cached_dataset_dir / f"{dataset.id}.jsonl")
-            )
-        heuristic_groups = get_heuristic_files(
-            self.path_config.heuristics, self.task.top_artifact
-        )
-        for heuristic_group in heuristic_groups:
-            deps.append(
-                str(
-                    self.path_config.cloned_bohr_dir
-                    / self.path_config.heuristics_dir
-                    / relative_to_safe(heuristic_group, self.path_config.heuristics)
-                )
-            )
+            deps.append(self.fs.dataset(dataset.id))
+        for heuristic_group in get_heuristic_files(
+            self.fs.heuristics, self.task.top_artifact
+        ):
+            deps.append(self.fs.heuristic_group(heuristic_group))
             for dataset in self.task.test_datasets:
-                deps.append(
-                    str(
-                        self.path_config.runs_dir
-                        / "__heuristics"
-                        / dataset.id
-                        / relative_to_safe(heuristic_group, self.path_config.heuristics)
-                        / "heuristic_matrix.pkl"
-                    ),
-                )
+                deps.append(self.fs.heuristic_matrix_file(dataset, heuristic_group))
         return deps
 
     def get_outs(self):
         outputs = []
         for dataset in self.task.test_datasets:
             heuristic_groups = get_heuristic_files(
-                self.path_config.heuristics, self.task.top_artifact
+                self.fs.heuristics, self.task.top_artifact
             )
             for heuristic_group in heuristic_groups:
                 outputs.append(
                     {
-                        str(
-                            self.path_config.runs_dir
-                            / "__single_heuristic_metrics"
-                            / self.task.name
-                            / dataset.id
-                            / relative_to_safe(
-                                heuristic_group, self.path_config.heuristics
-                            )
-                            / "metrics.txt"
+                        self.fs.single_heuristic_metrics(
+                            self.task, dataset, heuristic_group
                         ): {"cache": False}
                     }
                 )
@@ -281,21 +256,15 @@ class CombineHeuristicsCommand(ForEachDvcCommand):
     def get_cmd(self) -> str:
         return 'bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"'
 
-    def get_deps(self) -> List[str]:
-        return [str(self.path_config.runs_dir / "__heuristics" / "${item.dataset}")]
+    def get_deps(self) -> List[BohrFsPath]:
+        return [self.fs.heuristic_dataset_dir(DATASET_TEMPLATE)]
 
     def get_params(self) -> List:
         return [{"bohr.lock": ["experiments.${item.exp}.heuristics_classifier"]}]
 
-    def get_outs(self) -> List:
+    def get_outs(self) -> List[BohrFsPath]:
         outs = [
-            str(
-                self.path_config.runs_dir
-                / "${item.task}"
-                / "${item.exp}"
-                / "${item.dataset}"
-                / "heuristic_matrix.pkl"
-            )
+            self.fs.experiment_label_matrix_file(EXPERIMENT_TEMPLATE, DATASET_TEMPLATE)
         ]
         return outs
 
@@ -304,13 +273,7 @@ class CombineHeuristicsCommand(ForEachDvcCommand):
 class RunMetricsAndAnalysisCommand(ForEachDvcCommand):
     def get_metrics(self) -> List:
         metrics = [
-            str(
-                self.path_config.runs_dir
-                / "${item.task}"
-                / "${item.exp}"
-                / "${item.dataset}"
-                / "metrics.txt"
-            )
+            str(self.fs.experiment_metrics(EXPERIMENT_TEMPLATE, DATASET_TEMPLATE))
         ]
         return metrics
 
@@ -319,41 +282,22 @@ class RunMetricsAndAnalysisCommand(ForEachDvcCommand):
 
     def get_deps(self) -> List:
         deps = [
-            str(
-                self.path_config.runs_dir
-                / "${item.task}"
-                / "${item.exp}"
-                / "${item.dataset}"
-                / "heuristic_matrix.pkl"
-            ),
-            str(
-                self.path_config.runs_dir
-                / "${item.task}"
-                / "${item.exp}"
-                / "label_model.pkl"
-            ),
+            self.fs.experiment_label_matrix_file(EXPERIMENT_TEMPLATE, DATASET_TEMPLATE),
+            self.fs.label_model(EXPERIMENT_TEMPLATE),
         ]
         return deps
 
     def get_outs(self) -> List:
         outs = [
             {
-                str(
-                    self.path_config.runs_dir
-                    / "${item.task}"
-                    / "${item.exp}"
-                    / "${item.dataset}"
-                    / "analysis.json"
-                ): {"cache": False}
+                self.fs.analysis_json(EXPERIMENT_TEMPLATE, DATASET_TEMPLATE): {
+                    "cache": False
+                }
             },
             {
-                str(
-                    self.path_config.runs_dir
-                    / "${item.task}"
-                    / "${item.exp}"
-                    / "${item.dataset}"
-                    / "analysis.csv"
-                ): {"cache": False}
+                self.fs.analysis_csv(EXPERIMENT_TEMPLATE, DATASET_TEMPLATE): {
+                    "cache": False
+                }
             },
         ]
         return outs
@@ -374,31 +318,15 @@ class TrainLabelModelCommand(DvcCommand):
 
     def get_deps(self):
         deps = [
-            str(
-                self.path_config.runs_dir  # TODO use exp_dataset_dir after adding relative option to it
-                / self.exp.task.name
-                / self.exp.name
-                / dataset.id
-                / "heuristic_matrix.pkl"
-            )
+            self.fs.experiment_label_matrix_file(self.exp, dataset)
             for dataset in self.exp.datasets
         ]
         return deps
 
     def get_outs(self) -> List:
         outs = [
-            str(
-                self.path_config.runs_dir
-                / self.exp.task.name
-                / self.exp.name
-                / "label_model.pkl"
-            ),
-            str(
-                self.path_config.runs_dir
-                / self.exp.task.name
-                / self.exp.name
-                / "label_model_weights.csv"
-            ),
+            self.fs.label_model(self.exp),
+            self.fs.label_model_weights(self.exp),
         ]
         return outs
 
@@ -409,38 +337,19 @@ class LabelDatasetCommand(ForEachDvcCommand):
 
     def get_deps(self) -> List:
         deps = [
-            str(
-                self.path_config.runs_dir
-                / "${item.task}"
-                / "${item.exp}"
-                / "${item.dataset}"
-                / "heuristic_matrix.pkl"
-            ),
-            str(
-                self.path_config.runs_dir
-                / "${item.task}"
-                / "${item.exp}"
-                / "label_model.pkl"
-            ),
+            self.fs.experiment_label_matrix_file(EXPERIMENT_TEMPLATE, DATASET_TEMPLATE),
+            self.fs.label_model(EXPERIMENT_TEMPLATE),
         ]
         return deps
 
     def get_outs(self) -> List:
-        outs = [
-            str(
-                self.path_config.runs_dir
-                / "${item.task}"
-                / "${item.exp}"
-                / "${item.dataset}"
-                / "labeled.csv"
-            )
-        ]
+        outs = [self.fs.labeled_dataset(EXPERIMENT_TEMPLATE, DATASET_TEMPLATE)]
         return outs
 
 
-def dvc_config_from_tasks(workspace: Workspace, path_config: PathConfig) -> Dict:
+def dvc_config_from_tasks(workspace: Workspace, fs: BohrFileSystem) -> Dict:
     """
-    >>> dvc_config_from_tasks([], PathConfig.load(Path('/')))
+    >>> dvc_config_from_tasks([], BohrFileSystem.init(Path('/')))
     Traceback (most recent call last):
     ...
     ValueError: At least of task should be specified
@@ -448,7 +357,7 @@ def dvc_config_from_tasks(workspace: Workspace, path_config: PathConfig) -> Dict
     >>> test = [Dataset("id.test", Commit, lambda x:x)]
     >>> labels = [CommitLabel.BugFix, CommitLabel.NonBugFix]
     >>> tasks = [Task("name", "author", "desc", Commit, labels, train, test, ["hg1", "hg2"])]
-    >>> dvc_config_from_tasks(experiments, PathConfig.load(Path('/')))
+    >>> dvc_config_from_tasks(experiments, BohrFileSystem.init(Path('/')))
     {'stages': {'apply_heuristic': {'foreach': {'name': [{'dataset': 'id.train'}, {'dataset': 'id.test'}]}, \
 'do': {'cmd': 'bohr porcelain label-dataset  "${key}" "${item.dataset}"', 'params': [], \
 'deps': \
@@ -462,19 +371,19 @@ def dvc_config_from_tasks(workspace: Workspace, path_config: PathConfig) -> Dict
     all_tasks = sorted({exp.task for exp in workspace.experiments})
 
     train_model_commands = [
-        TrainLabelModelCommand(path_config, exp)
+        TrainLabelModelCommand(fs, exp)
         for exp in sorted(workspace.experiments, key=lambda x: x.name)
     ]
     single_heuristic_commands = [
-        ComputeSingleHeuristicMetricsCommand(path_config, task) for task in all_tasks
+        ComputeSingleHeuristicMetricsCommand(fs, task) for task in all_tasks
     ]
     commands: List[ForEachDvcCommand] = (
         [
-            LoadDatasetsCommand(path_config, workspace),
-            ApplyHeuristicsCommand(path_config, workspace),
-            CombineHeuristicsCommand(path_config, workspace),
-            RunMetricsAndAnalysisCommand(path_config, workspace),
-            LabelDatasetCommand(path_config, workspace),
+            LoadDatasetsCommand(fs, workspace),
+            ApplyHeuristicsCommand(fs, workspace),
+            CombineHeuristicsCommand(fs, workspace),
+            RunMetricsAndAnalysisCommand(fs, workspace),
+            LabelDatasetCommand(fs, workspace),
         ]
         + train_model_commands
         + single_heuristic_commands
@@ -487,7 +396,9 @@ def dvc_config_from_tasks(workspace: Workspace, path_config: PathConfig) -> Dict
     return final_dict
 
 
-def fetch_heuristics_if_needed(heuristics_revision: str, heuristics_root: Path) -> None:
+def fetch_heuristics_if_needed(
+    heuristics_revision: str, heuristics_root: AbsolutePath
+) -> None:
     clone_repo = False
     if heuristics_root.exists():
         repo = Repo(heuristics_root)
@@ -516,12 +427,12 @@ def fetch_heuristics_if_needed(heuristics_revision: str, heuristics_root: Path) 
 
 def write_tasks_to_dvc_file(
     workspace: Workspace,
-    path_config: PathConfig,
+    fs: BohrFileSystem,
 ) -> None:
     fetch_heuristics_if_needed(
-        workspace.experiments[0].revision, path_config.cloned_bohr
+        workspace.experiments[0].revision, fs.cloned_bohr.to_absolute_path()
     )
-    dvc_config = dvc_config_from_tasks(workspace, path_config)
+    dvc_config = dvc_config_from_tasks(workspace, fs)
     params = {"bohr_runtime_version": workspace.bohr_runtime_version, "experiments": {}}
     for exp in workspace.experiments:
         heuristic_groups = exp.heuristic_groups
@@ -529,15 +440,17 @@ def write_tasks_to_dvc_file(
             "train_set": exp.train_dataset.id,
             "heuristics_classifier": ":".join(
                 normalize_paths(
-                    heuristic_groups, path_config.heuristics, is_heuristic_file
+                    heuristic_groups,
+                    fs.heuristics.to_absolute_path(),
+                    is_heuristic_file,
                 )
             )
             if heuristic_groups is not None
             else ".",
         }
     params_yaml = yaml.dump(params)
-    with (path_config.project_root / "bohr.lock").open("w") as f:
+    with (fs.root / "bohr.lock").open("w") as f:
         f.write(params_yaml)
     dvc_config_yaml = yaml.dump(dvc_config)
-    with (path_config.project_root / "dvc.yaml").open("w") as f:
+    with (fs.root / "dvc.yaml").open("w") as f:
         f.write(dvc_config_yaml)

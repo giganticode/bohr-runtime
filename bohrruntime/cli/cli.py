@@ -4,8 +4,9 @@ from typing import Optional
 import click
 
 from bohrruntime import __version__, api, setup_loggers
+from bohrruntime.appconfig import add_to_local_config
+from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.cli.porcelain.commands import porcelain
-from bohrruntime.config.pathconfig import PathConfig, add_to_local_config
 from bohrruntime.core import load_workspace
 from bohrruntime.util.logging import verbosity
 
@@ -47,7 +48,7 @@ def status(verbose: bool = False):
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
 def refresh(verbose: bool = False):
     setup_loggers(verbose)
-    api.refresh(load_workspace(), PathConfig.load())
+    api.refresh(load_workspace(), BohrFileSystem.init())
 
 
 @bohr.command()

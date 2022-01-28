@@ -1,17 +1,12 @@
 import random
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 from bohrapi.core import Experiment
-from bohrlabels.core import LabelSet
 from snorkel.labeling.model import LabelModel
 
-from bohrruntime.config.pathconfig import PathConfig
-from bohrruntime.core import load_ground_truth_labels
-from bohrruntime.labeling.cache import CategoryMappingCache
-from bohrruntime.util.paths import AbsolutePath
+from bohrruntime.bohrfs import BohrFileSystem
 
 random.seed(13)
 
@@ -26,12 +21,10 @@ def fit_label_model(lines_train: np.ndarray) -> LabelModel:
     return label_model
 
 
-def train_label_model(
-    exp: Experiment, path_config: Optional[PathConfig] = None
-) -> None:
-    path_config = path_config or PathConfig.load()
-    dataset_dir = path_config.exp_dataset_dir(exp, exp.train_dataset)
-    task_dir = path_config.exp_dir(exp)
+def train_label_model(exp: Experiment, fs: Optional[BohrFileSystem] = None) -> None:
+    fs = fs or BohrFileSystem.init()
+    dataset_dir = fs.exp_dataset_dir(exp, exp.train_dataset).to_absolute_path()
+    task_dir = fs.exp_dir(exp).to_absolute_path()
 
     lines_train = pd.read_pickle(str(dataset_dir / f"heuristic_matrix.pkl"))
     label_model = fit_label_model(lines_train.to_numpy())

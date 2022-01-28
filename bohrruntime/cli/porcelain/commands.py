@@ -1,11 +1,9 @@
-import json
-from pprint import pprint
 from typing import Optional
 
 import click
 
 from bohrruntime import setup_loggers
-from bohrruntime.config.pathconfig import PathConfig
+from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import load_workspace
 from bohrruntime.util.profiler import Profiler
 
@@ -54,7 +52,7 @@ def compute_single_heuristic_metric(task: Optional[str]):
     )
 
     setup_loggers()
-    path_config = PathConfig.load()
+    path_config = BohrFileSystem.init()
     workspace = load_workspace()
     task = workspace.get_task_by_name(task)
     calculate_metrics_for_heuristic(task, path_config)
@@ -94,7 +92,7 @@ def train_label_model(exp: str):
 
     # setup_loggers()
     workspace = load_workspace()
-    path_config = PathConfig.load()
+    path_config = BohrFileSystem.init()
     exp = workspace.get_experiment_by_name(exp)
     train_label_model(exp, path_config)
 
@@ -107,7 +105,7 @@ def run_metrics_and_analysis(exp: str, dataset: str):
 
     setup_loggers()
     workspace = load_workspace()
-    path_config = PathConfig.load()
+    path_config = BohrFileSystem.init()
     exp = workspace.get_experiment_by_name(exp)
     dataset = workspace.get_dataset_by_id(dataset)
     calculate_experiment_metrics(exp, dataset, path_config)

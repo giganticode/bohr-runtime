@@ -8,7 +8,7 @@ from bohrlabels.core import LabelSet
 from snorkel.labeling import LFAnalysis
 from snorkel.labeling.model import LabelModel
 
-from bohrruntime.config.pathconfig import PathConfig
+from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import load_ground_truth_labels
 from bohrruntime.data_analysis import calculate_lf_metrics, save_analysis
 from bohrruntime.labeling.cache import CategoryMappingCache
@@ -63,10 +63,10 @@ def calculate_label_model_metrics(
     }
 
 
-def calculate_experiment_metrics(exp: Experiment, dataset: Dataset, path_config: Optional[PathConfig]):
-    path_config = path_config or PathConfig.load()
-    task_dir = path_config.exp_dir(exp)
-    dataset_dir = path_config.exp_dataset_dir(exp, dataset)
+def calculate_experiment_metrics(exp: Experiment, dataset: Dataset, fs: Optional[BohrFileSystem]):
+    fs = fs or BohrFileSystem.init()
+    task_dir = fs.exp_dir(exp)
+    dataset_dir = fs.exp_dataset_dir(exp, dataset).to_absolute_path()
     all_heuristics_file = dataset_dir / f"heuristic_matrix.pkl"
     save_metrics_to = dataset_dir / f"metrics.txt"
 
@@ -88,7 +88,7 @@ def calculate_experiment_metrics(exp: Experiment, dataset: Dataset, path_config:
         label_series
     )
     label_model = LabelModel()
-    label_model.load(str(task_dir / "label_model.pkl"))
+    label_model.load(str(task_dir.to_absolute_path() / "label_model.pkl"))
     if label_series is not None:
         label_model_metrics = calculate_label_model_metrics(
             label_matrix,

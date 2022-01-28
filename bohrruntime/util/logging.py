@@ -1,6 +1,5 @@
 from bohrruntime import setup_loggers
-from bohrruntime.config.appconfig import AppConfig
-from bohrruntime.config.pathconfig import add_to_local_config
+from bohrruntime.appconfig import AppConfig, add_to_local_config
 
 
 class verbosity:

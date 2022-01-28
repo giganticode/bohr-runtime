@@ -3,9 +3,8 @@ from typing import Optional
 import pandas as pd
 from bohrapi.core import Dataset, Experiment
 
-from bohrruntime.config.pathconfig import PathConfig
+from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.heuristics import get_heuristic_files, load_heuristics_from_file
-from bohrruntime.util.paths import relative_to_safe
 
 
 def check_duplicate_heuristics(all_heuristics_matrix: pd.DataFrame):
@@ -19,11 +18,11 @@ def check_duplicate_heuristics(all_heuristics_matrix: pd.DataFrame):
 
 
 def combine_applied_heuristics(
-    exp: Experiment, dataset: Dataset, path_config: Optional[PathConfig] = None
+    exp: Experiment, dataset: Dataset, fs: Optional[BohrFileSystem] = None
 ) -> None:
 
-    path_config = path_config or PathConfig.load()
-    dataset_dir = path_config.exp_dataset_dir(exp, dataset)
+    fs = fs or BohrFileSystem.init()
+    dataset_dir = fs.exp_dataset_dir(exp, dataset).to_absolute_path()
     all_heuristics_file = dataset_dir / f"heuristic_matrix.pkl"
     matrix_list = []
     all_heuristics = []
@@ -31,12 +30,14 @@ def combine_applied_heuristics(
         exp.heuristic_groups if exp.heuristic_groups is not None else ["."]
     ):
         for heuristic_module_path in get_heuristic_files(
-            path_config.heuristics / heuristic_group, exp.task.top_artifact
+            fs.heuristics / heuristic_group,
+            exp.task.top_artifact,
+            with_anchor=fs.heuristics.to_absolute_path(),
         ):
-            partial_heuristics_file = path_config.heuristic_matrix_file(
+            partial_heuristics_file = fs.heuristic_matrix_file(
                 dataset,
-                str(relative_to_safe(heuristic_module_path, path_config.heuristics)),
-            )
+                str(heuristic_module_path),
+            ).to_absolute_path()
             matrix = pd.read_pickle(str(partial_heuristics_file))
             matrix_list.append(matrix)
             heuristics = load_heuristics_from_file(

@@ -7,7 +7,7 @@ from bohrlabels.labels import CommitLabel
 from snorkel.labeling import LabelingFunction
 from snorkel.labeling.apply.core import LFApplier
 
-from bohrruntime.config.pathconfig import PathConfig
+from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import load_dataset
 from bohrruntime.heuristics import get_labeling_functions_from_path
 from bohrruntime.labeling.cache import CategoryMappingCache
@@ -24,13 +24,15 @@ def apply_lfs_to_dataset(
 def apply_heuristics_to_dataset(
     heuristic_group: str,
     dataset: Dataset,
-    path_config: Optional[PathConfig] = None,
+    fs: Optional[BohrFileSystem] = None,
 ) -> None:
-    path_config = path_config or PathConfig.load()
+    fs = fs or BohrFileSystem.init()
 
-    save_to_matrix = path_config.heuristic_matrix_file(dataset, heuristic_group)
+    save_to_matrix = fs.heuristic_matrix_file(
+        dataset, heuristic_group
+    ).to_absolute_path()
 
-    heuristic_file = path_config.heuristics / heuristic_group
+    heuristic_file = fs.heuristics / heuristic_group
     category_mapping_cache = CategoryMappingCache(
         list(map(lambda x: str(x), [CommitLabel.NonBugFix, CommitLabel.BugFix])),
         maxsize=10000,

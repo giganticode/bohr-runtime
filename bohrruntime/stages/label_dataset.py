@@ -6,24 +6,24 @@ from bohrapi.core import Dataset, Experiment
 from pandas import Series
 from snorkel.labeling.model import LabelModel
 
-from bohrruntime.config.pathconfig import PathConfig
+from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import load_dataset
 
 
 def label_dataset(
     exp: Experiment,
     dataset: Dataset,
-    path_config: Optional[PathConfig] = None,
+    path_config: Optional[BohrFileSystem] = None,
     debug: bool = False,
 ):
-    path_config = path_config or PathConfig.load()
+    path_config = path_config or BohrFileSystem.init()
     task_dir = path_config.exp_dir(exp)
-    dataset_dir = path_config.exp_dataset_dir(exp, dataset)
+    dataset_dir = path_config.exp_dataset_dir(exp, dataset).to_absolute_path()
 
     label_matrix = pd.read_pickle(dataset_dir / f"heuristic_matrix.pkl")
 
     label_model = LabelModel()
-    label_model.load(str(task_dir / "label_model.pkl"))
+    label_model.load(str(task_dir.to_absolute_path() / "label_model.pkl"))
     artifact_list = load_dataset(dataset)
     if (
         dataset in exp.task.test_datasets
@@ -46,7 +46,9 @@ def label_dataset(
     df_labeled = do_labeling(label_model, label_matrix.to_numpy(), df, exp.task.labels)
 
     if debug:
-        label_model_weights_file = path_config.exp_dir(exp) / f"label_model_weights.csv"
+        label_model_weights_file = (
+            path_config.exp_dir(exp).to_absolute_path() / f"label_model_weights.csv"
+        )
         weights = pd.read_csv(label_model_weights_file, index_col="heuristic_name")
 
         for (
@@ -72,7 +74,7 @@ def label_dataset(
                 index=weights.index,
             )
 
-    dataset_dir = path_config.exp_dataset_dir(exp, dataset)
+    dataset_dir = path_config.exp_dataset_dir(exp, dataset).to_absolute_path()
     target_file = dataset_dir / "labeled.csv"
     df_labeled.to_csv(target_file, index=False)
     print(f"Labeled dataset has been written to {target_file}.")

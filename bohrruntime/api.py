@@ -4,7 +4,7 @@ from typing import Optional
 from bohrapi.core import Workspace
 
 import bohrruntime.dvc as dvc
-from bohrruntime.config.pathconfig import PathConfig
+from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import load_workspace
 from bohrruntime.pipeline import write_tasks_to_dvc_file
 
@@ -23,13 +23,13 @@ def repro(
     task: Optional[str] = None,
     force: bool = False,
     workspace: Optional[Workspace] = None,
-    path_config: Optional[PathConfig] = None,
+    fs: Optional[BohrFileSystem] = None,
     pull: bool = True,
 ) -> None:
-    path_config = path_config or PathConfig.load()
+    fs = fs or BohrFileSystem.init()
     workspace = workspace or load_workspace()
 
-    refresh(workspace, path_config)
+    refresh(workspace, fs)
 
     glob = None
     if task:
@@ -38,19 +38,19 @@ def repro(
         glob = f"{task}_*"
     if pull:
         print("Pulling cache from DVC remote...")
-        dvc.pull(path_config=path_config)
-    print(dvc.repro(pull=False, glob=glob, force=force, path_config=path_config))
+        dvc.pull(fs=fs)
+    print(dvc.repro(pull=False, glob=glob, force=force, fs=fs))
 
 
-def refresh(workspace: Workspace, path_config: PathConfig) -> None:
-    write_tasks_to_dvc_file(workspace, path_config)
+def refresh(workspace: Workspace, fs: BohrFileSystem) -> None:
+    write_tasks_to_dvc_file(workspace, fs)
 
 
 def status(
-    work_space: Optional[Workspace] = None, path_config: Optional[PathConfig] = None
+    work_space: Optional[Workspace] = None, fs: Optional[BohrFileSystem] = None
 ) -> str:
     work_space = work_space or load_workspace()
-    path_config = path_config or PathConfig.load()
+    fs = fs or BohrFileSystem.init()
 
-    refresh(work_space, path_config)
-    return dvc.status(path_config)
+    refresh(work_space, fs)
+    return dvc.status(fs)

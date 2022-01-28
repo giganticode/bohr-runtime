@@ -3,19 +3,7 @@ import os
 from pathlib import Path
 from typing import Callable, List, NewType, Type, TypeVar
 
-RelativePath = NewType("RelativePath", Path)
 AbsolutePath = NewType("AbsolutePath", Path)
-RelativeOrAbsolute = TypeVar("RelativeOrAbsolute", RelativePath, AbsolutePath)
-
-
-def relative_to_safe(
-    path: RelativeOrAbsolute, base_path: RelativeOrAbsolute
-) -> RelativePath:
-    return path.relative_to(base_path)
-
-
-def concat_paths_safe(p1: RelativeOrAbsolute, p2: RelativePath) -> RelativeOrAbsolute:
-    return p1 / p2
 
 
 def load_class_by_full_path(path_to_mapper_obj: str) -> Type:
@@ -33,7 +21,9 @@ def load_class_by_full_path(path_to_mapper_obj: str) -> Type:
         raise ValueError(f"Class {name} not found in module {module}") from e
 
 
-def normalize_paths(paths: List[str], base_dir: Path, predicate: Callable) -> List[str]:
+def normalize_paths(
+    paths: List[str], base_dir: AbsolutePath, predicate: Callable
+) -> List[str]:
     """
     >>> import tempfile
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
