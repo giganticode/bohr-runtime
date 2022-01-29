@@ -306,12 +306,16 @@ class RunMetricsAndAnalysisCommand(ForEachDvcCommand):
 
 
 @dataclass
-class ComputeRandomModelMetricsCommand(ForEachDvcCommand):
+class ComputePredefinedModelMetricsCommand(ForEachDvcCommand):
+    @abstractmethod
+    def get_model_name(self) -> str:
+        pass
+
     def get_metrics(self) -> List:
         metrics = [
             str(
                 self.fs.experiment_metrics(
-                    SimpleNamespace(name="random_model", task=TASK_TEMPLATE),
+                    SimpleNamespace(name=self.get_model_name(), task=TASK_TEMPLATE),
                     DATASET_TEMPLATE,
                 )
             )
@@ -320,9 +324,6 @@ class ComputeRandomModelMetricsCommand(ForEachDvcCommand):
 
     def get_deps(self) -> List:
         return [self.fs.dataset(DATASET_TEMPLATE.id)]
-
-    def get_cmd(self) -> str:
-        return 'bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"'
 
     def get_iterating_over(self) -> Sequence:
         all_tasks = {exp.task for exp in self.workspace.experiments}
@@ -340,6 +341,24 @@ class ComputeRandomModelMetricsCommand(ForEachDvcCommand):
                 "task": task.name,
             }
         }
+
+
+class ComputeRandomModelMetricsCommand(ComputePredefinedModelMetricsCommand):
+    def get_cmd(self) -> str:
+        return 'bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"'
+
+    def get_model_name(self) -> str:
+        return "random_model"
+
+
+class ComputeZeroModelMetricsCommand(ComputePredefinedModelMetricsCommand):
+    def get_cmd(self) -> str:
+        return (
+            'bohr porcelain compute-zero-model-metrics "${item.task}" "${item.dataset}"'
+        )
+
+    def get_model_name(self) -> str:
+        return "zero_model"
 
 
 @dataclass
@@ -423,6 +442,7 @@ def dvc_config_from_tasks(workspace: Workspace, fs: BohrFileSystem) -> Dict:
             CombineHeuristicsCommand(fs, workspace),
             RunMetricsAndAnalysisCommand(fs, workspace),
             ComputeRandomModelMetricsCommand(fs, workspace),
+            ComputeZeroModelMetricsCommand(fs, workspace),
             LabelDatasetCommand(fs, workspace),
         ]
         + train_model_commands

@@ -4,7 +4,7 @@ import click
 
 from bohrruntime import setup_loggers
 from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.core import load_workspace
+from bohrruntime.core import RandomModel, ZeroModel, load_workspace
 from bohrruntime.stages.experiment_metrics import SynteticExperiment
 from bohrruntime.util.profiler import Profiler
 
@@ -124,4 +124,34 @@ def compute_random_model_metrics(task: str, dataset: str):
     task = workspace.get_task_by_name(task)
     dataset = workspace.get_dataset_by_id(dataset)
     exp = SynteticExperiment("random_model", task)
+    calculate_experiment_metrics(exp, dataset, path_config)
+
+
+@porcelain.command()
+@click.argument("task")
+@click.argument("dataset")
+def compute_random_model_metrics(task: str, dataset: str):
+    from bohrruntime.stages.experiment_metrics import calculate_experiment_metrics
+
+    setup_loggers()
+    workspace = load_workspace()
+    path_config = BohrFileSystem.init()
+    task = workspace.get_task_by_name(task)
+    dataset = workspace.get_dataset_by_id(dataset)
+    exp = SynteticExperiment("zero_model", RandomModel, task)
+    calculate_experiment_metrics(exp, dataset, path_config)
+
+
+@porcelain.command()
+@click.argument("task")
+@click.argument("dataset")
+def compute_zero_model_metrics(task: str, dataset: str):
+    from bohrruntime.stages.experiment_metrics import calculate_experiment_metrics
+
+    setup_loggers()
+    workspace = load_workspace()
+    path_config = BohrFileSystem.init()
+    task = workspace.get_task_by_name(task)
+    dataset = workspace.get_dataset_by_id(dataset)
+    exp = SynteticExperiment("zero_model", ZeroModel, task)
     calculate_experiment_metrics(exp, dataset, path_config)

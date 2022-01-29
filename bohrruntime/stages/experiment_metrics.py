@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Type, Union
 
 import numpy as np
 import pandas as pd
@@ -65,6 +65,7 @@ def calculate_model_metrics(
 @dataclass()
 class SynteticExperiment:
     name: str
+    model_type: Type
     task: Task
 
 
@@ -97,7 +98,7 @@ def calculate_experiment_metrics(exp: Union[Experiment, SynteticExperiment], dat
             label_model.load(str(fs.label_model(exp).to_absolute_path()))
             model = BohrLabelModel(label_model, label_matrix, tie_break_policy = "random")
         elif type(exp).__name__ == 'SynteticExperiment':
-            model = RandomModel(len(artifact_df))
+            model = exp.model_type(len(artifact_df))
         else:
             raise AssertionError()
         metrics = calculate_model_metrics(

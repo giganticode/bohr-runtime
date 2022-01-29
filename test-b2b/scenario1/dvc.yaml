@@ -450,6 +450,22 @@ stages:
     params:
     - bohr.lock:
       - bohr_runtime_version
+  ComputeZeroModelMetrics:
+    do:
+      cmd: bohr porcelain compute-zero-model-metrics "${item.task}" "${item.dataset}"
+      deps:
+      - cached-datasets/${item.dataset}.jsonl
+      metrics:
+      - runs/${item.task}/zero_model/${item.dataset}/metrics.txt:
+          cache: false
+      outs: []
+      params:
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+      bugginess__manual_labels.herzig:
+        dataset: manual_labels.herzig
+        task: bugginess
   LabelDataset:
     do:
       cmd: bohr porcelain label-dataset "${item.exp}" "${item.dataset}"

@@ -299,3 +299,13 @@ class RandomModel(Model):
             Y_pred.append(0)
         Y_prob = [[1.0, 0.0] for _ in range(self.n)]
         return np.array(Y_pred), np.array(Y_prob)
+
+
+class ZeroModel(Model):
+    def __init__(self, n: int):
+        self.n = n
+
+    def predict(self) -> Tuple[np.ndarray, np.ndarray]:
+        Y_pred = [0 for _ in range(self.n)]
+        Y_prob = [[1.0, 0.0] for _ in range(self.n)]
+        return np.array(Y_pred), np.array(Y_prob)
