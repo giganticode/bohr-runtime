@@ -269,6 +269,22 @@ stages:
         dataset: manual_labels.herzig
         exp: keywords_in_message
         task: bugginess
+  ComputeRandomModelMetrics:
+    do:
+      cmd: bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"
+      deps:
+      - cached-datasets/${item.dataset}.jsonl
+      metrics:
+      - runs/${item.task}/random_model/${item.dataset}/metrics.txt:
+          cache: false
+      outs: []
+      params:
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+      bugginess__manual_labels.herzig:
+        dataset: manual_labels.herzig
+        task: bugginess
   ComputeSingleHeuristicMetrics__bugginess:
     cmd: bohr porcelain compute-single-heuristic-metric bugginess
     deps:

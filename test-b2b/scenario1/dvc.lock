@@ -3438,3 +3438,16 @@ stages:
     - path: runs/__single_heuristic_metrics/bugginess/manual_labels.herzig/bugginess/wip/wip_keyword_in_message.py/metrics.txt
       md5: 24c09ac446453a0cb2f79080cf1ab389
       size: 101
+  ComputeRandomModelMetrics@bugginess__manual_labels.herzig:
+    cmd: bohr porcelain compute-random-model-metrics "bugginess" "manual_labels.herzig"
+    deps:
+    - path: cached-datasets/manual_labels.herzig.jsonl
+      md5: 531fa982dbe7064f3d345677df510c58
+      size: 294446290
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.5.0rc2
+    outs:
+    - path: runs/bugginess/random_model/manual_labels.herzig/metrics.txt
+      md5: 2f4d50baa110a6f4115cbad5fe633f78
+      size: 96

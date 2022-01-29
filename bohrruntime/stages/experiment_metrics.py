@@ -1,21 +1,28 @@
+from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import numpy as np
 import pandas as pd
-from bohrapi.core import Dataset, Experiment
+from bohrapi.core import Dataset, Experiment, Task
 from bohrlabels.core import LabelSet
 from snorkel.analysis import Scorer
 from snorkel.labeling import LFAnalysis
 from snorkel.labeling.model import LabelModel
 
 from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.core import BohrLabelModel, Model, load_ground_truth_labels
+from bohrruntime.core import (
+    BohrLabelModel,
+    Model,
+    RandomModel,
+    load_dataset,
+    load_ground_truth_labels,
+)
 from bohrruntime.data_analysis import calculate_lf_metrics, save_analysis
 from bohrruntime.labeling.cache import CategoryMappingCache
 
 
-def calculate_label_model_metrics(
+def calculate_model_metrics(
         model: Model,
         true_labels: np.ndarray
 ) -> Dict[str, float]:
@@ -27,11 +34,11 @@ def calculate_label_model_metrics(
     >>> lm = namedtuple('LM', ['predict', 'score'])(mocked_predictions, mocked_scores)
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
     ...     np.ndarray([]).dump(f"{tmpdirname}/heuristic_matrix_test_set.pkl")
-    ...     calculate_label_model_metrics(lm, "test_set", np.array([1, 1, 0]), Path(tmpdirname))
+    ...     calculate_model_metrics(lm, "test_set", np.array([1, 1, 0]), Path(tmpdirname))
     {'label_model_accuracy_test_set': 0.333, 'label_model_auc_test_set': 0.78, 'label_model_f1_test_set': 1.0, 'label_model_mse_test_set': 0.404}
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
     ...     np.ndarray([]).dump(f"{tmpdirname}/heuristic_matrix_test_set.pkl")
-    ...     calculate_label_model_metrics(lm, "test_set", np.array([0, 1, 0]), Path(tmpdirname))
+    ...     calculate_model_metrics(lm, "test_set", np.array([0, 1, 0]), Path(tmpdirname))
     {'label_model_accuracy_test_set': 0.0, 'label_model_auc_test_set': 0.78, 'label_model_f1_test_set': 1.0, 'label_model_mse_test_set': 0.671}
     """
     # label_matrix = np.load(str(save_to / f"heuristic_matrix.pkl"), allow_pickle=True)
@@ -55,17 +62,19 @@ def calculate_label_model_metrics(
     }
 
 
-def calculate_experiment_metrics(exp: Experiment, dataset: Dataset, fs: Optional[BohrFileSystem]):
-    fs = fs or BohrFileSystem.init()
-    task_dir = fs.exp_dir(exp)
-    dataset_dir = fs.exp_dataset_dir(exp, dataset).to_absolute_path()
-    all_heuristics_file = dataset_dir / f"heuristic_matrix.pkl"
-    save_metrics_to = dataset_dir / f"metrics.txt"
+@dataclass()
+class SynteticExperiment:
+    name: str
+    task: Task
+
+
+def calculate_experiment_metrics(exp: Union[Experiment, SynteticExperiment], dataset: Dataset, fs: BohrFileSystem):
 
     category_mapping_cache = CategoryMappingCache(
         list(map(lambda x: str(x), exp.task.labels)), maxsize=10000
     )
-    label_series = load_ground_truth_labels(exp.task, dataset)
+    artifact_df = load_dataset(dataset, projection={})
+    label_series = load_ground_truth_labels(exp.task, dataset, pre_loaded_artifacts=artifact_df)
     if label_series is not None:
         label_series = np.array(
             list(
@@ -73,26 +82,39 @@ def calculate_experiment_metrics(exp: Experiment, dataset: Dataset, fs: Optional
             )
         )
 
-    heuristic_matrix = pd.read_pickle(all_heuristics_file)
-    label_matrix = heuristic_matrix.to_numpy()
-    metrics = calculate_lf_metrics(
-        label_matrix,
-        label_series
-    )
-    label_model = LabelModel()
-    label_model.load(str(task_dir.to_absolute_path() / "label_model.pkl"))
+    if type(exp).__name__ == 'Experiment':
+        all_heuristics_file = fs.experiment_label_matrix_file(exp, dataset).to_absolute_path()
+        heuristic_matrix = pd.read_pickle(all_heuristics_file)
+        label_matrix = heuristic_matrix.to_numpy()
+        lf_metrics = calculate_lf_metrics(
+            label_matrix,
+            label_series
+        )
+
     if label_series is not None:
-        model = BohrLabelModel(label_model, label_matrix, tie_break_policy = "random")
-        label_model_metrics = calculate_label_model_metrics(
+        if type(exp).__name__ == 'Experiment':
+            label_model = LabelModel()
+            label_model.load(str(fs.label_model(exp).to_absolute_path()))
+            model = BohrLabelModel(label_model, label_matrix, tie_break_policy = "random")
+        elif type(exp).__name__ == 'SynteticExperiment':
+            model = RandomModel(len(artifact_df))
+        else:
+            raise AssertionError()
+        metrics = calculate_model_metrics(
             model,
             label_series
         )
-        metrics = {**metrics, **label_model_metrics}
+        if type(exp).__name__ == 'Experiment':
+            metrics = {**lf_metrics, **metrics}
+
+    save_metrics_to = fs.experiment_metrics(exp, dataset).to_absolute_path()
     with open(save_metrics_to, 'w') as f:
         for metric_key, metric_value in metrics.items():
             f.write(f'{metric_key} = {metric_value}\n')
 
-    labeling_functions = [SimpleNamespace(name=heuristic) for heuristic in heuristic_matrix.columns]
-
-    lf_analysis_summary = LFAnalysis(label_matrix, labeling_functions).lf_summary(label_series)
-    save_analysis(lf_analysis_summary, dataset_dir / f"analysis.csv", dataset_dir / f"analysis.json")
+    if type(exp).__name__ == 'Experiment':
+        labeling_functions = [SimpleNamespace(name=heuristic) for heuristic in heuristic_matrix.columns]
+        lf_analysis_summary = LFAnalysis(label_matrix, labeling_functions).lf_summary(label_series)
+        save_analysis(lf_analysis_summary,
+                      fs.analysis_csv(exp, dataset).to_absolute_path(),
+                      fs.analysis_json(exp, dataset).to_absolute_path())

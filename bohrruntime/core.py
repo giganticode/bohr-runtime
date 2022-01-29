@@ -287,3 +287,15 @@ class BohrLabelModel(Model):
             self.label_matrix, return_probs=True, tie_break_policy=self.tie_break_policy
         )
         return Y_pred, Y_prob
+
+
+class RandomModel(Model):
+    def __init__(self, n: int):
+        self.n = n
+
+    def predict(self) -> Tuple[np.ndarray, np.ndarray]:
+        Y_pred = [a for _ in range(self.n // 2) for a in [0, 1]]
+        if self.n % 2 == 1:
+            Y_pred.append(0)
+        Y_prob = [[1.0, 0.0] for _ in range(self.n)]
+        return np.array(Y_pred), np.array(Y_prob)

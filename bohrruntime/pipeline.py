@@ -3,6 +3,7 @@ import shutil
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Dict, List, Sequence, Tuple, Union
 
 import yaml
@@ -13,6 +14,7 @@ from git import Repo
 from bohrruntime.bohrfs import (
     DATASET_TEMPLATE,
     EXPERIMENT_TEMPLATE,
+    TASK_TEMPLATE,
     BohrFileSystem,
     BohrFsPath,
 )
@@ -183,7 +185,7 @@ class ApplyHeuristicsCommand(ForEachDvcCommand):
     def get_deps(self) -> List[str]:
         deps = [
             self.fs.heuristic_group("${item.heuristic_group}"),
-            self.fs.dataset("${item.dataset}"),
+            self.fs.dataset(DATASET_TEMPLATE.id),
         ]
         return deps
 
@@ -304,6 +306,43 @@ class RunMetricsAndAnalysisCommand(ForEachDvcCommand):
 
 
 @dataclass
+class ComputeRandomModelMetricsCommand(ForEachDvcCommand):
+    def get_metrics(self) -> List:
+        metrics = [
+            str(
+                self.fs.experiment_metrics(
+                    SimpleNamespace(name="random_model", task=TASK_TEMPLATE),
+                    DATASET_TEMPLATE,
+                )
+            )
+        ]
+        return metrics
+
+    def get_deps(self) -> List:
+        return [self.fs.dataset(DATASET_TEMPLATE.id)]
+
+    def get_cmd(self) -> str:
+        return 'bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"'
+
+    def get_iterating_over(self) -> Sequence:
+        all_tasks = {exp.task for exp in self.workspace.experiments}
+        for task in sorted(all_tasks, key=lambda k: k.name):
+            for dataset in sorted(task.test_datasets, key=lambda d: d.id):
+                yield (task, dataset)
+
+    def generate_for_each_entry(
+        self, entry, fs: BohrFileSystem
+    ) -> Dict[str, Dict[str, str]]:
+        task, dataset = entry
+        return {
+            f"{task.name}__{dataset.id}": {
+                "dataset": dataset.id,
+                "task": task.name,
+            }
+        }
+
+
+@dataclass
 class TrainLabelModelCommand(DvcCommand):
     exp: Experiment
 
@@ -383,6 +422,7 @@ def dvc_config_from_tasks(workspace: Workspace, fs: BohrFileSystem) -> Dict:
             ApplyHeuristicsCommand(fs, workspace),
             CombineHeuristicsCommand(fs, workspace),
             RunMetricsAndAnalysisCommand(fs, workspace),
+            ComputeRandomModelMetricsCommand(fs, workspace),
             LabelDatasetCommand(fs, workspace),
         ]
         + train_model_commands
