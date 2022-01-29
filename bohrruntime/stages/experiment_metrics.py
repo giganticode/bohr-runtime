@@ -5,18 +5,18 @@ import numpy as np
 import pandas as pd
 from bohrapi.core import Dataset, Experiment
 from bohrlabels.core import LabelSet
+from snorkel.analysis import Scorer
 from snorkel.labeling import LFAnalysis
 from snorkel.labeling.model import LabelModel
 
 from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.core import load_ground_truth_labels
+from bohrruntime.core import BohrLabelModel, Model, load_ground_truth_labels
 from bohrruntime.data_analysis import calculate_lf_metrics, save_analysis
 from bohrruntime.labeling.cache import CategoryMappingCache
 
 
 def calculate_label_model_metrics(
-        label_matrix: np.array,
-        label_model: LabelModel,
+        model: Model,
         true_labels: np.ndarray
 ) -> Dict[str, float]:
     """
@@ -36,22 +36,14 @@ def calculate_label_model_metrics(
     """
     # label_matrix = np.load(str(save_to / f"heuristic_matrix.pkl"), allow_pickle=True)
 
-    tie_break_policy = "random"
-
-    Y_pred, Y_prob = label_model.predict(
-        label_matrix, return_probs=True, tie_break_policy=tie_break_policy
-    )
+    Y_pred, Y_prob = model.predict()
 
     try:
-        auc = label_model.score(
-            L=label_matrix, Y=true_labels, tie_break_policy="random", metrics=["roc_auc"]
-        )["roc_auc"]
+        auc = Scorer(metrics=["roc_auc"]).score(true_labels, Y_pred, Y_prob)["roc_auc"]
         auc = round(auc, 3)
     except ValueError:
         auc = "n/a"
-    f1 = label_model.score(
-        L=label_matrix, Y=true_labels, tie_break_policy="random", metrics=["f1"]
-    )["f1"]
+    f1 = Scorer(metrics=["f1"]).score(true_labels, Y_pred, Y_prob)["f1"]
     accuracy = sum(Y_pred == true_labels) / float(len(Y_pred))
     mse = np.mean((Y_prob[:, 1] - true_labels) ** 2)
 
@@ -90,9 +82,9 @@ def calculate_experiment_metrics(exp: Experiment, dataset: Dataset, fs: Optional
     label_model = LabelModel()
     label_model.load(str(task_dir.to_absolute_path() / "label_model.pkl"))
     if label_series is not None:
+        model = BohrLabelModel(label_model, label_matrix, tie_break_policy = "random")
         label_model_metrics = calculate_label_model_metrics(
-            label_matrix,
-            label_model,
+            model,
             label_series
         )
         metrics = {**metrics, **label_model_metrics}

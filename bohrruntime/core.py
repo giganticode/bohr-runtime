@@ -1,8 +1,9 @@
 import inspect
 import json
 import logging
-from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
+import numpy as np
 import pandas as pd
 from bohrlabels.core import Label, Labels, LabelSet
 from jsonlines import jsonlines
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 HeuristicFunction = Callable[..., Optional[Labels]]
 
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional, Type, TypeVar
 
 from bohrapi.core import ArtifactType, Dataset, HeuristicObj, Task, Workspace
@@ -267,3 +268,22 @@ def load_ground_truth_labels(
     else:
         label_series = None
     return label_series
+
+
+class Model(ABC):
+    @abstractmethod
+    def predict(self) -> Tuple[np.ndarray, np.ndarray]:
+        pass
+
+
+class BohrLabelModel(Model):
+    def __init__(self, label_model, label_matrix, tie_break_policy):
+        self.label_model = label_model
+        self.label_matrix = label_matrix
+        self.tie_break_policy = tie_break_policy
+
+    def predict(self) -> Tuple[List[int], List[float]]:
+        Y_pred, Y_prob = self.label_model.predict(
+            self.label_matrix, return_probs=True, tie_break_policy=self.tie_break_policy
+        )
+        return Y_pred, Y_prob
