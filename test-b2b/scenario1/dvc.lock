@@ -3016,6 +3016,9 @@ stages:
   RunMetricsAndAnalysis@keywords_in_message__manual_labels.berger:
     cmd: bohr porcelain run-metrics-and-analysis "keywords_in_message" "manual_labels.berger"
     deps:
+    - path: cached-datasets/manual_labels.berger.jsonl
+      md5: 936ac9abe118ba2c7b629ec41145280e
+      size: 25964170
     - path: runs/bugginess/keywords_in_message/label_model.pkl
       md5: 148d62ec97a51e4b6b433c70a52be504
       size: 441383
@@ -3038,6 +3041,9 @@ stages:
   RunMetricsAndAnalysis@keywords_in_message__manual_labels.herzig:
     cmd: bohr porcelain run-metrics-and-analysis "keywords_in_message" "manual_labels.herzig"
     deps:
+    - path: cached-datasets/manual_labels.herzig.jsonl
+      md5: 531fa982dbe7064f3d345677df510c58
+      size: 294446290
     - path: runs/bugginess/keywords_in_message/label_model.pkl
       md5: 148d62ec97a51e4b6b433c70a52be504
       size: 441383
@@ -3055,8 +3061,8 @@ stages:
       md5: 77797aa6dd68f15b5bc7283edf7903ff
       size: 56844
     - path: runs/bugginess/keywords_in_message/manual_labels.herzig/metrics.txt
-      md5: 72bc97a613ba63acdd7a0c42aa6cdeab
-      size: 210
+      md5: b3753a1c0006ea3288f4bb56e32cf5a6
+      size: 239
   TrainLabelModel__keywords_in_message:
     cmd: bohr porcelain train-label-model keywords_in_message
     deps:
@@ -3449,8 +3455,8 @@ stages:
         bohr_runtime_version: 0.5.0rc2
     outs:
     - path: runs/bugginess/random_model/manual_labels.herzig/metrics.txt
-      md5: 2f4d50baa110a6f4115cbad5fe633f78
-      size: 96
+      md5: 158a1459176f9b7d23d7c15b75bae99a
+      size: 123
   ComputeZeroModelMetrics@bugginess__manual_labels.herzig:
     cmd: bohr porcelain compute-zero-model-metrics "bugginess" "manual_labels.herzig"
     deps:
@@ -3462,5 +3468,5 @@ stages:
         bohr_runtime_version: 0.5.0rc2
     outs:
     - path: runs/bugginess/zero_model/manual_labels.herzig/metrics.txt
-      md5: fbee8b296ff58e0c97ce28e159e18ecc
-      size: 96
+      md5: abfced697201719e558db2f76e585696
+      size: 125

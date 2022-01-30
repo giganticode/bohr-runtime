@@ -286,6 +286,7 @@ class RunMetricsAndAnalysisCommand(ForEachDvcCommand):
         deps = [
             self.fs.experiment_label_matrix_file(EXPERIMENT_TEMPLATE, DATASET_TEMPLATE),
             self.fs.label_model(EXPERIMENT_TEMPLATE),
+            self.fs.dataset(DATASET_TEMPLATE.id),
         ]
         return deps
 

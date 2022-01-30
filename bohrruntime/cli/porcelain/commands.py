@@ -138,7 +138,7 @@ def compute_random_model_metrics(task: str, dataset: str):
     path_config = BohrFileSystem.init()
     task = workspace.get_task_by_name(task)
     dataset = workspace.get_dataset_by_id(dataset)
-    exp = SynteticExperiment("zero_model", RandomModel, task)
+    exp = SynteticExperiment("random_model", RandomModel, task)
     calculate_experiment_metrics(exp, dataset, path_config)
 
 

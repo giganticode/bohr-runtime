@@ -51,6 +51,7 @@ def calculate_model_metrics(
     except ValueError:
         auc = "n/a"
     f1 = Scorer(metrics=["f1"]).score(true_labels, Y_pred, Y_prob)["f1"]
+    f1_macro = Scorer(metrics=["f1_macro"]).score(true_labels, Y_pred, Y_prob)["f1_macro"]
     accuracy = sum(Y_pred == true_labels) / float(len(Y_pred))
     mse = np.mean((Y_prob[:, 1] - true_labels) ** 2)
 
@@ -58,6 +59,7 @@ def calculate_model_metrics(
         f"label_model_accuracy": round(accuracy, 3),
         f"label_model_auc": auc,
         f"label_model_f1": round(f1, 3),
+        f"label_model_f1_macro": round(f1_macro, 3),
         f"label_model_mse": round(mse, 3),
     }
 
@@ -105,8 +107,10 @@ def calculate_experiment_metrics(exp: Union[Experiment, SynteticExperiment], dat
             model,
             label_series
         )
-        if type(exp).__name__ == 'Experiment':
-            metrics = {**lf_metrics, **metrics}
+    else:
+        metrics = {}
+    if type(exp).__name__ == 'Experiment':
+        metrics = {**lf_metrics, **metrics}
 
     save_metrics_to = fs.experiment_metrics(exp, dataset).to_absolute_path()
     with open(save_metrics_to, 'w') as f:

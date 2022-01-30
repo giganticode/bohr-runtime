@@ -508,6 +508,7 @@ stages:
       deps:
       - runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl
       - runs/${item.task}/${item.exp}/label_model.pkl
+      - cached-datasets/${item.dataset}.jsonl
       metrics:
       - runs/${item.task}/${item.exp}/${item.dataset}/metrics.txt:
           cache: false
