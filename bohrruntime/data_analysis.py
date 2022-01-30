@@ -7,6 +7,7 @@ from numpyencoder import NumpyEncoder
 from snorkel.labeling import LabelingFunction, LFAnalysis
 from snorkel.labeling.model import MajorityLabelVoter
 
+from bohrruntime.bohrfs import BohrFsPath
 from bohrruntime.util.paths import AbsolutePath
 
 
@@ -33,7 +34,7 @@ def majority_acc(line: np.ndarray, label_series: np.ndarray) -> float:
 def calculate_lf_metrics(
     label_matrix: np.ndarray,
     label_series: np.ndarray = None,
-    save_to: Optional[Path] = None,
+    save_to: Optional[BohrFsPath] = None,
 ) -> Dict[str, Any]:
     metrics = {}
     coverage = sum((label_matrix != -1).any(axis=1)) / len(label_matrix)
@@ -43,6 +44,6 @@ def calculate_lf_metrics(
     metrics["n_labeling_functions"] = label_matrix.shape[1]
     metrics[f"coverage"] = coverage
     if save_to:
-        with open(save_to, "w") as f:
+        with open(save_to.to_absolute_path(), "w") as f:
             json.dump(metrics, f)
     return metrics
