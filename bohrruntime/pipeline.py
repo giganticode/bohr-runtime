@@ -142,7 +142,7 @@ class ForEachDvcCommand(DvcCommand):
     def get_iterating_over(self) -> Sequence:
         return sorted(
             {(e, d) for e, d, h in iterate_workspace(self.workspace, self.fs, False)},
-            key=lambda d: (d[0].name, d[1].id),
+            key=lambda d: (d[0].name, d[1]),
         )
 
     def generate_for_each_entry(
@@ -198,7 +198,7 @@ class ApplyHeuristicsCommand(ForEachDvcCommand):
     def get_iterating_over(self) -> Sequence:
         return sorted(
             {(d, h) for _, d, h in iterate_workspace(self.workspace, self.fs, True)},
-            key=lambda d: (d[0].id, d[1]),
+            key=lambda d: (d[0], d[1]),
         )
 
     def generate_for_each_entry(
@@ -329,7 +329,7 @@ class ComputePredefinedModelMetricsCommand(ForEachDvcCommand):
     def get_iterating_over(self) -> Sequence:
         all_tasks = {exp.task for exp in self.workspace.experiments}
         for task in sorted(all_tasks, key=lambda k: k.name):
-            for dataset in sorted(task.test_datasets, key=lambda d: d.id):
+            for dataset in sorted(task.test_datasets):
                 yield (task, dataset)
 
     def generate_for_each_entry(
