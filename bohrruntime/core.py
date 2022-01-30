@@ -10,6 +10,7 @@ from jsonlines import jsonlines
 from pymongo import MongoClient
 from snorkel.labeling import LabelingFunction
 from snorkel.preprocess import BasePreprocessor
+from tqdm import tqdm
 
 from bohrruntime import version
 from bohrruntime.fs import find_project_root
@@ -160,6 +161,7 @@ def query_dataset(
     name: str,
     match: Dict,
     projection: Optional[Dict] = None,
+    n_datapoints: Optional[int] = None,
     lookup: Optional[Dict] = None,
     save_to: Optional[str] = None,
 ):
@@ -170,24 +172,28 @@ def query_dataset(
         query.append({"$lookup": lookup})
     if projection is not None:
         query.append({"$project": projection})
+    query.append({"$sort": {"_id": 1}})
+    if n_datapoints is not None:
+        query.append({"$limit": n_datapoints})
 
-    commits = db.commits.aggregate(query)
+    artifacts = db.commits.aggregate(query, allowDiskUse=True)
     path = f"{save_to}/{name}.jsonl"
     with jsonlines.open(path, "w") as writer:
-        writer.write_all(commits)
+        for artifact in tqdm(artifacts):
+            writer.write(artifact)
     with open(f"{path}.metadata.json", "w") as f:
-        json.dump({"match": match, "projection": projection, "lookup": lookup}, f)
+        json.dump(
+            {
+                "match": match,
+                "projection": projection,
+                "lookup": lookup,
+                "limit": n_datapoints,
+            },
+            f,
+        )
 
 
-def query_dataset_with_json(name: str, json: Dict, save_to: Optional[str]):
-    return query_dataset(
-        name, json["match"], json["projection"], json["lookup"], save_to
-    )
-
-
-def load_dataset_from_explorer(
-    dataset: Dataset, projection: Optional[Dict] = None
-) -> None:
+def load_dataset_from_explorer(dataset: Dataset) -> None:
     print(f"Loading dataset: {dataset.id}")
     # save_to = str(get_path_to_file(dataset, projection))
     save_to = find_project_root() / "cached-datasets"
@@ -197,7 +203,8 @@ def load_dataset_from_explorer(
         query_dataset(
             dataset.id,
             {dataset.id: {"$exists": True}},
-            None,
+            dataset.projection,
+            dataset.n_datapoints,
             lookup={
                 "from": "issues",
                 "localField": "links.bohr.issues",
@@ -210,7 +217,8 @@ def load_dataset_from_explorer(
         query_dataset(
             dataset.id,
             dataset.query,
-            None,
+            dataset.projection,
+            dataset.n_datapoints,
             lookup={
                 "from": "issues",
                 "localField": "links.bohr.issues",
