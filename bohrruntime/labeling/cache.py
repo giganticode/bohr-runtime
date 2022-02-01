@@ -1,60 +1,56 @@
 import logging
-import sys
-from typing import List, Tuple, Type
+from typing import List
 
-from bohrlabels.core import LabelSet, LabelSubclass
+from bohrapi.core import Task
+from bohrlabels.core import NumericLabel, belongs_to
 from cachetools import LRUCache
 
 logger = logging.getLogger(__name__)
 
 
-def get_category_objets(
-    label_categories,
-) -> Tuple[Type[LabelSubclass], List[LabelSubclass]]:
-    category_hierarchy_name = label_categories[0].split(".")[0]
-    try:
-        category_hierarchy = getattr(
-            sys.modules["bohrlabels.labels"], category_hierarchy_name
-        )
-    except KeyError:
-        print(f"Bohr-labels must be added as dependency")
-        exit(7)
-    for label in label_categories:
-        if label.split(".")[0] != category_hierarchy_name:
-            raise ValueError(
-                f"Cannot specify categories from different hierarchies: {label_categories[0]} and {label}"
-            )
-    labelsq = [
-        category_hierarchy[label_str.split(".")[1]] for label_str in label_categories
-    ]
-    return category_hierarchy, labelsq
-
-
 class CategoryMappingCache(LRUCache):
     """
-    # >>> from labels import SStuBBugFix, CommitLabel
-    # >>> logger.setLevel("CRITICAL")
-    #
-    # >>> cache = CategoryMappingCache(["CommitLabel.NonBugFix", "CommitLabel.BugFix"], 10)
-    # >>> cache[LabelSet.of(CommitLabel.NonBugFix)]
-    # 0
-    # >>> cache[LabelSet.of(CommitLabel.BugFix)]
-    # 1
-    # >>> cache[LabelSet.of(CommitLabel.BogusFix)]
-    # 0
+    >>> from bohrlabels.labels import CommitLabel
+    >>> logger.setLevel("CRITICAL")
+
+    >>> cache = CategoryMappingCache([CommitLabel.NonBugFix, CommitLabel.BugFix], 10)
+    >>> cache[CommitLabel.NonBugFix]
+    0
+    >>> cache[CommitLabel.BugFix]
+    1
+    >>> cache[CommitLabel.MinorBugFix]
+    1
     """
 
-    def __init__(self, label_categories: List[str], maxsize: int):
+    def __init__(self, label_categories: List[NumericLabel], maxsize: int):
         super().__init__(maxsize)
-        self.category_hierarchy, self.labelsq = get_category_objets(label_categories)
+        self.label_categories = label_categories
+        self.category_hierarchy = type(label_categories[0])
+        self.map = {cat.label: i for i, cat in enumerate(self.label_categories)}
 
-    def __missing__(self, key: LabelSet):
-        label_set = key
-        value = label_set.distribute_into_categories(self.labelsq)
-        if value != self.category_hierarchy.hierarchy_root():
-            snorkel_label = self.labelsq.index(value)
+    def __missing__(self, label: NumericLabel) -> int:
+        selected_label = belongs_to(label, self.label_categories)
+        if selected_label.label in self.map:
+            snorkel_label = self.map[selected_label.label]
+            self[label] = snorkel_label
+            logger.info(
+                f"Converted {'|'.join(label.to_commit_labels_set())} label into {snorkel_label}"
+            )
+            return snorkel_label
+        elif selected_label.label > 0:
+            logger.info(
+                f"Label {'|'.join(label.to_commit_labels_set())} cannot be unambiguously converted to any label, abstaining.."
+            )
+            self[label] = -1
+            return -1
         else:
-            snorkel_label = len(self.labelsq)
-        self[key] = snorkel_label
-        logger.info(f"Converted {key} label into {snorkel_label}")
-        return snorkel_label
+            raise AssertionError(
+                f"Something went wrong. Value has to be > 0 but is: {selected_label.label}"
+            )
+
+
+def map_numeric_label_value(value: int, cache: CategoryMappingCache, task: Task) -> int:
+    if value == -1:
+        return value
+
+    return cache[NumericLabel(value, task.hierarchy)]

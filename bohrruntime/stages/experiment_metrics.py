@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Dict, Optional, Type, Union
+from typing import Dict, Type, Union
 
 import numpy as np
 import pandas as pd
 from bohrapi.core import Dataset, Experiment, Task
-from bohrlabels.core import LabelSet
+from bohrlabels.core import to_numeric_label
 from snorkel.analysis import Scorer
 from snorkel.labeling import LFAnalysis
 from snorkel.labeling.model import LabelModel
@@ -74,14 +74,14 @@ class SynteticExperiment:
 def calculate_experiment_metrics(exp: Union[Experiment, SynteticExperiment], dataset: Dataset, fs: BohrFileSystem):
 
     category_mapping_cache = CategoryMappingCache(
-        list(map(lambda x: str(x), exp.task.labels)), maxsize=10000
+        exp.task.labels, maxsize=10000
     )
     artifact_df = load_dataset(dataset, projection={})
     label_series = load_ground_truth_labels(exp.task, dataset, pre_loaded_artifacts=artifact_df)
     if label_series is not None:
         label_series = np.array(
             list(
-                map(lambda x: category_mapping_cache[LabelSet.of(x)], label_series)
+                map(lambda x: category_mapping_cache[to_numeric_label(x, exp.task.hierarchy)], label_series)
             )
         )
 

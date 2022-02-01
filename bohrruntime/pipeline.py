@@ -427,7 +427,9 @@ def dvc_config_from_tasks(workspace: Workspace, fs: BohrFileSystem) -> Dict:
     if len(workspace.experiments) == 0:
         raise ValueError("At least of task should be specified")
 
-    all_tasks = sorted({exp.task for exp in workspace.experiments})
+    all_tasks = sorted(
+        {exp.task for exp in workspace.experiments}, key=lambda t: t.name
+    )
 
     train_model_commands = [
         TrainLabelModelCommand(fs, exp)

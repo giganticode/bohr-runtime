@@ -1,1 +1,1 @@
-{"match": {"manual_labels.herzig": {"$exists": true}}, "projection": null, "lookup": {"from": "issues", "localField": "links.bohr.issues", "foreignField": "_id", "as": "issues"}}
+{"match": {"manual_labels.herzig": {"$exists": true}}, "projection": null, "lookup": {"from": "issues", "localField": "links.bohr.issues", "foreignField": "_id", "as": "issues"}, "limit": null}

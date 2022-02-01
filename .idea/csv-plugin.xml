@@ -3,7 +3,35 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="$PROJECT_DIR$/../bohr-workdir-bugginess/runs/bugginess/only_message_keywords_levin/idan_files/labeled.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/test-b2b/scenario1/runs/bugginess/keywords_in_message/manual_labels.berger/labeled.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/test-b2b/scenario1/runs/bugginess/keywords_in_message/manual_labels.herzig/labeled.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/test-b2b/scenario1/runs/refactoring/keywords_in_message_refactoring/manual_labels.berger/labeled.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/test-b2b/scenario1/runs/refactoring/keywords_in_message_refactoring/manual_labels.herzig/labeled.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

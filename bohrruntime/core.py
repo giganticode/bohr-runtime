@@ -14,7 +14,6 @@ from tqdm import tqdm
 
 from bohrruntime import version
 from bohrruntime.fs import find_project_root
-from bohrruntime.labeling.cache import CategoryMappingCache
 from bohrruntime.util.paths import AbsolutePath
 
 logger = logging.getLogger(__name__)
@@ -48,9 +47,9 @@ MapperType = Type[ArtifactMapperSubclass]
 
 
 def apply_heuristic_and_convert_to_snorkel_label(
-    heuristic: HeuristicObj, cache: CategoryMappingCache, *args, **kwargs
+    heuristic: HeuristicObj, *args, **kwargs
 ) -> int:
-    return to_snorkel_label(heuristic(*args, **kwargs), cache)
+    return to_snorkel_label(heuristic(*args, **kwargs))
 
 
 class SnorkelLabelingFunction(LabelingFunction):
@@ -69,35 +68,34 @@ class SnorkelLabelingFunction(LabelingFunction):
 
 
 def to_labeling_functions(
-    heuristics: List[HeuristicObj], category_mapping_cache
+    heuristics: List[HeuristicObj],
 ) -> List[SnorkelLabelingFunction]:
     labeling_functions = list(
         map(
-            lambda h: to_labeling_function(h, category_mapping_cache),
+            lambda h: to_labeling_function(h),
             heuristics,
         )
     )
     return labeling_functions
 
 
-def to_labeling_function(
-    h: HeuristicObj, category_mapping_cache
-) -> SnorkelLabelingFunction:
+def to_labeling_function(h: HeuristicObj) -> SnorkelLabelingFunction:
     return SnorkelLabelingFunction(
         name=h.__name__,
         f=lambda *args, **kwargs: apply_heuristic_and_convert_to_snorkel_label(
-            h, category_mapping_cache, *args, **kwargs
+            h, *args, **kwargs
         ),
         mapper=lambda x: x,
         resources=h.resources,
     )
 
 
-def to_snorkel_label(labels, category_mapping_cache_map: CategoryMappingCache) -> int:
+def to_snorkel_label(labels) -> int:
     if labels is None:
         return -1
-    label_set = labels if isinstance(labels, LabelSet) else LabelSet.of(labels)
-    snorkel_label = category_mapping_cache_map[label_set]
+    if isinstance(labels, LabelSet):
+        raise AssertionError()
+    snorkel_label = labels.value
     return snorkel_label
 
 

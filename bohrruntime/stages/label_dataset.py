@@ -1,13 +1,33 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 import numpy as np
 import pandas as pd
 from bohrapi.core import Dataset, Experiment
+from bohrlabels.core import NumericLabel
 from pandas import Series
 from snorkel.labeling.model import LabelModel
 
 from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import load_dataset
+
+
+def create_df_from_dataset(
+    artifacts: List, label_from_datapoint_func: Callable
+) -> pd.DataFrame:
+    if label_from_datapoint_func is not None:
+        df = pd.DataFrame(
+            [
+                [c.raw_data["_id"], c.raw_data["message"], label_from_datapoint_func(c)]
+                for c in artifacts
+            ],
+            columns=["sha", "message", "label"],
+        )
+    else:
+        df = pd.DataFrame(
+            [[c.raw_data["_id"], c.raw_data["message"]] for c in artifacts],
+            columns=["sha", "message"],
+        )
+    return df
 
 
 def label_dataset(
@@ -25,23 +45,13 @@ def label_dataset(
     label_model = LabelModel()
     label_model.load(str(task_dir.to_absolute_path() / "label_model.pkl"))
     artifact_list = load_dataset(dataset)
+    label_from_datapoint_func = None
     if (
         dataset in exp.task.test_datasets
         and exp.task.test_datasets[dataset] is not None
     ):
         label_from_datapoint_func = exp.task.test_datasets[dataset]
-        df = pd.DataFrame(
-            [
-                [c.raw_data["_id"], c.raw_data["message"], label_from_datapoint_func(c)]
-                for c in artifact_list
-            ],
-            columns=["sha", "message", "label"],
-        )
-    else:
-        df = pd.DataFrame(
-            [[c.raw_data["_id"], c.raw_data["message"]] for c in artifact_list],
-            columns=["sha", "message"],
-        )
+    df = create_df_from_dataset(artifact_list, label_from_datapoint_func)
 
     df_labeled = do_labeling(label_model, label_matrix.to_numpy(), df, exp.task.labels)
 
@@ -84,13 +94,12 @@ def do_labeling(
     label_model: LabelModel,
     matrix: np.ndarray,
     artifacts: pd.DataFrame,
-    label_names: List[str],
+    label_names: List[NumericLabel],
 ) -> pd.DataFrame:
     labels, probs = label_model.predict(L=matrix, return_probs=True)
     probs = np.around(probs, decimals=2)
     df_labeled = artifacts.assign(predicted=Series(labels))
-
-    # df_labeled[f"prob_{label_names[0]}"] = Series(probs[:, 0])
-    df_labeled[f"prob_{label_names[1]}"] = Series(probs[:, 1])
-    # df_labeled["prob_class"] = Series(np.around(np.copy(probs[:, 1]), decimals=1))
+    df_labeled[f"prob_{'|'.join(label_names[1].to_commit_labels_set())}"] = Series(
+        probs[:, 1]
+    )
     return df_labeled

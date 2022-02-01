@@ -10,7 +10,6 @@ from snorkel.labeling.apply.core import LFApplier
 from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import load_dataset
 from bohrruntime.heuristics import get_labeling_functions_from_path
-from bohrruntime.labeling.cache import CategoryMappingCache
 
 
 def apply_lfs_to_dataset(
@@ -33,17 +32,10 @@ def apply_heuristics_to_dataset(
     ).to_absolute_path()
 
     heuristic_file = fs.heuristics / heuristic_group
-    category_mapping_cache = CategoryMappingCache(
-        list(map(lambda x: str(x), [CommitLabel.NonBugFix, CommitLabel.BugFix])),
-        maxsize=10000,
-    )  # FIXME this should not be bugginess task-specific
-    labeling_functions = get_labeling_functions_from_path(
-        heuristic_file, category_mapping_cache
-    )
+    labeling_functions = get_labeling_functions_from_path(heuristic_file)
     if not labeling_functions:
         raise AssertionError(f"No labeling functions for in {heuristic_file}")
-    # projection = get_projection(heuristics)
-    artifact_df = load_dataset(dataset, projection={})
+    artifact_df = load_dataset(dataset)
     applied_lf_matrix = apply_lfs_to_dataset(labeling_functions, artifacts=artifact_df)
 
     df = pd.DataFrame(applied_lf_matrix, columns=[lf.name for lf in labeling_functions])

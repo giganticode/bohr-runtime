@@ -269,6 +269,14 @@ stages:
         dataset: manual_labels.herzig
         exp: keywords_in_message
         task: bugginess
+      keywords_in_message_refactoring__manual_labels.berger:
+        dataset: manual_labels.berger
+        exp: keywords_in_message_refactoring
+        task: refactoring
+      keywords_in_message_refactoring__manual_labels.herzig:
+        dataset: manual_labels.herzig
+        exp: keywords_in_message_refactoring
+        task: refactoring
   ComputeRandomModelMetrics:
     do:
       cmd: bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"
@@ -285,6 +293,9 @@ stages:
       bugginess__manual_labels.herzig:
         dataset: manual_labels.herzig
         task: bugginess
+      refactoring__manual_labels.herzig:
+        dataset: manual_labels.herzig
+        task: refactoring
   ComputeSingleHeuristicMetrics__bugginess:
     cmd: bohr porcelain compute-single-heuristic-metric bugginess
     deps:
@@ -450,6 +461,171 @@ stages:
     params:
     - bohr.lock:
       - bohr_runtime_version
+  ComputeSingleHeuristicMetrics__refactoring:
+    cmd: bohr porcelain compute-single-heuristic-metric refactoring
+    deps:
+    - cached-datasets/manual_labels.herzig.jsonl
+    - cloned-bohr/heuristics/bugginess/conventional_commit_regex.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/conventional_commit_regex.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/all_files_test_add.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/all_files_test_add.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/all_files_test_fix.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/all_files_test_fix.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/buggless_if_many_lines_changed.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/buggless_if_many_lines_changed.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_at_least_5_added_files.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_5_added_files.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_many_files_changes.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_many_files_changes.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_not_code_files.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_not_code_files.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_one_added_file.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_added_file.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_one_removed_file.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_removed_file.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/no_files_have_modified_status.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/no_files_have_modified_status.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/keywords/bug_keywords_lookup_in_issue_body.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_body.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/keywords/bug_keywords_lookup_in_issue_label.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_label.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/keywords/bug_keywords_lookup_in_message.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_message.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/keywords/buggless_keywords_lookup_in_message.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/keywords/buggless_keywords_lookup_in_message.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/keywords/github_ref_in_message.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/keywords/github_ref_in_message.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/keywords/init_commit_message_keywords.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/keywords/init_commit_message_keywords.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/keywords/version_in_message.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/keywords/version_in_message.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_init.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_init.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_merge.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_merge.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_refactoring_miner.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_refactoring_miner.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_sstubs.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_sstubs.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/contains_digit_replacement_change.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/contains_digit_replacement_change.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/contains_package_lock_file.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/contains_package_lock_file.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/contains_python_version_file.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/contains_python_version_file.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/contains_ruby_version_file.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/contains_ruby_version_file.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/maven_plugin_version_bump.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/maven_plugin_version_bump.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/version_bump_keywords_lookup_in_message.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/version_bump_keywords_lookup_in_message.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/version_regex.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/version_regex.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/version_regex2.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/version_regex2.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/versionbump/version_regex3.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/versionbump/version_regex3.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/wip/removed_fixme.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/wip/removed_fixme.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/wip/removed_todo.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/wip/removed_todo.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics/bugginess/wip/wip_keyword_in_message.py
+    - runs/__heuristics/manual_labels.herzig/bugginess/wip/wip_keyword_in_message.py/heuristic_matrix.pkl
+    metrics: []
+    outs:
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/conventional_commit_regex.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/all_files_test_add.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/all_files_test_fix.py/metrics.txt:
+        cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/buggless_if_many_lines_changed.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/bugless_if_at_least_5_added_files.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/bugless_if_many_files_changes.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/bugless_if_not_code_files.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_added_file.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/bugless_if_one_removed_file.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/no_files_have_modified_status.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_body.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_issue_label.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/keywords/bug_keywords_lookup_in_message.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/keywords/buggless_keywords_lookup_in_message.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py/metrics.txt
+      : cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/keywords/github_ref_in_message.py/metrics.txt:
+        cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/keywords/init_commit_message_keywords.py/metrics.txt
+      : cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/keywords/version_in_message.py/metrics.txt:
+        cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_init.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_merge.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_refactoring_miner.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/sstubs/commit_explorer_output_sstubs.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/contains_digit_replacement_change.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/contains_package_lock_file.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/contains_python_version_file.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/contains_ruby_version_file.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/maven_plugin_version_bump.py/metrics.txt
+      : cache: false
+    - ? runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/version_bump_keywords_lookup_in_message.py/metrics.txt
+      : cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/version_regex.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/version_regex2.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/versionbump/version_regex3.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/wip/removed_fixme.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/wip/removed_todo.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/refactoring/manual_labels.herzig/bugginess/wip/wip_keyword_in_message.py/metrics.txt:
+        cache: false
+    params:
+    - bohr.lock:
+      - bohr_runtime_version
   ComputeZeroModelMetrics:
     do:
       cmd: bohr porcelain compute-zero-model-metrics "${item.task}" "${item.dataset}"
@@ -466,6 +642,9 @@ stages:
       bugginess__manual_labels.herzig:
         dataset: manual_labels.herzig
         task: bugginess
+      refactoring__manual_labels.herzig:
+        dataset: manual_labels.herzig
+        task: refactoring
   LabelDataset:
     do:
       cmd: bohr porcelain label-dataset "${item.exp}" "${item.dataset}"
@@ -487,6 +666,14 @@ stages:
         dataset: manual_labels.herzig
         exp: keywords_in_message
         task: bugginess
+      keywords_in_message_refactoring__manual_labels.berger:
+        dataset: manual_labels.berger
+        exp: keywords_in_message_refactoring
+        task: refactoring
+      keywords_in_message_refactoring__manual_labels.herzig:
+        dataset: manual_labels.herzig
+        exp: keywords_in_message_refactoring
+        task: refactoring
   LoadDatasets:
     do:
       cmd: bohr porcelain load-dataset "${item}"
@@ -529,6 +716,14 @@ stages:
         dataset: manual_labels.herzig
         exp: keywords_in_message
         task: bugginess
+      keywords_in_message_refactoring__manual_labels.berger:
+        dataset: manual_labels.berger
+        exp: keywords_in_message_refactoring
+        task: refactoring
+      keywords_in_message_refactoring__manual_labels.herzig:
+        dataset: manual_labels.herzig
+        exp: keywords_in_message_refactoring
+        task: refactoring
   TrainLabelModel__keywords_in_message:
     cmd: bohr porcelain train-label-model keywords_in_message
     deps:
@@ -541,5 +736,19 @@ stages:
     params:
     - bohr.lock:
       - experiments.keywords_in_message.train_set
+    - bohr.lock:
+      - bohr_runtime_version
+  TrainLabelModel__keywords_in_message_refactoring:
+    cmd: bohr porcelain train-label-model keywords_in_message_refactoring
+    deps:
+    - runs/refactoring/keywords_in_message_refactoring/manual_labels.herzig/heuristic_matrix.pkl
+    - runs/refactoring/keywords_in_message_refactoring/manual_labels.berger/heuristic_matrix.pkl
+    metrics: []
+    outs:
+    - runs/refactoring/keywords_in_message_refactoring/label_model.pkl
+    - runs/refactoring/keywords_in_message_refactoring/label_model_weights.csv
+    params:
+    - bohr.lock:
+      - experiments.keywords_in_message_refactoring.train_set
     - bohr.lock:
       - bohr_runtime_version

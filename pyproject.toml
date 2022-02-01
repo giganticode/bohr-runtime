@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bohr-runtime"
-version = "0.5.0-rc.2"
+version = "0.6.0"
 description = "BOHR runtime"
 authors = ["hlib <hlibbabii@gmail.com>"]
 license = "MIT"
@@ -10,8 +10,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-bohr-api = { git = "https://github.com/giganticode/bohr-api", branch = "v0.3.0" }
-bohr-labels = { git = "https://github.com/giganticode/bohr-labels", branch = "v0.1.0" }
+bohr-api = { git = "https://github.com/giganticode/bohr-api", branch = "v0.3.1" }
+bohr-labels = { git = "https://github.com/giganticode/bohr-labels", branch = "v0.2.0" }
 snorkel = "^0.9"
 jsonlines = "^3.0"
 GitPython = "^3.1"

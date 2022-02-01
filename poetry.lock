@@ -145,7 +145,7 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "bohr-api"
-version = "0.3.0"
+version = "0.3.1"
 description = ""
 category = "main"
 optional = false
@@ -162,12 +162,12 @@ pandas = "^1.3"
 [package.source]
 type = "git"
 url = "https://github.com/giganticode/bohr-api"
-reference = "v0.3.0"
-resolved_reference = "562697faadb698876cdd615fc1ced3bf18bb4430"
+reference = "v0.3.1"
+resolved_reference = "14eb728a72306fb012b44aae4ba02afd7db53f73"
 
 [[package]]
 name = "bohr-labels"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 category = "main"
 optional = false
@@ -180,8 +180,8 @@ Jinja2 = "^2.11.3"
 [package.source]
 type = "git"
 url = "https://github.com/giganticode/bohr-labels"
-reference = "v0.1.0"
-resolved_reference = "d482735437f7d6f282f90c99c5a8b43505d69764"
+reference = "v0.2.0"
+resolved_reference = "6668f86606f61b360532f84e1e01ff9e5b18b3f5"
 
 [[package]]
 name = "cachetools"
@@ -220,7 +220,7 @@ python-versions = ">=3.6.1"
 
 [[package]]
 name = "charset-normalizer"
-version = "2.0.10"
+version = "2.0.11"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
 category = "main"
 optional = false
@@ -630,7 +630,7 @@ protobuf = ["grpcio-tools (>=1.43.0)"]
 
 [[package]]
 name = "identify"
-version = "2.4.6"
+version = "2.4.7"
 description = "File identification library for Python"
 category = "dev"
 optional = false
@@ -729,7 +729,7 @@ attrs = ">=19.2.0"
 
 [[package]]
 name = "mailchecker"
-version = "4.1.10"
+version = "4.1.11"
 description = "Cross-language email validation. Backed by a database of thousands throwable email providers."
 category = "main"
 optional = false
@@ -1661,7 +1661,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "33d11961615dd3a546fe6c82da6c034366f749809be7cac1793c05551a276a13"
+content-hash = "b79d452f966d086b4d1e7ae601f864a8f2b312d4b6a059af6959ce6d458395f7"
 
 [metadata.files]
 absl-py = [
@@ -1845,8 +1845,8 @@ cfgv = [
     {file = "cfgv-3.3.1.tar.gz", hash = "sha256:f5a830efb9ce7a445376bb66ec94c638a9787422f96264c98edc6bdeed8ab736"},
 ]
 charset-normalizer = [
-    {file = "charset-normalizer-2.0.10.tar.gz", hash = "sha256:876d180e9d7432c5d1dfd4c5d26b72f099d503e8fcc0feb7532c9289be60fcbd"},
-    {file = "charset_normalizer-2.0.10-py3-none-any.whl", hash = "sha256:cb957888737fc0bbcd78e3df769addb41fd1ff8cf950dc9e7ad7793f1bf44455"},
+    {file = "charset-normalizer-2.0.11.tar.gz", hash = "sha256:98398a9d69ee80548c762ba991a4728bfc3836768ed226b3945908d1a688371c"},
+    {file = "charset_normalizer-2.0.11-py3-none-any.whl", hash = "sha256:2842d8f5e82a1f6aa437380934d5e1cd4fcf2003b06fed6940769c164a480a45"},
 ]
 click = [
     {file = "click-8.0.3-py3-none-any.whl", hash = "sha256:353f466495adaeb40b6b5f592f9f91cb22372351c84caeb068132442a4518ef3"},
@@ -2112,8 +2112,8 @@ grpcio = [
     {file = "grpcio-1.43.0.tar.gz", hash = "sha256:735d9a437c262ab039d02defddcb9f8f545d7009ae61c0114e19dda3843febe5"},
 ]
 identify = [
-    {file = "identify-2.4.6-py2.py3-none-any.whl", hash = "sha256:cf06b1639e0dca0c184b1504d8b73448c99a68e004a80524c7923b95f7b6837c"},
-    {file = "identify-2.4.6.tar.gz", hash = "sha256:233679e3f61a02015d4293dbccf16aa0e4996f868bd114688b8c124f18826706"},
+    {file = "identify-2.4.7-py2.py3-none-any.whl", hash = "sha256:e64210654dfbca6ced33230eb1b137591a0981425e1a60b4c6c36309f787bbd5"},
+    {file = "identify-2.4.7.tar.gz", hash = "sha256:8408f01e0be25492017346d7dffe7e7711b762b23375c775d24d3bc38618fabc"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
@@ -2148,7 +2148,7 @@ jsonlines = [
     {file = "jsonlines-3.0.0.tar.gz", hash = "sha256:72c8ca6c056906d6acb058dd5fdd5e072a58b9c6753ce0c9ec6f2b0a1853eba4"},
 ]
 mailchecker = [
-    {file = "mailchecker-4.1.10.tar.gz", hash = "sha256:48e50ea153eb59cf8da97c81721b6fb6b7ae7ea49e40f260f8c801afc9fe53f6"},
+    {file = "mailchecker-4.1.11.tar.gz", hash = "sha256:3e63e5d8fef62bd5586f2f8a92de0b3865d83edee786ee372c49aebf885ad720"},
 ]
 markdown = [
     {file = "Markdown-3.3.6-py3-none-any.whl", hash = "sha256:9923332318f843411e9932237530df53162e29dc7a4e2b91e35764583c46c9a3"},

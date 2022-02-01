@@ -140,8 +140,8 @@ def is_heuristic_file(file: AbsolutePath) -> bool:
 
 
 def get_labeling_functions_from_path(
-    heuristic_file: BohrFsPath, category_mapping_cache
+    heuristic_file: BohrFsPath,
 ) -> List[LabelingFunction]:
     heuristics = load_heuristics_from_file(heuristic_file)
-    labeling_functions = to_labeling_functions(heuristics, category_mapping_cache)
+    labeling_functions = to_labeling_functions(heuristics)
     return labeling_functions

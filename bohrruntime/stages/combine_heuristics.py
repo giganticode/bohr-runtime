@@ -4,7 +4,8 @@ import pandas as pd
 from bohrapi.core import Dataset, Experiment
 
 from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.heuristics import get_heuristic_files, load_heuristics_from_file
+from bohrruntime.heuristics import get_heuristic_files
+from bohrruntime.labeling.cache import CategoryMappingCache, map_numeric_label_value
 
 
 def check_duplicate_heuristics(all_heuristics_matrix: pd.DataFrame):
@@ -25,7 +26,10 @@ def combine_applied_heuristics(
     dataset_dir = fs.exp_dataset_dir(exp, dataset).to_absolute_path()
     all_heuristics_file = dataset_dir / f"heuristic_matrix.pkl"
     matrix_list = []
-    all_heuristics = []
+    category_mapping_cache = CategoryMappingCache(
+        exp.task.labels,
+        maxsize=10000,
+    )
     for heuristic_group in (
         exp.heuristic_groups if exp.heuristic_groups is not None else ["."]
     ):
@@ -40,11 +44,10 @@ def combine_applied_heuristics(
             ).to_absolute_path()
             matrix = pd.read_pickle(str(partial_heuristics_file))
             matrix_list.append(matrix)
-            heuristics = load_heuristics_from_file(
-                heuristic_module_path, exp.task.top_artifact
-            )
-            all_heuristics.extend(heuristics)
 
     all_heuristics_matrix = pd.concat(matrix_list, axis=1)
+    all_heuristics_matrix = all_heuristics_matrix.applymap(
+        lambda v: map_numeric_label_value(v, category_mapping_cache, exp.task)
+    )
     check_duplicate_heuristics(all_heuristics_matrix)
     all_heuristics_matrix.to_pickle(str(all_heuristics_file))

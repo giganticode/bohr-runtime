@@ -1,1 +1,1 @@
-{"match": {"manual_labels.berger": {"$exists": true}}, "projection": null, "lookup": {"from": "issues", "localField": "links.bohr.issues", "foreignField": "_id", "as": "issues"}}
+{"match": {"manual_labels.berger": {"$exists": true}}, "projection": null, "lookup": {"from": "issues", "localField": "links.bohr.issues", "foreignField": "_id", "as": "issues"}, "limit": null}
