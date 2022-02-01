@@ -33,9 +33,9 @@ def repro(
 
     glob = None
     if task:
-        if task not in workspace.tasks:
-            raise ValueError(f"Task {task} not found in bohr.json")
-        glob = f"{task}_*"
+        # if task not in {exp.task for exp in workspace.experiments}:
+        #     raise ValueError(f"Task {task} not found in bohr.json")
+        glob = f"{task}*"
     if pull:
         print("Pulling cache from DVC remote...")
         dvc.pull(fs=fs)

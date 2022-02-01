@@ -28,6 +28,7 @@ def repro(
         command.extend(["--glob", glob])
     if force:
         command.append("--force")
+        command.append("-s")
     logger.info(f"Running dvc command: {command}")
     proc = subprocess.Popen(command, cwd=fs.root, encoding="utf8", shell=False)
     proc.communicate()
