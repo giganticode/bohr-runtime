@@ -4,7 +4,7 @@ import pandas as pd
 from bohrapi.core import Dataset, Experiment
 
 from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.heuristics import get_heuristic_files
+from bohrruntime.heuristics import get_heuristic_module_paths
 from bohrruntime.labeling.cache import CategoryMappingCache, map_numeric_label_value
 
 
@@ -30,20 +30,14 @@ def combine_applied_heuristics(
         exp.task.labels,
         maxsize=10000,
     )
-    for heuristic_group in (
-        exp.heuristic_groups if exp.heuristic_groups is not None else ["."]
-    ):
-        for heuristic_module_path in get_heuristic_files(
-            fs.heuristics / heuristic_group,
-            exp.task.top_artifact,
-            with_anchor=fs.heuristics.to_absolute_path(),
-        ):
-            partial_heuristics_file = fs.heuristic_matrix_file(
-                dataset,
-                str(heuristic_module_path),
-            ).to_absolute_path()
-            matrix = pd.read_pickle(str(partial_heuristics_file))
-            matrix_list.append(matrix)
+
+    for heuristic_module_path in get_heuristic_module_paths(exp, fs):
+        partial_heuristics_file = fs.heuristic_matrix_file(
+            dataset,
+            str(heuristic_module_path),
+        ).to_absolute_path()
+        matrix = pd.read_pickle(str(partial_heuristics_file))
+        matrix_list.append(matrix)
 
     all_heuristics_matrix = pd.concat(matrix_list, axis=1)
     all_heuristics_matrix = all_heuristics_matrix.applymap(

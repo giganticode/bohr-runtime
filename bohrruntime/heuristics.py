@@ -2,7 +2,7 @@ import inspect
 import os
 from typing import Dict, List, Optional, Set, Type
 
-from bohrapi.core import ArtifactType, HeuristicObj
+from bohrapi.core import ArtifactType, Experiment, HeuristicObj
 from snorkel.labeling import LabelingFunction
 
 from bohrruntime.bohrfs import BohrFileSystem, BohrFsPath
@@ -34,6 +34,20 @@ def get_all_heuristics_for_artifact(
     fs: BohrFileSystem, top_artifact: Optional[ArtifactType] = None
 ) -> List[BohrFsPath]:
     return get_heuristic_files(fs.heuristics, top_artifact)
+
+
+def get_heuristic_module_paths(exp: Experiment, fs: BohrFileSystem) -> List[BohrFsPath]:
+    heuristic_module_paths = []
+    for heuristic_group in (
+        exp.heuristic_groups if exp.heuristic_groups is not None else ["."]
+    ):
+        for heuristic_module_path in get_heuristic_files(
+            fs.heuristics / heuristic_group,
+            exp.task.top_artifact,
+            with_anchor=fs.heuristics.to_absolute_path(),
+        ):
+            heuristic_module_paths.append(heuristic_module_path)
+    return sorted(heuristic_module_paths)
 
 
 def get_heuristic_files(
