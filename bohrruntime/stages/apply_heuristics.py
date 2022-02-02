@@ -21,12 +21,8 @@ def apply_lfs_to_dataset(
 
 
 def apply_heuristics_to_dataset(
-    heuristic_group: str,
-    dataset: Dataset,
-    fs: Optional[BohrFileSystem] = None,
+    heuristic_group: str, dataset: Dataset, fs: BohrFileSystem
 ) -> None:
-    fs = fs or BohrFileSystem.init()
-
     save_to_matrix = fs.heuristic_matrix_file(
         dataset, heuristic_group
     ).to_absolute_path()

@@ -19,10 +19,8 @@ def check_duplicate_heuristics(all_heuristics_matrix: pd.DataFrame):
 
 
 def combine_applied_heuristics(
-    exp: Experiment, dataset: Dataset, fs: Optional[BohrFileSystem] = None
+    exp: Experiment, dataset: Dataset, fs: BohrFileSystem
 ) -> None:
-
-    fs = fs or BohrFileSystem.init()
     dataset_dir = fs.exp_dataset_dir(exp, dataset).to_absolute_path()
     all_heuristics_file = dataset_dir / f"heuristic_matrix.pkl"
     matrix_list = []

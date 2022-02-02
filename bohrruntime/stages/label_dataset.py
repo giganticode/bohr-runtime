@@ -33,12 +33,11 @@ def create_df_from_dataset(
 def label_dataset(
     exp: Experiment,
     dataset: Dataset,
-    path_config: Optional[BohrFileSystem] = None,
+    fs: BohrFileSystem,
     debug: bool = False,
 ):
-    path_config = path_config or BohrFileSystem.init()
-    task_dir = path_config.exp_dir(exp)
-    dataset_dir = path_config.exp_dataset_dir(exp, dataset).to_absolute_path()
+    task_dir = fs.exp_dir(exp)
+    dataset_dir = fs.exp_dataset_dir(exp, dataset).to_absolute_path()
 
     label_matrix = pd.read_pickle(dataset_dir / f"heuristic_matrix.pkl")
 
@@ -57,7 +56,7 @@ def label_dataset(
 
     if debug:
         label_model_weights_file = (
-            path_config.exp_dir(exp).to_absolute_path() / f"label_model_weights.csv"
+            fs.exp_dir(exp).to_absolute_path() / f"label_model_weights.csv"
         )
         weights = pd.read_csv(label_model_weights_file, index_col="heuristic_name")
 
@@ -84,7 +83,7 @@ def label_dataset(
                 index=weights.index,
             )
 
-    dataset_dir = path_config.exp_dataset_dir(exp, dataset).to_absolute_path()
+    dataset_dir = fs.exp_dataset_dir(exp, dataset).to_absolute_path()
     target_file = dataset_dir / "labeled.csv"
     df_labeled.to_csv(target_file, index=False)
     print(f"Labeled dataset has been written to {target_file}.")

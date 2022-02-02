@@ -22,10 +22,11 @@ def label_dataset(exp: str, dataset: str, debug: bool):
     from bohrruntime.stages.label_dataset import label_dataset
 
     setup_loggers()
+    fs = BohrFileSystem.init()
     workspace = load_workspace()
     exp = workspace.get_experiment_by_name(exp)
     dataset = exp.get_dataset_by_id(dataset)
-    label_dataset(exp, dataset, debug=debug)
+    label_dataset(exp, dataset, fs, debug=debug)
 
 
 @porcelain.command()
@@ -38,11 +39,12 @@ def apply_heuristics(
     from bohrruntime.stages.apply_heuristics import apply_heuristics_to_dataset
 
     setup_loggers()
+    fs = BohrFileSystem.init()
     workspace = load_workspace()
 
     dataset = workspace.get_dataset_by_id(dataset)
     with Profiler(enabled=profile):
-        apply_heuristics_to_dataset(heuristic_group, dataset)
+        apply_heuristics_to_dataset(heuristic_group, dataset, fs)
 
 
 @porcelain.command()
@@ -53,10 +55,10 @@ def compute_single_heuristic_metric(task: Optional[str]):
     )
 
     setup_loggers()
-    path_config = BohrFileSystem.init()
+    fs = BohrFileSystem.init()
     workspace = load_workspace()
     task = workspace.get_task_by_name(task)
-    calculate_metrics_for_heuristic(task, path_config)
+    calculate_metrics_for_heuristic(task, fs)
 
 
 @porcelain.command()
@@ -66,11 +68,12 @@ def combine_heuristics(exp: Optional[str], dataset: Optional[str]):
     from bohrruntime.stages.combine_heuristics import combine_applied_heuristics
 
     setup_loggers()
+    fs = BohrFileSystem.init()
     workspace = load_workspace()
 
     exp = workspace.get_experiment_by_name(exp)
     dataset = exp.get_dataset_by_id(dataset)
-    combine_applied_heuristics(exp, dataset)
+    combine_applied_heuristics(exp, dataset, fs)
 
 
 @porcelain.command()
@@ -93,9 +96,9 @@ def train_label_model(exp: str):
 
     # setup_loggers()
     workspace = load_workspace()
-    path_config = BohrFileSystem.init()
+    fs = BohrFileSystem.init()
     exp = workspace.get_experiment_by_name(exp)
-    train_label_model(exp, path_config)
+    train_label_model(exp, fs)
 
 
 @porcelain.command()
@@ -106,10 +109,10 @@ def run_metrics_and_analysis(exp: str, dataset: str):
 
     setup_loggers()
     workspace = load_workspace()
-    path_config = BohrFileSystem.init()
+    fs = BohrFileSystem.init()
     exp = workspace.get_experiment_by_name(exp)
     dataset = workspace.get_dataset_by_id(dataset)
-    calculate_experiment_metrics(exp, dataset, path_config)
+    calculate_experiment_metrics(exp, dataset, fs)
 
 
 @porcelain.command()
@@ -120,11 +123,11 @@ def compute_random_model_metrics(task: str, dataset: str):
 
     setup_loggers()
     workspace = load_workspace()
-    path_config = BohrFileSystem.init()
+    fs = BohrFileSystem.init()
     task = workspace.get_task_by_name(task)
     dataset = workspace.get_dataset_by_id(dataset)
     exp = SynteticExperiment("random_model", task)
-    calculate_experiment_metrics(exp, dataset, path_config)
+    calculate_experiment_metrics(exp, dataset, fs)
 
 
 @porcelain.command()
@@ -135,11 +138,11 @@ def compute_random_model_metrics(task: str, dataset: str):
 
     setup_loggers()
     workspace = load_workspace()
-    path_config = BohrFileSystem.init()
+    fs = BohrFileSystem.init()
     task = workspace.get_task_by_name(task)
     dataset = workspace.get_dataset_by_id(dataset)
     exp = SynteticExperiment("random_model", RandomModel, task)
-    calculate_experiment_metrics(exp, dataset, path_config)
+    calculate_experiment_metrics(exp, dataset, fs)
 
 
 @porcelain.command()
@@ -150,8 +153,8 @@ def compute_zero_model_metrics(task: str, dataset: str):
 
     setup_loggers()
     workspace = load_workspace()
-    path_config = BohrFileSystem.init()
+    fs = BohrFileSystem.init()
     task = workspace.get_task_by_name(task)
     dataset = workspace.get_dataset_by_id(dataset)
     exp = SynteticExperiment("zero_model", ZeroModel, task)
-    calculate_experiment_metrics(exp, dataset, path_config)
+    calculate_experiment_metrics(exp, dataset, fs)

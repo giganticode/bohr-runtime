@@ -21,8 +21,7 @@ def fit_label_model(lines_train: np.ndarray) -> LabelModel:
     return label_model
 
 
-def train_label_model(exp: Experiment, fs: Optional[BohrFileSystem] = None) -> None:
-    fs = fs or BohrFileSystem.init()
+def train_label_model(exp: Experiment, fs: BohrFileSystem) -> None:
     dataset_dir = fs.exp_dataset_dir(exp, exp.train_dataset).to_absolute_path()
     task_dir = fs.exp_dir(exp).to_absolute_path()
 
