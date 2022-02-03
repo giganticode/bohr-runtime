@@ -483,7 +483,7 @@ def fetch_heuristics_if_needed(
 
     if clone_repo:
         repo = Repo.clone_from(
-            "https://github.com/giganticode/bohr", heuristics_root, no_checkout=True
+            "git@github.com:giganticode/bohr", heuristics_root, no_checkout=True
         )
         repo.git.checkout(heuristics_revision)
 
