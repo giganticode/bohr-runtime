@@ -39,7 +39,7 @@ def repro(
     if pull:
         print("Pulling cache from DVC remote...")
         dvc.pull(fs=fs)
-    print(dvc.repro(pull=False, glob=glob, force=force, fs=fs))
+    dvc.repro(pull=False, glob=glob, force=force, fs=fs)
 
 
 def refresh(workspace: Workspace, fs: BohrFileSystem) -> None:

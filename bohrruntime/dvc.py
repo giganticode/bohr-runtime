@@ -14,6 +14,10 @@ def status(fs: Optional[BohrFileSystem] = None) -> str:
     return subprocess.check_output(command, cwd=fs.root, encoding="utf8")
 
 
+class DvcRunFailed(Exception):
+    pass
+
+
 def repro(
     stages: Optional[List[str]] = None,
     pull: bool = False,
@@ -32,6 +36,8 @@ def repro(
     logger.info(f"Running dvc command: {command}")
     proc = subprocess.Popen(command, cwd=fs.root, encoding="utf8", shell=False)
     proc.communicate()
+    if proc.returncode != 0:
+        raise DvcRunFailed()
 
 
 def pull(
