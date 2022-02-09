@@ -372,14 +372,8 @@ class TrainLabelModelCommand(DvcCommand):
     def get_cmd(self):
         return f"bohr porcelain train-label-model {self.exp.name}"
 
-    def get_params(self):
-        return [{"bohr.lock": [f"experiments.{self.exp.name}.train_set"]}]
-
     def get_deps(self):
-        deps = [
-            self.fs.experiment_label_matrix_file(self.exp, dataset)
-            for dataset in self.exp.datasets
-        ]
+        deps = [self.fs.experiment_label_matrix_file(self.exp, self.exp.train_dataset)]
         return deps
 
     def get_outs(self) -> List:
