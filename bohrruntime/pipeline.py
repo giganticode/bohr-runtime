@@ -494,7 +494,6 @@ def write_tasks_to_dvc_file(
     for exp in workspace.experiments:
         heuristic_groups = exp.heuristic_groups
         params["experiments"][exp.name] = {
-            "train_set": exp.train_dataset.id,
             "heuristics_classifier": ":".join(
                 normalize_paths(
                     heuristic_groups,
