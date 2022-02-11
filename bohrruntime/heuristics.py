@@ -16,15 +16,15 @@ def load_all_heuristics(
     limited_to_modules: Optional[Set[str]] = None,
 ) -> Dict[BohrFsPath, List[HeuristicObj]]:
     modules: Dict[BohrFsPath, List[HeuristicObj]] = {}
-    for path in get_heuristic_files(heuristics_root):
-        rel_path: BohrFsPath = BohrFsPath.from_absolute_path(
-            path, heuristics_root.parent
-        )
+    h: BohrFsPath = BohrFsPath.from_absolute_path(
+        heuristics_root, heuristics_root.parent
+    )
+    for rel_path in get_heuristic_files(h):
         heuristic_module_path = ".".join(
             str(rel_path).replace("/", ".").split(".")[:-1]
         )
         if limited_to_modules is None or heuristic_module_path in limited_to_modules:
-            hs = load_heuristics_from_file(path, artifact_type)
+            hs = load_heuristics_from_file(rel_path, artifact_type)
             if len(hs) > 0:
                 modules[rel_path] = hs
     return modules
@@ -112,19 +112,6 @@ def load_heuristics_from_file(
             heuristics.extend(obj)
     check_names_unique(heuristics)
     return heuristics
-
-
-def load_heuristic_by_name(
-    name: str,
-    artifact_type: Type,
-    heuristics_path: AbsolutePath,
-    return_path: bool = False,
-) -> HeuristicObj:
-    for path, hs in load_all_heuristics(artifact_type, heuristics_path).items():
-        for h in hs:
-            if h.func.__name__ == name:
-                return h if not return_path else (h, path)
-    raise ValueError(f"Heuristic {name} does not exist")
 
 
 def check_names_unique(heuristics: List[HeuristicObj]) -> None:

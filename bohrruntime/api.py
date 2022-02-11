@@ -1,12 +1,14 @@
 import logging
-from typing import Optional
+from typing import Optional, Tuple, Type, Union
 
-from bohrapi.core import Workspace
+from bohrapi.core import HeuristicObj, Workspace
 
 import bohrruntime.dvc as dvc
 from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import load_workspace
+from bohrruntime.heuristics import load_all_heuristics
 from bohrruntime.pipeline import write_tasks_to_dvc_file
+from bohrruntime.util.paths import AbsolutePath
 
 logger = logging.getLogger(__name__)
 
@@ -54,3 +56,16 @@ def status(
 
     refresh(work_space, fs)
     return dvc.status(fs)
+
+
+def load_heuristic_by_name(
+    name: str,
+    artifact_type: Type,
+    heuristics_path: AbsolutePath,
+    return_path: bool = False,
+) -> Union[HeuristicObj, Tuple[HeuristicObj, str]]:
+    for path, hs in load_all_heuristics(artifact_type, heuristics_path).items():
+        for h in hs:
+            if h.func.__name__ == name:
+                return h if not return_path else (h, str(path))
+    raise ValueError(f"Heuristic {name} does not exist")
