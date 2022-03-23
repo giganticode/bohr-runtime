@@ -23,6 +23,18 @@ def bohr():
 
 
 @bohr.command()
+@click.argument("task")
+@click.argument("path")
+@click.option("-r", "--rev", help="Revision of BOHR with needed version of task config")
+def clone(
+    task: str,
+    path: str,
+    rev: Optional[str] = None,
+):
+    api.clone(task, path, rev)
+
+
+@bohr.command()
 @click.argument("task", required=False)
 @click.option("-f", "--force", is_flag=True, help="Force pipeline reproduction")
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")

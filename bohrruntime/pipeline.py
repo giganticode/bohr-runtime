@@ -19,6 +19,7 @@ from bohrruntime.bohrfs import (
     BohrFileSystem,
     BohrFsPath,
 )
+from bohrruntime.core import BOHR_REMOTE_URL
 from bohrruntime.heuristics import get_heuristic_files, is_heuristic_file
 from bohrruntime.util.paths import AbsolutePath, normalize_paths
 
@@ -510,7 +511,7 @@ def fetch_heuristics_if_needed(
 
     if clone_repo:
         repo = Repo.clone_from(
-            "git@github.com:giganticode/bohr",
+            BOHR_REMOTE_URL,
             heuristics_root,
             no_checkout=rev_to_checkout is not None,
         )

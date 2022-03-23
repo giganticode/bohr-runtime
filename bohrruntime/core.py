@@ -29,6 +29,10 @@ from bohrapi.core import ArtifactType, Dataset, HeuristicObj, Task, Workspace
 from snorkel.map import BaseMapper
 from snorkel.types import DataPoint
 
+BOHR_ORGANIZATION = "giganticode"
+BOHR_REPO_NAME = "bohr"
+BOHR_REMOTE_URL = f"git@github.com:{BOHR_ORGANIZATION}/{BOHR_REPO_NAME}"
+
 
 class ArtifactMapper(BaseMapper, ABC):
     def __init__(self, artifact_type: ArtifactType):
