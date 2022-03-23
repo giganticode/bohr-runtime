@@ -18,13 +18,32 @@ class DvcRunFailed(Exception):
     pass
 
 
+def init_dvc(fs: BohrFileSystem) -> None:
+    command = ["dvc", "init"]
+    if not (fs.root / ".git").exists():
+        command.append("--no-scm")
+    logger.info(f"Running dvc command: {command}")
+    proc = subprocess.Popen(
+        command,
+        cwd=fs.root,
+        encoding="utf8",
+        shell=False,
+    )
+    proc.communicate()
+    if proc.returncode != 0:
+        raise DvcRunFailed()
+
+
 def repro(
     stages: Optional[List[str]] = None,
     pull: bool = False,
     glob: Optional[str] = None,
     force: bool = False,
-    fs: Optional[BohrFileSystem] = None,
+    fs: BohrFileSystem = None,
 ) -> None:
+    if not (fs.root / ".dvc").exists():
+        init_dvc(fs)
+
     command = ["dvc", "repro"] + (stages or [])
     if pull:
         command.append("--pull")
@@ -44,6 +63,9 @@ def pull(
     stages: Optional[List[str]] = None,
     fs: Optional[BohrFileSystem] = None,
 ) -> None:
+    if not (fs.root / ".dvc").exists():
+        init_dvc(fs)
+
     command = ["dvc", "pull"] + (stages or [])
     logger.info(f"Running dvc command: {command}")
     proc = subprocess.Popen(command, cwd=fs.root, encoding="utf8", shell=False)
