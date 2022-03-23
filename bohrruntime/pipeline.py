@@ -1,10 +1,11 @@
 import logging
+import re
 import shutil
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Dict, List, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import yaml
 from bohrapi.artifacts import Commit
@@ -454,19 +455,51 @@ def dvc_config_from_tasks(workspace: Workspace, fs: BohrFileSystem) -> Dict:
 
 
 def fetch_heuristics_if_needed(
-    heuristics_revision: str, heuristics_root: AbsolutePath
+    rev_to_checkout: Optional[str], heuristics_root: AbsolutePath
 ) -> None:
+    """
+    >>> fetch_heuristics_if_needed('f1690ba', '/some/path')
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid revision format (has to be SHA hashsum): f1690ba
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     fetch_heuristics_if_needed(None, Path(tmpdirname) / 'repo')
+    ...     fetch_heuristics_if_needed(None, Path(tmpdirname) / 'repo')
+    ...     fetch_heuristics_if_needed('f1690baca451b147b0e704c1ad996338318cc9a6', Path(tmpdirname) / 'repo2')
+    ...     fetch_heuristics_if_needed('1e0880b5ddb005b46d5c489cc51a984229d962dc', Path(tmpdirname) / 'repo2')
+    ...     fetch_heuristics_if_needed('1e0880b5ddb005b46d5c489cc51a984229d962dc', Path(tmpdirname) / 'repo2')
+    ...     shutil.rmtree(Path(tmpdirname) / 'repo2' / 'heuristics')
+    ...     fetch_heuristics_if_needed('1e0880b5ddb005b46d5c489cc51a984229d962dc', Path(tmpdirname) / 'repo2')
+    Warning: downloaded heuristics have been modified!
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     fetch_heuristics_if_needed('1e0880b5ddb005b46d5c489cc51a984229d962dc', Path(tmpdirname) / 'repo')
+    ...     shutil.rmtree(Path(tmpdirname) / 'repo' / 'heuristics')
+    ...     fetch_heuristics_if_needed('f1690baca451b147b0e704c1ad996338318cc9a6', Path(tmpdirname) / 'repo')
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Need to checkout revision f1690baca451b147b0e704c1ad996338318cc9a6, however the current revision 1e0880b5ddb005b46d5c489cc51a984229d962dc is dirty
+    """
+    if rev_to_checkout is not None and not re.fullmatch(
+        "[0-9a-fA-F]{40}", rev_to_checkout
+    ):
+        raise ValueError(
+            f"Invalid revision format (has to be SHA hashsum): {rev_to_checkout}"
+        )
+
     clone_repo = False
     if heuristics_root.exists():
         repo = Repo(heuristics_root)
+        if rev_to_checkout is None:
+            last_remote_commit = repo.remote().fetch()[0].commit
         head_sha = repo.head.commit.hexsha
-        if head_sha == heuristics_revision:
+        if head_sha == (rev_to_checkout if rev_to_checkout else last_remote_commit):
             if repo.is_dirty():
                 print("Warning: downloaded heuristics have been modified!")
         else:
             if repo.is_dirty():
                 raise RuntimeError(
-                    f"Need to checkout revision {heuristics_revision}, "
+                    f"Need to checkout revision {(rev_to_checkout if rev_to_checkout else last_remote_commit)}, "
                     f"however the current revision {head_sha} is dirty"
                 )
             shutil.rmtree(heuristics_root)
@@ -477,9 +510,12 @@ def fetch_heuristics_if_needed(
 
     if clone_repo:
         repo = Repo.clone_from(
-            "git@github.com:giganticode/bohr", heuristics_root, no_checkout=True
+            "git@github.com:giganticode/bohr",
+            heuristics_root,
+            no_checkout=rev_to_checkout is not None,
         )
-        repo.git.checkout(heuristics_revision)
+        if rev_to_checkout is not None:
+            repo.git.checkout(rev_to_checkout)
 
 
 def write_tasks_to_dvc_file(
