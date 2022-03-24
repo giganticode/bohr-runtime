@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from pathlib import Path
@@ -5,6 +6,7 @@ from typing import Optional, Tuple, Type, Union
 
 import requests
 from bohrapi.core import HeuristicObj, Workspace
+from git import Repo
 
 import bohrruntime.dvc as dvc
 from bohrruntime import __version__
@@ -38,29 +40,40 @@ def clone(task: str, path: str, revision: Optional[str] = None) -> None:
     ...     clone('non-existent-task', Path(tmpdirname) / 'repo')
     Traceback (most recent call last):
     ...
-    ValueError: Task not found: non-existent-task. Could not download config from: https://raw.githubusercontent.com/giganticode/bohr/master/tasks/non-existent-task/bohr.py
+    ValueError: Unknown task: non-existent-task
+    >>> with tempfile.TemporaryDirectory() as tmpdirname: # doctest: +ELLIPSIS
+    ...     clone('bugginess', Path(tmpdirname) / 'repo', '7711f36d5333aa8cd5d110a91fd58cfd2e7ee0d5')
     """
     if Path(path).exists() and len(os.listdir(path)) != 0:
         raise RuntimeError(f"Path {path} already exists and not empty.")
     elif not Path(path).exists():
         Path(path).mkdir()
 
-    revision = revision or "master"
-    raw_task_config = f"https://raw.githubusercontent.com/{BOHR_ORGANIZATION}/{BOHR_REPO_NAME}/{revision}/tasks/{task}/bohr.py"
+    raw_task_config = f"https://raw.githubusercontent.com/{BOHR_ORGANIZATION}/{BOHR_REPO_NAME}/master/tasks.json"
     response = requests.get(raw_task_config)
     if response.status_code == 200:
         text = response.text
+        tasks_json = json.loads(text)
 
-        text += f'\n\nw=Workspace("{__version__}", [default_exp])'
+        if task not in tasks_json:
+            raise ValueError(f"Unknown task: {task}")
 
-        with (Path(path) / "bohr.py").open("w") as f:
-            f.write(text)
+        available_revisions = next(iter(tasks_json[task].values()))
+        if revision:
+            if revision not in available_revisions:
+                raise ValueError(f"Unknown revision: {revision}")
+        else:
+            revision = available_revisions[-1]
+
+        github_repo = next(iter(tasks_json[task].keys()))
+
+        repo_url = f"https://github.com/{github_repo}"
+        repo = Repo.clone_from(repo_url, path, depth=1)
+        repo.head.reset(revision, index=True, working_tree=True)
     elif response.status_code == 404:
-        raise ValueError(
-            f"Task not found: {task}. Could not download config from: {raw_task_config}"
-        )
+        raise AssertionError(f"Could not find tasks config: {raw_task_config}")
     else:
-        raise ValueError(f"Could not load task config:\n\n {response.text}")
+        raise RuntimeError(f"Could not load task config:\n\n {response.text}")
 
 
 def repro(
