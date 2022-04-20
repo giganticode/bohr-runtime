@@ -14,7 +14,6 @@ from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import (
     BohrLabelModel,
     Model,
-    RandomModel,
     load_dataset,
     load_ground_truth_labels,
 )
@@ -28,21 +27,17 @@ def calculate_model_metrics(
 ) -> Dict[str, float]:
     """
     >>> from collections import namedtuple; import tempfile
-    >>> def mocked_predictions(l,return_probs,tie_break_policy): return np.array([1, 0, 1]), np.array([[0.1, 0.9], [0.8, 0.2], [0.25, 0.75]])
-    >>> def mocked_scores(L,Y,tie_break_policy,metrics):
-    ...     return {"f1": 1.0} if metrics == ['f1'] else {"roc_auc": 0.78}
-    >>> lm = namedtuple('LM', ['predict', 'score'])(mocked_predictions, mocked_scores)
+    >>> def mocked_predictions(): return np.array([1, 0, 1]), np.array([[0.1, 0.9], [0.8, 0.2], [0.25, 0.75]])
+    >>> lm = namedtuple('LM', ['predict'])(mocked_predictions)
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
     ...     np.ndarray([]).dump(f"{tmpdirname}/heuristic_matrix_test_set.pkl")
-    ...     calculate_model_metrics(lm, "test_set", np.array([1, 1, 0]), Path(tmpdirname))
-    {'label_model_accuracy_test_set': 0.333, 'label_model_auc_test_set': 0.78, 'label_model_f1_test_set': 1.0, 'label_model_mse_test_set': 0.404}
+    ...     calculate_model_metrics(lm, np.array([1, 1, 0]))
+    {'label_model_accuracy': 0.333, 'label_model_auc': 0.5, 'label_model_f1': 0.5, 'label_model_f1_macro': 0.25, 'label_model_mse': 0.404}
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
     ...     np.ndarray([]).dump(f"{tmpdirname}/heuristic_matrix_test_set.pkl")
-    ...     calculate_model_metrics(lm, "test_set", np.array([0, 1, 0]), Path(tmpdirname))
-    {'label_model_accuracy_test_set': 0.0, 'label_model_auc_test_set': 0.78, 'label_model_f1_test_set': 1.0, 'label_model_mse_test_set': 0.671}
+    ...     calculate_model_metrics(lm, np.array([0, 1, 0]))
+    {'label_model_accuracy': 0.0, 'label_model_auc': 0.0, 'label_model_f1': 0.0, 'label_model_f1_macro': 0.0, 'label_model_mse': 0.671}
     """
-    # label_matrix = np.load(str(save_to / f"heuristic_matrix.pkl"), allow_pickle=True)
-
     Y_pred, Y_prob = model.predict()
 
     try:
