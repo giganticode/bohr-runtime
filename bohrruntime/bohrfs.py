@@ -27,7 +27,7 @@ class BohrFsPath:
         return str(self.path)
 
     def __repr__(self):
-        return f'{type(self)}: anchor="{self.anchor}" path="{self.path}"'
+        return f'{type(self).__name__}: anchor="{self.anchor}" path="{self.path}"'
 
     def __truediv__(self, other) -> "BohrFsPath":
         if isinstance(other, str) or isinstance(other, Path):
@@ -57,7 +57,7 @@ class BohrFsPath:
     def with_anchor(self, with_anchor: AbsolutePath):
         """
         >>> BohrFsPath('a/b', '/root').with_anchor('/root/a')
-        <class 'bohrfs.BohrFsPath'>: anchor="/root/a" path="b"
+        BohrFsPath: anchor="/root/a" path="b"
          >>> BohrFsPath('a/b', '/root').with_anchor('random')
          Traceback (most recent call last):
          ...
