@@ -107,10 +107,10 @@ class DataPointDebugger:
         >>> matrix = pd.DataFrame([[0, -1, 0],[1, -1, -1]], columns=['h1', 'h2', 'h3'])
         >>> weights = pd.DataFrame([[0.01, 0.99, 0.3, 0.3],[0.2, 0.2, 0.3, 0.3],[0.2, 0.2, 0.3, 0.3]], columns=['00', '01', '10', '11'], index=pd.Series(['h1', 'h2', 'h3'], name='heuristic_name'))
         >>> DataPointDebugger.get_datapoint_info_(matrix, weights, 0, 'new') # doctest: +NORMALIZE_WHITESPACE
-                        NonBug_new   Bug_new  h_output_new
+                        NonBug_new  Bug_new  h_output_new
         heuristic_name
-        h1                 0.00259  0.983856             0
-        h3                 0.00741  0.006144             0
+        h1                    0.01     0.99             0
+        h3                    0.20     0.20             0
         """
         row = matrix.iloc[datapoint]
 
