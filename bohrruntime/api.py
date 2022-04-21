@@ -8,7 +8,7 @@ import requests
 from bohrapi.core import HeuristicObj, Workspace
 from git import Repo
 
-import bohrruntime.dvc as dvc
+import bohrruntime.dvcwrapper as dvc
 from bohrruntime import __version__
 from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.core import BOHR_ORGANIZATION, BOHR_REPO_NAME, load_workspace
