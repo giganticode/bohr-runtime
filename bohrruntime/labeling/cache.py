@@ -1,8 +1,8 @@
 import logging
-from typing import List
+from typing import List, Union
 
 from bohrapi.core import Task
-from bohrlabels.core import NumericLabel, belongs_to
+from bohrlabels.core import Label, NumericLabel, belongs_to
 from cachetools import LRUCache
 
 logger = logging.getLogger(__name__)
@@ -22,13 +22,21 @@ class CategoryMappingCache(LRUCache):
     1
     """
 
-    def __init__(self, label_categories: List[NumericLabel], maxsize: int):
+    def __init__(
+        self, label_categories: List[Union[NumericLabel, Label]], maxsize: int
+    ):
         super().__init__(maxsize)
-        self.label_categories = label_categories
-        self.category_hierarchy = type(label_categories[0])
-        self.map = {cat.label: i for i, cat in enumerate(self.label_categories)}
+        self.label_categories = list(
+            map(lambda x: x.to_numeric_label(), label_categories)
+        )
+        self.category_hierarchy = self.label_categories[0].hierarchy
+        self.map = {
+            numeric_label.label: i
+            for i, numeric_label in enumerate(self.label_categories)
+        }
 
-    def __missing__(self, label: NumericLabel) -> int:
+    def __missing__(self, label: Union[NumericLabel, Label]) -> int:
+        label = label.to_numeric_label()
         selected_label = belongs_to(label, self.label_categories)
         if selected_label.label in self.map:
             snorkel_label = self.map[selected_label.label]
