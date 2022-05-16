@@ -7,8 +7,8 @@ from bohrruntime import __version__, api, setup_loggers
 from bohrruntime.appconfig import add_to_local_config
 from bohrruntime.bohrfs import BohrFileSystem
 from bohrruntime.cli.porcelain.commands import porcelain
-from bohrruntime.core import load_workspace
 from bohrruntime.util.logging import verbosity
+from bohrruntime.workspace import load_workspace
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 

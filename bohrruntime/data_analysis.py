@@ -1,10 +1,8 @@
 import json
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import numpy as np
 from numpyencoder import NumpyEncoder
-from snorkel.labeling import LabelingFunction, LFAnalysis
 from snorkel.labeling.model import MajorityLabelVoter
 
 from bohrruntime.bohrfs import BohrFsPath

@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import yaml
 from bohrapi.artifacts import Commit
-from bohrapi.core import Dataset, Experiment, Task, Workspace
 from git import Repo
 
 from bohrruntime.bohrfs import (
@@ -20,8 +19,11 @@ from bohrruntime.bohrfs import (
     BohrFsPath,
 )
 from bohrruntime.core import BOHR_REMOTE_URL
+from bohrruntime.dataset import Dataset
 from bohrruntime.heuristics import get_heuristic_files, is_heuristic_file
+from bohrruntime.task import Experiment, Task
 from bohrruntime.util.paths import AbsolutePath, normalize_paths
+from bohrruntime.workspace import Workspace
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +184,10 @@ class LoadDatasetsCommand(ForEachDvcCommand):
 
 class ApplyHeuristicsCommand(ForEachDvcCommand):
     def get_cmd(self) -> str:
-        return 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"'
+        cmd = 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"'
+        if self.workspace.experiments[0].task.is_matching_task():
+            cmd += " --match"
+        return cmd
 
     def get_deps(self) -> List[str]:
         deps = [
@@ -493,13 +498,15 @@ def fetch_heuristics_if_needed(
         if rev_to_checkout is None:
             last_remote_commit = repo.remote().fetch()[0].commit
         head_sha = repo.head.commit.hexsha
-        if head_sha == (rev_to_checkout if rev_to_checkout else last_remote_commit):
+        if head_sha == (
+            rev_to_checkout if rev_to_checkout else last_remote_commit.hexsha
+        ):
             if repo.is_dirty():
                 print("Warning: downloaded heuristics have been modified!")
         else:
             if repo.is_dirty():
                 raise RuntimeError(
-                    f"Need to checkout revision {(rev_to_checkout if rev_to_checkout else last_remote_commit)}, "
+                    f"Need to checkout revision {(rev_to_checkout if rev_to_checkout else last_remote_commit.hexsha)}, "
                     f"however the current revision {head_sha} is dirty"
                 )
             shutil.rmtree(heuristics_root)

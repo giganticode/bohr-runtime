@@ -4,9 +4,10 @@ import click
 
 from bohrruntime import setup_loggers
 from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.core import RandomModel, ZeroModel, load_workspace
+from bohrruntime.core import RandomModel, ZeroModel
 from bohrruntime.stages.experiment_metrics import SynteticExperiment
 from bohrruntime.util.profiler import Profiler
+from bohrruntime.workspace import load_workspace
 
 
 @click.group()

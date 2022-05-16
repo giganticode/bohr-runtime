@@ -1,0 +1,5 @@
+{"names": ["michelle caisse"], "cluster": 1}
+{"emails":  ["mcaisse@sonic.net"], "cluster": 1}
+{"emails":  ["mcaisse@apache.org"], "cluster": 2}
+{"names": ["Julien Nioche"], "cluster": 3}
+{"emails": ["julien@digitalpebble.com"], "cluster": 4}

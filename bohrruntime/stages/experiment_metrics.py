@@ -4,21 +4,17 @@ from typing import Dict, Type, Union
 
 import numpy as np
 import pandas as pd
-from bohrapi.core import Dataset, Experiment, Task
 from bohrlabels.core import to_numeric_label
 from snorkel.analysis import Scorer
 from snorkel.labeling import LFAnalysis
 from snorkel.labeling.model import LabelModel
 
 from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.core import (
-    BohrLabelModel,
-    Model,
-    load_dataset,
-    load_ground_truth_labels,
-)
+from bohrruntime.core import BohrLabelModel, Model
 from bohrruntime.data_analysis import calculate_lf_metrics, save_analysis
+from bohrruntime.dataset import Dataset
 from bohrruntime.labeling.cache import CategoryMappingCache
+from bohrruntime.task import Experiment, Task
 
 
 def calculate_model_metrics(
@@ -71,14 +67,15 @@ def calculate_experiment_metrics(exp: Union[Experiment, SynteticExperiment], dat
     category_mapping_cache = CategoryMappingCache(
         exp.task.labels, maxsize=10000
     )
-    artifact_df = load_dataset(dataset, projection={})
-    label_series = load_ground_truth_labels(exp.task, dataset, pre_loaded_artifacts=artifact_df)
-    if label_series is not None:
+    if dataset in exp.task.test_datasets and (func := exp.task.test_datasets[dataset]) is not None:
+        label_series = dataset.load_ground_truth_labels(func)
         label_series = np.array(
             list(
                 map(lambda x: category_mapping_cache[to_numeric_label(x, exp.task.hierarchy)], label_series)
             )
         )
+    else:
+        label_series = None
 
     if type(exp).__name__ == 'Experiment':
         all_heuristics_file = fs.experiment_label_matrix_file(exp, dataset).to_absolute_path()
@@ -95,7 +92,7 @@ def calculate_experiment_metrics(exp: Union[Experiment, SynteticExperiment], dat
             label_model.load(str(fs.label_model(exp).to_absolute_path()))
             model = BohrLabelModel(label_model, label_matrix, tie_break_policy = "random")
         elif type(exp).__name__ == 'SynteticExperiment':
-            model = exp.model_type(len(artifact_df))
+            model = exp.model_type(dataset.get_n_datapoints())
         else:
             raise AssertionError()
         metrics = calculate_model_metrics(

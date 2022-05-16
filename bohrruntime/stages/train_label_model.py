@@ -1,5 +1,5 @@
 import random
-from typing import Optional
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -15,9 +15,11 @@ class GroundTruthColumnNotFound(Exception):
     pass
 
 
-def fit_label_model(lines_train: np.ndarray) -> LabelModel:
+def fit_label_model(lines_train: np.ndarray, class_balance: List[float]) -> LabelModel:
     label_model = LabelModel(cardinality=2, verbose=True)
-    label_model.fit(lines_train, n_epochs=100, log_freq=10, seed=123)
+    label_model.fit(
+        lines_train, n_epochs=250, log_freq=10, seed=123, class_balance=class_balance
+    )
     return label_model
 
 
@@ -26,7 +28,8 @@ def train_label_model(exp: Experiment, fs: BohrFileSystem) -> None:
     task_dir = fs.exp_dir(exp).to_absolute_path()
 
     lines_train = pd.read_pickle(str(dataset_dir / f"heuristic_matrix.pkl"))
-    label_model = fit_label_model(lines_train.to_numpy())
+    class_balance = exp.class_balance or 1.0 / len(exp.task.labels)
+    label_model = fit_label_model(lines_train.to_numpy(), class_balance)
     label_model.save(str(task_dir / "label_model.pkl"))
     label_model.eval()
 

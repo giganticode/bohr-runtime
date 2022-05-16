@@ -1,10 +1,8 @@
-import inspect
 import json
 import logging
-from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Union
 
 import numpy as np
-import pandas as pd
 from bohrlabels.core import Label, Labels, LabelSet
 from jsonlines import jsonlines
 from pymongo import MongoClient
@@ -12,9 +10,8 @@ from snorkel.labeling import LabelingFunction
 from snorkel.preprocess import BasePreprocessor
 from tqdm import tqdm
 
-from bohrruntime import version
+from bohrruntime.dataset import Dataset
 from bohrruntime.fs import find_project_root
-from bohrruntime.util.paths import AbsolutePath
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +22,7 @@ HeuristicFunction = Callable[..., Optional[Labels]]
 from abc import ABC, abstractmethod
 from typing import Optional, Type, TypeVar
 
-from bohrapi.core import ArtifactType, Dataset, HeuristicObj, Task, Workspace
+from bohrapi.core import ArtifactType, HeuristicObj
 from snorkel.map import BaseMapper
 from snorkel.types import DataPoint
 
@@ -43,6 +40,8 @@ class ArtifactMapper(BaseMapper, ABC):
         return f"{artifact_type.__name__}Mapper"
 
     def __call__(self, x: DataPoint) -> Optional[DataPoint]:
+        if isinstance(x, tuple):
+            raise AssertionError()
         return self.artifact_type(x)
 
 
@@ -84,6 +83,64 @@ def to_labeling_functions(
 
 
 def to_labeling_function(h: HeuristicObj) -> SnorkelLabelingFunction:
+    """
+    >>> from bohrapi.core import Heuristic, Artifact
+    >>> from enum import auto
+    >>> class TestArtifact(Artifact): pass
+    >>> class TestLabel(Label): Test = auto()
+
+    >>> @Heuristic(TestArtifact)
+    ... def heuristic(artifact: TestArtifact) -> Optional[Labels]:
+    ...     return TestLabel.Test
+    >>> lf = to_labeling_function(heuristic)
+    >>> a = TestArtifact({'value': 0})
+    >>> lf(a)
+    1
+
+    >>> @Heuristic(TestArtifact)
+    ... def heuristic2(artifact) -> Optional[Labels]:
+    ...     return TestLabel.Test
+    >>> lf = to_labeling_function(heuristic2)
+    >>> lf(3)
+    Traceback (most recent call last):
+    ...
+    TypeError: Heuristic heuristic2 can only be applied to TestArtifact object, not int
+
+    >>> @Heuristic(TestArtifact)
+    ... def heuristic3(artifact) -> Optional[Labels]:
+    ...     return TestLabel.Test
+    >>> lf = to_labeling_function(heuristic3)
+    >>> lf((3,8))
+    Traceback (most recent call last):
+    ...
+    TypeError: Expected artifact of type TestArtifact, got tuple
+
+    >>> @Heuristic(TestArtifact, TestArtifact)
+    ... def heuristic4(artifact) -> Optional[Labels]:
+    ...     return TestLabel.Test
+    >>> lf = to_labeling_function(heuristic4)
+    >>> lf(3)
+    Traceback (most recent call last):
+    ...
+    TypeError: Heuristic heuristic4 accepts only tuple of two artifacts
+
+    >>> @Heuristic(TestArtifact, TestArtifact)
+    ... def heuristic5(artifact) -> Optional[Labels]:
+    ...     return TestLabel.Test
+    >>> lf = to_labeling_function(heuristic5)
+    >>> lf((3,5))
+    Traceback (most recent call last):
+    ...
+    TypeError: Heuristic heuristic5 can only be applied to TestArtifact and TestArtifact
+
+    >>> @Heuristic(TestArtifact, TestArtifact)
+    ... def heuristic6(artifact: TestArtifact) -> Optional[Labels]:
+    ...     return TestLabel.Test
+    >>> lf = to_labeling_function(heuristic6)
+    >>> a = TestArtifact({'value': 0})
+    >>> lf((a, a))
+    1
+    """
     return SnorkelLabelingFunction(
         name=h.__name__,
         f=lambda *args, **kwargs: apply_heuristic_and_convert_to_snorkel_label(
@@ -101,29 +158,6 @@ def to_snorkel_label(labels) -> int:
         raise AssertionError()
     snorkel_label = labels.value
     return snorkel_label
-
-
-def load_workspace(project_root: Optional[AbsolutePath] = None) -> Workspace:
-    project_root = project_root or find_project_root()
-    file = project_root / "bohr.py"
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location("heuristic.module", file)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-
-    for name, obj in inspect.getmembers(module):
-        if isinstance(obj, Workspace):
-            workspace = obj
-
-            version_installed = version()
-            if str(workspace.bohr_runtime_version) != version_installed:
-                raise EnvironmentError(
-                    f"Version of bohr framework from config: {workspace.bohr_runtime_version}. "
-                    f"Version of bohr installed: {version_installed}"
-                )
-            return workspace
-    raise ValueError(f"Object of type {Workspace.__name__} not found in bohr.py")
 
 
 class ArtifactMock:
@@ -233,51 +267,11 @@ def load_dataset_from_explorer(dataset: Dataset) -> None:
     print(f"Dataset loaded: {dataset.id}, and save to {save_to}")
 
 
-def get_path_to_file(
-    dataset: Dataset, projection: Optional[Dict] = None
-) -> AbsolutePath:
-    return find_project_root() / "cached-datasets" / f"{dataset.id}.jsonl"
-
-
-def load_dataset(
-    dataset: Dataset,
-    n_datapoints: Optional[int] = None,
-    projection: Optional[Dict] = None,
-) -> List[Dict]:
-    path = get_path_to_file(dataset, projection)
-    if not path.exists():
-        raise RuntimeError(
-            f"Dataset {dataset.id} should have been loaded by a dvc stage first!"
-        )
-    artifact_list = []
-    with jsonlines.open(path, "r") as reader:
-        for artifact in reader:
-            artifact_list.append(dataset.top_artifact(artifact))
-            if len(artifact_list) == n_datapoints:
-                break
-    return artifact_list
-
-
 def get_projection(heuristics: List[HeuristicObj]) -> Dict:
     mock = ArtifactMock()
     for heuristic in heuristics:
         heuristic.non_safe_func(mock, **heuristic.resources)
     return mock.projection
-
-
-def load_ground_truth_labels(
-    task: Task, dataset: Dataset, pre_loaded_artifacts: Optional[pd.DataFrame] = None
-) -> Optional[Sequence[Label]]:
-    if pre_loaded_artifacts is None:
-        pre_loaded_artifacts = load_dataset(dataset)
-    if dataset in task.test_datasets and task.test_datasets[dataset] is not None:
-        label_from_datapoint_function = task.test_datasets[dataset]
-        label_series = [
-            label_from_datapoint_function(artifact) for artifact in pre_loaded_artifacts
-        ]
-    else:
-        label_series = None
-    return label_series
 
 
 class Model(ABC):

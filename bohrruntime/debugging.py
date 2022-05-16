@@ -16,9 +16,9 @@ from tabulate import tabulate
 
 from bohrruntime import appauthor, appname, version
 from bohrruntime.bohrfs import BohrFileSystem, BohrFsPath
-from bohrruntime.core import load_workspace
 from bohrruntime.formatting import tabulate_artifacts
 from bohrruntime.util.paths import AbsolutePath
+from bohrruntime.workspace import load_workspace
 
 logger = logging.getLogger()
 

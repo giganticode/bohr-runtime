@@ -9,12 +9,12 @@ from bohrapi.core import HeuristicObj, Workspace
 from git import Repo
 
 import bohrruntime.dvcwrapper as dvc
-from bohrruntime import __version__
 from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.core import BOHR_ORGANIZATION, BOHR_REPO_NAME, load_workspace
+from bohrruntime.core import BOHR_ORGANIZATION, BOHR_REPO_NAME
 from bohrruntime.heuristics import load_all_heuristics
 from bohrruntime.pipeline import write_tasks_to_dvc_file
 from bohrruntime.util.paths import AbsolutePath
+from bohrruntime.workspace import load_workspace
 
 logger = logging.getLogger(__name__)
 

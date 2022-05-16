@@ -81,8 +81,9 @@ def load_heuristics_from_file(
 ) -> List[HeuristicObj]:
     import importlib.util
 
+    heuristic_file_abs_path = heuristic_file.to_absolute_path()
     spec = importlib.util.spec_from_file_location(
-        "heuristic.module", heuristic_file.to_absolute_path()
+        "heuristic.module", heuristic_file_abs_path
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -93,13 +94,14 @@ def load_heuristics_from_file(
         )
 
     heuristics: List[HeuristicObj] = []
-    heuristics.extend(
-        [
-            obj
-            for name, obj in inspect.getmembers(module)
-            if is_heuristic_of_needed_type(obj, artifact_type)
-        ]
-    )
+    for name, obj in inspect.getmembers(module):
+        if is_heuristic_of_needed_type(obj, artifact_type):
+            if name != (filename := heuristic_file_abs_path.stem):
+                raise ValueError(
+                    f"For consistency, file and heuristic name must be the same.\n"
+                    f"Hovewer, filename is {filename}, heuristic name is {name}."
+                )
+            heuristics.append(obj)
     for name, obj in inspect.getmembers(module):
         if (
             isinstance(obj, list)

@@ -2,28 +2,28 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from bohrapi.core import Task
-from bohrlabels.core import LabelSet, to_numeric_label
+from bohrlabels.core import to_numeric_label
 from tqdm import tqdm
 
 from bohrruntime.bohrfs import BohrFileSystem, BohrFsPath
-from bohrruntime.core import load_dataset, load_ground_truth_labels
 from bohrruntime.data_analysis import calculate_lf_metrics
 from bohrruntime.heuristics import get_heuristic_files, get_labeling_functions_from_path
 from bohrruntime.labeling.cache import CategoryMappingCache, map_numeric_label_value
+from bohrruntime.task import Task
 
 
 def calculate_metrics_for_heuristic(task: Task, fs: BohrFileSystem) -> None:
     category_mapping_cache = CategoryMappingCache(task.labels, maxsize=10000)
-    for dataset in tqdm(task.test_datasets, desc="Calculating metrics for dataset: "):
-        artifact_df = load_dataset(dataset)
-        label_series = load_ground_truth_labels(task, dataset, pre_loaded_artifacts=artifact_df)
-        if label_series is not None:
+    for dataset, datapoint_to_label_func in tqdm(task.test_datasets.items(), desc="Calculating metrics for dataset: "):
+        if datapoint_to_label_func is not None:
+            label_series = dataset.load_ground_truth_labels(datapoint_to_label_func)
             label_series = np.array(
                 list(
                     map(lambda x: category_mapping_cache[to_numeric_label(x, task.hierarchy)], label_series)
                 )
             )
+        else:
+            label_series = None
         heuristic_groups: List[BohrFsPath] = get_heuristic_files(
             fs.heuristics, task.top_artifact
         )
