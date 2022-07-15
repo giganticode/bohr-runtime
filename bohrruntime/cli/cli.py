@@ -5,10 +5,10 @@ import click
 
 from bohrruntime import __version__, api, setup_loggers
 from bohrruntime.appconfig import add_to_local_config
-from bohrruntime.bohrfs import BohrFileSystem
+from bohrruntime.bohrconfig import load_workspace
 from bohrruntime.cli.porcelain.commands import porcelain
+from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.logging import verbosity
-from bohrruntime.workspace import load_workspace
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
@@ -23,15 +23,13 @@ def bohr():
 
 
 @bohr.command()
-@click.argument("task")
 @click.argument("path")
 @click.option("-r", "--rev", help="Revision of BOHR with needed version of task config")
 def clone(
-    task: str,
     path: str,
     rev: Optional[str] = None,
 ):
-    api.clone(task, path, rev)
+    api.clone(path, rev)
 
 
 @bohr.command()
@@ -39,14 +37,22 @@ def clone(
 @click.option("-f", "--force", is_flag=True, help="Force pipeline reproduction")
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
 @click.option("--no-pull", is_flag=True, help="Do not pull from dvc remote")
-def repro(
+def run_pipeline(
     task: Optional[str],
     force: bool = False,
     verbose: bool = False,
     no_pull: bool = False,
 ):
     with verbosity(verbose):
-        api.repro(task, force, pull=not no_pull)
+        api.run_pipeline(task, force, pull=not no_pull)
+
+
+@bohr.command()
+@click.option("-f", "--force", is_flag=True, help="Force pipeline reproduction")
+@click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
+def repro(force: bool = False, verbose: bool = False):
+    with verbosity(verbose):
+        api.repro(force=force)
 
 
 @bohr.command()
@@ -60,7 +66,7 @@ def status(verbose: bool = False):
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
 def refresh(verbose: bool = False):
     setup_loggers(verbose)
-    api.refresh(load_workspace(), BohrFileSystem.init())
+    api.refresh_pipeline_config(load_workspace(), StorageEngine.init())
 
 
 @bohr.command()

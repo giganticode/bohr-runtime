@@ -1,92 +1,80 @@
-import json
 import logging
-import os
 from pathlib import Path
 from typing import Optional, Tuple, Type, Union
 
-import requests
-from bohrapi.core import HeuristicObj, Workspace
+import yaml
+from bohrapi.core import HeuristicObj
 from git import Repo
+from tqdm import tqdm
 
 import bohrruntime.dvcwrapper as dvc
-from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.core import BOHR_ORGANIZATION, BOHR_REPO_NAME
-from bohrruntime.heuristics import load_all_heuristics
-from bohrruntime.pipeline import write_tasks_to_dvc_file
-from bohrruntime.util.paths import AbsolutePath
-from bohrruntime.workspace import load_workspace
+from bohrruntime.bohrconfig import load_workspace
+from bohrruntime.datamodel.workspace import Workspace
+from bohrruntime.heuristicuri import HeuristicURI
+from bohrruntime.pipeline import (
+    dvc_config_from_tasks,
+    fetch_heuristics_if_needed,
+    get_params,
+    get_stages_list,
+)
+from bohrruntime.storageengine import (
+    FileSystemHeuristicLoader,
+    HeuristicLoader,
+    StorageEngine,
+)
+from bohrruntime.util.paths import AbsolutePath, create_fs
 
 logger = logging.getLogger(__name__)
 
 
-class BohrDatasetNotFound(Exception):
-    pass
-
-
-class NoTasksFound(Exception):
-    pass
-
-
-def clone(task: str, path: str, revision: Optional[str] = None) -> None:
-    """
-    >>> import tempfile
-    >>> with tempfile.TemporaryDirectory() as tmpdirname: # doctest: +ELLIPSIS
-    ...     clone('bugginess', Path(tmpdirname) / 'repo')
-    ...     clone('bugginess', Path(tmpdirname) / 'repo')
-    Traceback (most recent call last):
-    ...
-    RuntimeError: Path ... already exists and not empty.
-    >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    ...     clone('non-existent-task', Path(tmpdirname) / 'repo')
-    Traceback (most recent call last):
-    ...
-    ValueError: Unknown task: non-existent-task
-    >>> with tempfile.TemporaryDirectory() as tmpdirname: # doctest: +ELLIPSIS
-    ...     clone('bugginess', Path(tmpdirname) / 'repo', '7711f36d5333aa8cd5d110a91fd58cfd2e7ee0d5')
-    """
-    if Path(path).exists() and len(os.listdir(path)) != 0:
-        raise RuntimeError(f"Path {path} already exists and not empty.")
-    elif not Path(path).exists():
-        Path(path).mkdir()
-
-    raw_task_config = f"https://raw.githubusercontent.com/{BOHR_ORGANIZATION}/{BOHR_REPO_NAME}/master/tasks.json"
-    response = requests.get(raw_task_config)
-    if response.status_code == 200:
-        text = response.text
-        tasks_json = json.loads(text)
-
-        if task not in tasks_json:
-            raise ValueError(f"Unknown task: {task}")
-
-        available_revisions = next(iter(tasks_json[task].values()))
-        if revision:
-            if revision not in available_revisions:
-                raise ValueError(f"Unknown revision: {revision}")
-        else:
-            revision = available_revisions[-1]
-
-        github_repo = next(iter(tasks_json[task].keys()))
-
-        repo_url = f"https://github.com/{github_repo}"
-        repo = Repo.clone_from(repo_url, path, depth=1)
-        repo.head.reset(revision, index=True, working_tree=True)
-    elif response.status_code == 404:
-        raise AssertionError(f"Could not find tasks config: {raw_task_config}")
-    else:
-        raise RuntimeError(f"Could not load task config:\n\n {response.text}")
+def clone(url: str, revision: Optional[str] = None) -> None:
+    repo_name = url[url.rfind("/") + 1 :]
+    if (Path(".") / repo_name).exists():
+        raise RuntimeError(f"Directory {repo_name} already exists")
+    repo = Repo.clone_from(url, repo_name, depth=1)
+    repo.head.reset(revision, index=True, working_tree=True)
+    dvc_repo = dvc.Repo.init(repo_name)
+    dvc_repo.pull()
 
 
 def repro(
+    force: bool = False,
+    workspace: Optional[Workspace] = None,
+    storage_engine: Optional[StorageEngine] = None,
+):
+
+    storage_engine = storage_engine or StorageEngine.init()
+    workspace = workspace or load_workspace()
+    refresh_pipeline_config(workspace, storage_engine)
+    commands = get_stages_list(workspace, storage_engine)
+    n_commands = len(commands)
+    for i, command in enumerate(commands):
+        if not isinstance(command, list):
+            command = [command]
+        print(
+            f"===========    Executing stage: {command[0].summary()} [{i}/{n_commands}]"
+        )
+        for c in tqdm(command):
+            repro_stage(c.stage_name(), storage_engine, force=force)
+
+
+def repro_stage(
+    stage_name: str, storage_engine: Optional[StorageEngine] = None, force: bool = False
+):
+    dvc.repro([stage_name], storage_engine=storage_engine, force=force)
+
+
+def run_pipeline(
     task: Optional[str] = None,
     force: bool = False,
     workspace: Optional[Workspace] = None,
-    fs: Optional[BohrFileSystem] = None,
+    storage_engine: Optional[StorageEngine] = None,
     pull: bool = True,
 ) -> None:
-    fs = fs or BohrFileSystem.init()
+    storage_engine = storage_engine or StorageEngine.init()
     workspace = workspace or load_workspace()
 
-    refresh(workspace, fs)
+    refresh_pipeline_config(workspace, storage_engine)
 
     glob = None
     if task:
@@ -95,32 +83,49 @@ def repro(
         glob = f"{task}*"
     if pull:
         print("Pulling cache from DVC remote...")
-        dvc.pull(fs=fs)
-    dvc.repro(pull=False, glob=glob, force=force, fs=fs)
+        dvc.pull(storage_engine=storage_engine)
+    dvc.repro(pull=False, glob=glob, force=force, storage_engine=storage_engine)
 
 
-def refresh(workspace: Workspace, fs: BohrFileSystem) -> None:
-    write_tasks_to_dvc_file(workspace, fs)
+def refresh_pipeline_config(
+    workspace: Workspace, storage_engine: StorageEngine
+) -> None:
+    fetch_heuristics_if_needed(
+        workspace.experiments[0].revision,
+        AbsolutePath(Path(storage_engine.cloned_bohr_subfs().getsyspath("."))),
+    )
+
+    stages = get_stages_list(workspace, storage_engine)
+    dvc_config = dvc_config_from_tasks(stages)
+    with storage_engine.fs.open("dvc.yaml", "w") as f:
+        f.write(yaml.dump(dvc_config))
+
+    params = get_params(workspace, storage_engine)
+    with storage_engine.fs.open("bohr.lock", "w") as f:
+        f.write(yaml.dump(params))
 
 
 def status(
-    work_space: Optional[Workspace] = None, fs: Optional[BohrFileSystem] = None
+    work_space: Optional[Workspace] = None, fs: Optional[StorageEngine] = None
 ) -> str:
     work_space = work_space or load_workspace()
-    fs = fs or BohrFileSystem.init()
+    fs = fs or StorageEngine.init()
 
-    refresh(work_space, fs)
+    refresh_pipeline_config(work_space, fs)
     return dvc.status(fs)
 
 
 def load_heuristic_by_name(
     name: str,
-    artifact_type: Type,
-    heuristics_path: AbsolutePath,
+    artifact_type: Type = None,
+    heuristic_loader: HeuristicLoader = None,
     return_path: bool = False,
-) -> Union[HeuristicObj, Tuple[HeuristicObj, str]]:
-    for path, hs in load_all_heuristics(artifact_type, heuristics_path).items():
+) -> Union[HeuristicObj, Tuple[HeuristicObj, HeuristicURI]]:
+    heuristic_loader = heuristic_loader or FileSystemHeuristicLoader(create_fs())
+    for heuristic_uri, hs in heuristic_loader.load_all_heuristics(
+        artifact_type
+    ).items():
         for h in hs:
             if h.func.__name__ == name:
-                return h if not return_path else (h, str(path))
+                return h if not return_path else (h, heuristic_uri)
     raise ValueError(f"Heuristic {name} does not exist")

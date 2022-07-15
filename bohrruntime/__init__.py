@@ -63,3 +63,8 @@ def setup_loggers(verbose: Optional[bool] = None):
         else:
             if verbose:
                 logging.getLogger("bohrruntime").setLevel(logging.DEBUG)
+
+
+BOHR_ORGANIZATION = "giganticode"
+BOHR_REPO_NAME = "bohr"
+BOHR_REMOTE_URL = f"git@github.com:{BOHR_ORGANIZATION}/{BOHR_REPO_NAME}"

@@ -1,0 +1,4 @@
+bohr_runtime_version: 0.7.0
+experiments:
+  trivial:
+    heuristics_classifier: .

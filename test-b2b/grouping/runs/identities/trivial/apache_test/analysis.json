@@ -1,0 +1,87 @@
+{
+    "Conflicts": {
+        "not_same_if_only_first_names_match": 0.0,
+        "same_emails_without_domain": 0.06666666666666667,
+        "same_if_contains_large_two_part_name": 0.0,
+        "same_if_first_and_last_names_in_email": 0.0,
+        "same_if_partially_first_and_last_names_in_email": 0.0,
+        "same_if_same_name_ends": 0.0,
+        "same_if_same_names": 0.0,
+        "same_if_short_relative_edit_dist_per_words": 0.06666666666666667,
+        "same_if_short_relative_edit_distance": 0.06666666666666667
+    },
+    "Correct": {
+        "not_same_if_only_first_names_match": 0,
+        "same_emails_without_domain": 2,
+        "same_if_contains_large_two_part_name": 0,
+        "same_if_first_and_last_names_in_email": 0,
+        "same_if_partially_first_and_last_names_in_email": 6,
+        "same_if_same_name_ends": 0,
+        "same_if_same_names": 0,
+        "same_if_short_relative_edit_dist_per_words": 2,
+        "same_if_short_relative_edit_distance": 2
+    },
+    "Coverage": {
+        "not_same_if_only_first_names_match": 0.0,
+        "same_emails_without_domain": 0.13333333333333333,
+        "same_if_contains_large_two_part_name": 0.0,
+        "same_if_first_and_last_names_in_email": 0.0,
+        "same_if_partially_first_and_last_names_in_email": 0.2,
+        "same_if_same_name_ends": 0.0,
+        "same_if_same_names": 0.0,
+        "same_if_short_relative_edit_dist_per_words": 0.06666666666666667,
+        "same_if_short_relative_edit_distance": 0.06666666666666667
+    },
+    "Emp. Acc.": {
+        "not_same_if_only_first_names_match": 0.0,
+        "same_emails_without_domain": 0.5,
+        "same_if_contains_large_two_part_name": 0.0,
+        "same_if_first_and_last_names_in_email": 0.0,
+        "same_if_partially_first_and_last_names_in_email": 1.0,
+        "same_if_same_name_ends": 0.0,
+        "same_if_same_names": 0.0,
+        "same_if_short_relative_edit_dist_per_words": 1.0,
+        "same_if_short_relative_edit_distance": 1.0
+    },
+    "Incorrect": {
+        "not_same_if_only_first_names_match": 0,
+        "same_emails_without_domain": 2,
+        "same_if_contains_large_two_part_name": 0,
+        "same_if_first_and_last_names_in_email": 0,
+        "same_if_partially_first_and_last_names_in_email": 0,
+        "same_if_same_name_ends": 0,
+        "same_if_same_names": 0,
+        "same_if_short_relative_edit_dist_per_words": 0,
+        "same_if_short_relative_edit_distance": 0
+    },
+    "Overlaps": {
+        "not_same_if_only_first_names_match": 0.0,
+        "same_emails_without_domain": 0.06666666666666667,
+        "same_if_contains_large_two_part_name": 0.0,
+        "same_if_first_and_last_names_in_email": 0.0,
+        "same_if_partially_first_and_last_names_in_email": 0.0,
+        "same_if_same_name_ends": 0.0,
+        "same_if_same_names": 0.0,
+        "same_if_short_relative_edit_dist_per_words": 0.06666666666666667,
+        "same_if_short_relative_edit_distance": 0.06666666666666667
+    },
+    "Polarity": {
+        "not_same_if_only_first_names_match": [],
+        "same_emails_without_domain": [
+            1
+        ],
+        "same_if_contains_large_two_part_name": [],
+        "same_if_first_and_last_names_in_email": [],
+        "same_if_partially_first_and_last_names_in_email": [
+            1
+        ],
+        "same_if_same_name_ends": [],
+        "same_if_same_names": [],
+        "same_if_short_relative_edit_dist_per_words": [
+            0
+        ],
+        "same_if_short_relative_edit_distance": [
+            0
+        ]
+    }
+}

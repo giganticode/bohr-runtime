@@ -3,11 +3,11 @@ from typing import Optional
 import click
 
 from bohrruntime import setup_loggers
-from bohrruntime.bohrfs import BohrFileSystem
-from bohrruntime.core import RandomModel, ZeroModel
-from bohrruntime.stages.experiment_metrics import SynteticExperiment
+from bohrruntime.bohrconfig import load_workspace
+from bohrruntime.datamodel.experiment import SynteticExperiment
+from bohrruntime.heuristicuri import HeuristicURI
+from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.profiler import Profiler
-from bohrruntime.workspace import load_workspace
 
 
 @click.group()
@@ -19,15 +19,15 @@ def porcelain():
 @click.argument("exp")
 @click.argument("dataset")
 @click.option("--debug", is_flag=True)
-def label_dataset(exp: str, dataset: str, debug: bool):
-    from bohrruntime.stages.label_dataset import label_dataset
+def prepare_dataset(exp: str, dataset: str, debug: bool):
+    from bohrruntime.stages import prepare_dataset
 
     setup_loggers()
-    fs = BohrFileSystem.init()
+    fs = StorageEngine.init()
     workspace = load_workspace()
     exp = workspace.get_experiment_by_name(exp)
     dataset = exp.get_dataset_by_id(dataset)
-    label_dataset(exp, dataset, fs, debug=debug)
+    prepare_dataset(exp, dataset, fs)
 
 
 @porcelain.command()
@@ -37,39 +37,43 @@ def label_dataset(exp: str, dataset: str, debug: bool):
 def apply_heuristics(
     heuristic_group: Optional[str], dataset: Optional[str], profile: bool
 ):
-    from bohrruntime.stages.apply_heuristics import apply_heuristics_to_dataset
+    from bohrruntime.stages import apply_heuristics_to_dataset
 
     setup_loggers()
-    fs = BohrFileSystem.init()
+    fs = StorageEngine.init()
     workspace = load_workspace()
 
     dataset = workspace.get_dataset_by_id(dataset)
     with Profiler(enabled=profile):
-        apply_heuristics_to_dataset(heuristic_group, dataset, fs)
+        heuristic_applier = workspace.experiments[0].task.get_heuristic_applier()
+        apply_heuristics_to_dataset(
+            heuristic_applier,
+            HeuristicURI(heuristic_group, fs.heuristics_subfs()),
+            dataset,
+            fs,
+        )
 
 
 @porcelain.command()
 @click.argument("task", type=str)
 def compute_single_heuristic_metric(task: Optional[str]):
-    from bohrruntime.stages.single_heuristic_metrics import (
-        calculate_metrics_for_heuristic,
-    )
+    from bohrruntime.stages import calculate_single_heuristic_metrics
 
     setup_loggers()
-    fs = BohrFileSystem.init()
+    fs = StorageEngine.init()
     workspace = load_workspace()
     task = workspace.get_task_by_name(task)
-    calculate_metrics_for_heuristic(task, fs)
+    calculate_single_heuristic_metrics(task, fs)
 
 
 @porcelain.command()
 @click.argument("exp")
 @click.option("--dataset", type=str)
 def combine_heuristics(exp: Optional[str], dataset: Optional[str]):
-    from bohrruntime.stages.combine_heuristics import combine_applied_heuristics
+    from bohrruntime.stages import combine_applied_heuristics
 
     setup_loggers()
-    fs = BohrFileSystem.init()
+    fs = StorageEngine.init()
     workspace = load_workspace()
 
     exp = workspace.get_experiment_by_name(exp)
@@ -80,37 +84,39 @@ def combine_heuristics(exp: Optional[str], dataset: Optional[str]):
 @porcelain.command()
 @click.argument("dataset", type=str)
 def load_dataset(dataset: str):
-    from bohrruntime.core import load_dataset_from_explorer
+    from bohrruntime.stages import load_dataset
 
     setup_loggers()
     workspace = load_workspace()
+    fs = StorageEngine.init()
 
     dataset = workspace.get_dataset_by_id(dataset)
 
-    load_dataset_from_explorer(dataset)
+    load_dataset(dataset, fs)
 
 
 @porcelain.command()
 @click.argument("exp")
-def train_label_model(exp: str):
-    from bohrruntime.stages.train_label_model import train_label_model
+def train_model(exp: str):
+    from bohrruntime.stages import train_model
 
     # setup_loggers()
     workspace = load_workspace()
-    fs = BohrFileSystem.init()
+    fs = StorageEngine.init()
     exp = workspace.get_experiment_by_name(exp)
-    train_label_model(exp, fs)
+
+    train_model(exp, fs)
 
 
 @porcelain.command()
 @click.argument("exp")
 @click.argument("dataset")
 def run_metrics_and_analysis(exp: str, dataset: str):
-    from bohrruntime.stages.experiment_metrics import calculate_experiment_metrics
+    from bohrruntime.stages import calculate_experiment_metrics
 
     setup_loggers()
     workspace = load_workspace()
-    fs = BohrFileSystem.init()
+    fs = StorageEngine.init()
     exp = workspace.get_experiment_by_name(exp)
     dataset = workspace.get_dataset_by_id(dataset)
     calculate_experiment_metrics(exp, dataset, fs)
@@ -120,29 +126,14 @@ def run_metrics_and_analysis(exp: str, dataset: str):
 @click.argument("task")
 @click.argument("dataset")
 def compute_random_model_metrics(task: str, dataset: str):
-    from bohrruntime.stages.experiment_metrics import calculate_experiment_metrics
+    from bohrruntime.stages import calculate_experiment_metrics
 
     setup_loggers()
     workspace = load_workspace()
-    fs = BohrFileSystem.init()
+    fs = StorageEngine.init()
     task = workspace.get_task_by_name(task)
     dataset = workspace.get_dataset_by_id(dataset)
-    exp = SynteticExperiment("random_model", task)
-    calculate_experiment_metrics(exp, dataset, fs)
-
-
-@porcelain.command()
-@click.argument("task")
-@click.argument("dataset")
-def compute_random_model_metrics(task: str, dataset: str):
-    from bohrruntime.stages.experiment_metrics import calculate_experiment_metrics
-
-    setup_loggers()
-    workspace = load_workspace()
-    fs = BohrFileSystem.init()
-    task = workspace.get_task_by_name(task)
-    dataset = workspace.get_dataset_by_id(dataset)
-    exp = SynteticExperiment("random_model", RandomModel, task)
+    exp = SynteticExperiment("random_model", task, type="random")
     calculate_experiment_metrics(exp, dataset, fs)
 
 
@@ -150,12 +141,12 @@ def compute_random_model_metrics(task: str, dataset: str):
 @click.argument("task")
 @click.argument("dataset")
 def compute_zero_model_metrics(task: str, dataset: str):
-    from bohrruntime.stages.experiment_metrics import calculate_experiment_metrics
+    from bohrruntime.stages import calculate_experiment_metrics
 
     setup_loggers()
     workspace = load_workspace()
-    fs = BohrFileSystem.init()
+    fs = StorageEngine.init()
     task = workspace.get_task_by_name(task)
     dataset = workspace.get_dataset_by_id(dataset)
-    exp = SynteticExperiment("zero_model", ZeroModel, task)
+    exp = SynteticExperiment("zero_model", task, type="zero")
     calculate_experiment_metrics(exp, dataset, fs)

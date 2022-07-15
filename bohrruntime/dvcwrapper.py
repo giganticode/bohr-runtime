@@ -2,13 +2,15 @@ import logging
 import subprocess
 from typing import List, Optional
 
-from bohrruntime.bohrfs import BohrFileSystem
+from dvc.repo import Repo
+
+from bohrruntime.storageengine import StorageEngine
 
 logger = logging.getLogger(__name__)
 
 
-def status(fs: Optional[BohrFileSystem] = None) -> str:
-    fs = fs or BohrFileSystem.init()
+def status(fs: Optional[StorageEngine] = None) -> str:
+    fs = fs or StorageEngine.init()
     command = ["dvc", "status"]
     logger.debug(f"Running dvc command: {command}")
     return subprocess.check_output(command, cwd=fs.root, encoding="utf8")
@@ -18,14 +20,14 @@ class DvcRunFailed(Exception):
     pass
 
 
-def init_dvc(fs: BohrFileSystem) -> None:
+def init_dvc(storage_engine: StorageEngine) -> None:
     command = ["dvc", "init"]
-    if not (fs.root / ".git").exists():
+    if not storage_engine.fs.exists(".git"):
         command.append("--no-scm")
     logger.info(f"Running dvc command: {command}")
     proc = subprocess.Popen(
         command,
-        cwd=fs.root,
+        cwd=storage_engine.fs.getsyspath("."),
         encoding="utf8",
         shell=False,
     )
@@ -39,11 +41,11 @@ def repro(
     pull: bool = False,
     glob: Optional[str] = None,
     force: bool = False,
-    fs: BohrFileSystem = None,
+    storage_engine: StorageEngine = None,
 ) -> None:
-    if not (fs.root / ".dvc").exists():
-        init_dvc(fs)
-
+    if not storage_engine.fs.exists(".dvc"):
+        init_dvc(storage_engine)
+    # Repo('.').reproduce() # TODO try this out
     command = ["dvc", "repro"] + (stages or [])
     if pull:
         command.append("--pull")
@@ -53,7 +55,9 @@ def repro(
         command.append("--force")
         command.append("-s")
     logger.info(f"Running dvc command: {command}")
-    proc = subprocess.Popen(command, cwd=fs.root, encoding="utf8", shell=False)
+    proc = subprocess.Popen(
+        command, cwd=storage_engine.fs.getsyspath("."), encoding="utf8", shell=False
+    )
     proc.communicate()
     if proc.returncode != 0:
         raise DvcRunFailed()
@@ -61,12 +65,14 @@ def repro(
 
 def pull(
     stages: Optional[List[str]] = None,
-    fs: Optional[BohrFileSystem] = None,
+    storage_engine: Optional[StorageEngine] = None,
 ) -> None:
-    if not (fs.root / ".dvc").exists():
-        init_dvc(fs)
+    if not storage_engine.fs.exists(".dvc"):
+        init_dvc(storage_engine)
 
     command = ["dvc", "pull"] + (stages or [])
     logger.info(f"Running dvc command: {command}")
-    proc = subprocess.Popen(command, cwd=fs.root, encoding="utf8", shell=False)
+    proc = subprocess.Popen(
+        command, cwd=storage_engine.fs.getsyspath("."), encoding="utf8", shell=False
+    )
     proc.communicate()

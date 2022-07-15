@@ -1,0 +1,62 @@
+{
+    "Conflicts": {
+        "not_same_if_only_first_names_match": 0.0,
+        "same_emails_without_domain": 0.09523809523809523,
+        "same_if_contains_large_two_part_name": 0.0,
+        "same_if_first_and_last_names_in_email": 0.0,
+        "same_if_partially_first_and_last_names_in_email": 0.0,
+        "same_if_same_name_ends": 0.0,
+        "same_if_same_names": 0.0,
+        "same_if_short_relative_edit_dist_per_words": 0.06349206349206349,
+        "same_if_short_relative_edit_distance": 0.09523809523809523
+    },
+    "Coverage": {
+        "not_same_if_only_first_names_match": 0.0,
+        "same_emails_without_domain": 0.13015873015873017,
+        "same_if_contains_large_two_part_name": 0.007936507936507936,
+        "same_if_first_and_last_names_in_email": 0.012698412698412698,
+        "same_if_partially_first_and_last_names_in_email": 0.031746031746031744,
+        "same_if_same_name_ends": 0.0,
+        "same_if_same_names": 0.009523809523809525,
+        "same_if_short_relative_edit_dist_per_words": 0.07142857142857142,
+        "same_if_short_relative_edit_distance": 0.10476190476190476
+    },
+    "Overlaps": {
+        "not_same_if_only_first_names_match": 0.0,
+        "same_emails_without_domain": 0.10476190476190476,
+        "same_if_contains_large_two_part_name": 0.007936507936507936,
+        "same_if_first_and_last_names_in_email": 0.0,
+        "same_if_partially_first_and_last_names_in_email": 0.0,
+        "same_if_same_name_ends": 0.0,
+        "same_if_same_names": 0.009523809523809525,
+        "same_if_short_relative_edit_dist_per_words": 0.07142857142857142,
+        "same_if_short_relative_edit_distance": 0.10476190476190476
+    },
+    "Polarity": {
+        "not_same_if_only_first_names_match": [],
+        "same_emails_without_domain": [
+            1
+        ],
+        "same_if_contains_large_two_part_name": [
+            1
+        ],
+        "same_if_first_and_last_names_in_email": [
+            1
+        ],
+        "same_if_partially_first_and_last_names_in_email": [
+            1
+        ],
+        "same_if_same_name_ends": [],
+        "same_if_same_names": [
+            1
+        ],
+        "same_if_short_relative_edit_dist_per_words": [
+            0,
+            1
+        ],
+        "same_if_short_relative_edit_distance": [
+            0,
+            1
+        ]
+    }
+}

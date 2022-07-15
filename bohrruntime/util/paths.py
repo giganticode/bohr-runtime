@@ -1,7 +1,9 @@
 import importlib
-import os
 from pathlib import Path
-from typing import Callable, List, NewType, Type, TypeVar
+from typing import Callable, List, NewType, Type
+
+from fs.base import FS
+from fs.osfs import OSFS
 
 AbsolutePath = NewType("AbsolutePath", Path)
 
@@ -22,37 +24,43 @@ def load_class_by_full_path(path_to_mapper_obj: str) -> Type:
 
 
 def normalize_paths(
-    paths: List[str], base_dir: AbsolutePath, predicate: Callable
+    paths: List[str], fs: FS, predicate: Callable[[Path], bool]
 ) -> List[str]:
     """
-    >>> import tempfile
-    >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    ...     os.makedirs(tmpdirname / Path('root'))
-    ...     os.makedirs(tmpdirname / Path('root/dir1'))
-    ...     os.makedirs(tmpdirname / Path('root/dir2'))
-    ...     open(tmpdirname / Path('root/file0.txt'), 'a').close()
-    ...     open(tmpdirname / Path('root/dir1/file11.txt'), 'a').close()
-    ...     open(tmpdirname / Path('root/dir1/file12.txt'), 'a').close()
-    ...     open(tmpdirname / Path('root/dir2/file21.txt'), 'a').close()
-    ...     open(tmpdirname / Path('root/dir2/file22.txt'), 'a').close()
-    ...
-    ...     absolute_paths = normalize_paths(['root/file0.txt'], Path(tmpdirname), lambda x: True)
-    ...     res1 = [str(Path(path)) for path in absolute_paths]
-    ...
-    ...     absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1/file11.txt'], Path(tmpdirname), lambda x: True)
-    ...     res2 = [str(Path(path)) for path in absolute_paths]
-    ...     absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1/file11.txt', 'root/dir1/file12.txt'], Path(tmpdirname), lambda x: True)
-    ...     res3 = [str(Path(path)) for path in absolute_paths]
-    ...     absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1', 'root/dir1/file12.txt'], Path(tmpdirname), lambda x: True)
-    ...     res4 = [str(Path(path)) for path in absolute_paths]
-    ...     absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1', 'root/dir1/file11.txt', 'root/dir1/file12.txt'], Path(tmpdirname), lambda x: True)
-    ...     res5 = [str(Path(path)) for path in absolute_paths]
-    ...     res1, res2, res3, res4, res5
-    (['root/file0.txt'], ['root/dir1/file11.txt', 'root/file0.txt'], ['root/dir1', 'root/file0.txt'], ['root/dir1', 'root/file0.txt'], ['root/dir1', 'root/file0.txt'])
+    >>> from fs.memoryfs import MemoryFS
+    >>> fs = MemoryFS()
+    >>> _ = fs.makedirs('root')
+    >>> _ = fs.makedirs('root/dir1')
+    >>> _ = fs.makedirs('root/dir2')
+    >>> _ = fs.touch('root/file0.txt')
+    >>> fs.touch('root/dir1/file11.txt')
+    >>> fs.touch('root/dir1/file12.txt')
+    >>> fs.touch('root/dir2/file21.txt')
+    >>> fs.touch('root/dir2/file22.txt')
+
+    >>> absolute_paths = normalize_paths(['root/file0.txt'], fs, lambda x: True)
+    >>> [str(Path(path)) for path in absolute_paths]
+    ['root/file0.txt']
+
+    >>> absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1/file11.txt'], fs, lambda x: True)
+    >>> [str(Path(path)) for path in absolute_paths]
+    ['root/dir1/file11.txt', 'root/file0.txt']
+
+    >>> absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1/file11.txt', 'root/dir1/file12.txt'], fs, lambda x: True)
+    >>> [str(Path(path)) for path in absolute_paths]
+    ['root/dir1', 'root/file0.txt']
+
+    >>> absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1', 'root/dir1/file12.txt'], fs, lambda x: True)
+    >>> [str(Path(path)) for path in absolute_paths]
+    ['root/dir1', 'root/file0.txt']
+
+    >>> absolute_paths = normalize_paths(['root/file0.txt', 'root/dir1', 'root/dir1/file11.txt', 'root/dir1/file12.txt'], fs, lambda x: True)
+    >>> [str(Path(path)) for path in absolute_paths]
+    ['root/dir1', 'root/file0.txt']
     """
     non_collapsable = set()
 
-    absolute_paths = [base_dir / path for path in paths]
+    absolute_paths = [Path(path) for path in paths]
     grouped = {}
     for path in absolute_paths:
         if path.parent not in grouped:
@@ -60,16 +68,18 @@ def normalize_paths(
         grouped[path.parent].add(path.name)
     while len(grouped) > 0:
         group, children = next(iter(grouped.items()))
-        if not group.exists():
+        if not fs.exists(str(group)):
             raise ValueError(f"Path {group} does not exist")
         if (
             not group.parent in grouped or not group.name in grouped[group.parent]
-        ) and not str(group.relative_to(base_dir)) in non_collapsable:
+        ) and not str(group) in non_collapsable:
             all_children_included = True
-            _, dirs, files = next(os.walk(str(group)))
-            for file in files + dirs:
-                path = Path(file)
-                if path.parts[0] not in children and predicate(path):
+            _, dirs, files = next(fs.walk(str(group)))
+            for path in dirs + files:
+                path = Path(path.name)
+                if path.parts[0] not in children and (
+                    predicate is None or predicate(path)
+                ):
                     all_children_included = False
                     break
             if all_children_included:
@@ -78,8 +88,51 @@ def normalize_paths(
                 grouped[group.parent].add(group.name)
             else:
                 non_collapsable = non_collapsable.union(
-                    [str((group / child).relative_to(base_dir)) for child in children]
+                    [str((group / child)) for child in children]
                 )
         del grouped[group]
 
     return sorted(non_collapsable)
+
+
+def create_fs() -> FS:
+    path = Path(".").resolve()
+    current_path = path
+    while True:
+        lst = list(current_path.glob("bohr.py"))
+        if len(lst) > 0 and lst[0].is_file():
+            return OSFS(str(current_path))
+        elif current_path == Path("/"):
+            raise ValueError(
+                f"Not a bohr directory: {path}. "
+                f"Bohr config dir is not found in this or any parent directory"
+            )
+        else:
+            current_path = current_path.parent
+
+
+def gitignore_file(fs: FS, filename: str):
+    """
+    >>> from fs.memoryfs import MemoryFS
+    >>> fs = MemoryFS()
+    >>> gitignore_file(fs, 'file')
+    >>> fs.readtext(".gitignore")
+    'file\\n'
+    >>> fs = MemoryFS()
+    >>> fs.touch('file')
+    >>> gitignore_file(fs, 'file')
+    >>> fs.readtext(".gitignore")
+    'file\\n'
+    >>> gitignore_file(fs, 'file')
+    >>> fs.readtext(".gitignore")
+    'file\\n'
+    >>> gitignore_file(fs, 'file2')
+    >>> fs.readtext(".gitignore")
+    'file\\nfile2\\n'
+    """
+    fs.touch(".gitignore")
+    with fs.open(".gitignore", "r") as f:
+        lines = list(map(lambda l: l.rstrip("\n"), f.readlines()))
+        if filename not in lines:
+            with fs.open(".gitignore", "a") as a:
+                a.write(f"{filename}\n")

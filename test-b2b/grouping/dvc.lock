@@ -1,0 +1,577 @@
+schema: '2.0'
+stages:
+  LoadDatasets@apache_train:
+    cmd: bohr porcelain load-dataset "apache_train"
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cached-datasets/apache_train.jsonl.metadata.json
+      md5: ba8f21766fed242424f2b20cbde6a42a
+      size: 66
+  LoadDatasets@apache_test:
+    cmd: bohr porcelain load-dataset "apache_test"
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cached-datasets/apache_test.jsonl.metadata.json
+      md5: ba8f21766fed242424f2b20cbde6a42a
+      size: 66
+  ApplyHeuristics@apache_test__/identities/same_if_first_and_last_names_in_email.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_first_and_last_names_in_email.py"
+      --dataset "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/same_if_first_and_last_names_in_email.py
+      md5: 2258704da395a473a3d29bd94a90b9c9
+      size: 1405
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_test//identities/same_if_first_and_last_names_in_email.py/heuristic_matrix.pkl
+      md5: 31ce17d640937e7ba75de7ecd088eaac
+      size: 961
+  ApplyHeuristics@apache_train__/identities/same_emails_without_domain.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_emails_without_domain.py"
+      --dataset "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cloned-bohr/heuristics//identities/same_emails_without_domain.py
+      md5: e74739444ed364d654a6fe6b4511113b
+      size: 769
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_train//identities/same_emails_without_domain.py/heuristic_matrix.pkl
+      md5: e688dbde7f49c8ab82c53424e1287b9f
+      size: 10792
+  ApplyHeuristics@apache_test__/identities/same_if_contains_large_two_part_name.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_contains_large_two_part_name.py"
+      --dataset "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/same_if_contains_large_two_part_name.py
+      md5: b0d1d4c5a514edb3f6d056a22386400e
+      size: 844
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_test//identities/same_if_contains_large_two_part_name.py/heuristic_matrix.pkl
+      md5: 8415e50f7de2b8dba433dd4498c53b5d
+      size: 960
+  ApplyHeuristics@apache_test__/identities/same_emails_without_domain.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_emails_without_domain.py"
+      --dataset "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/same_emails_without_domain.py
+      md5: e74739444ed364d654a6fe6b4511113b
+      size: 769
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_test//identities/same_emails_without_domain.py/heuristic_matrix.pkl
+      md5: 7cc7480699a51dc3128d1c46cc618360
+      size: 950
+  ApplyHeuristics@apache_train__/identities/same_if_first_and_last_names_in_email.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_first_and_last_names_in_email.py"
+      --dataset "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cloned-bohr/heuristics//identities/same_if_first_and_last_names_in_email.py
+      md5: 2258704da395a473a3d29bd94a90b9c9
+      size: 1405
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_train//identities/same_if_first_and_last_names_in_email.py/heuristic_matrix.pkl
+      md5: 3d983ea8eef452561fd0346d5eca438b
+      size: 10803
+  ApplyHeuristics@apache_train__/identities/same_if_short_relative_edit_dist_per_words.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_short_relative_edit_dist_per_words.py"
+      --dataset "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cloned-bohr/heuristics//identities/same_if_short_relative_edit_dist_per_words.py
+      md5: ec4b9060f2ce86e64454d41a90f85112
+      size: 1677
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_train//identities/same_if_short_relative_edit_dist_per_words.py/heuristic_matrix.pkl
+      md5: d35f45cf084ffb1cc598d555d2223620
+      size: 10808
+  ApplyHeuristics@apache_train__/identities/same_if_short_relative_edit_distance.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_short_relative_edit_distance.py"
+      --dataset "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cloned-bohr/heuristics//identities/same_if_short_relative_edit_distance.py
+      md5: 7b674d99fecbf4bb0848cdb518b9aabe
+      size: 1078
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_train//identities/same_if_short_relative_edit_distance.py/heuristic_matrix.pkl
+      md5: 366f44529ad6fb09ff42e5970bc2e666
+      size: 10802
+  ApplyHeuristics@apache_test__/identities/not_same_if_only_first_names_match.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/not_same_if_only_first_names_match.py"
+      --dataset "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/not_same_if_only_first_names_match.py
+      md5: 3ab55014957eee9b977f40dca25db069
+      size: 898
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_test//identities/not_same_if_only_first_names_match.py/heuristic_matrix.pkl
+      md5: 5df7a164ef37c82eaef7a30850b12665
+      size: 958
+  ApplyHeuristics@apache_train__/identities/same_if_contains_large_two_part_name.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_contains_large_two_part_name.py"
+      --dataset "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cloned-bohr/heuristics//identities/same_if_contains_large_two_part_name.py
+      md5: b0d1d4c5a514edb3f6d056a22386400e
+      size: 844
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_train//identities/same_if_contains_large_two_part_name.py/heuristic_matrix.pkl
+      md5: 023cf9247e5763258c1f30e03aa50f7d
+      size: 10802
+  ApplyHeuristics@apache_train__/identities/same_if_same_name_ends.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_same_name_ends.py"
+      --dataset "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cloned-bohr/heuristics//identities/same_if_same_name_ends.py
+      md5: 266094b8aa61c61e58db8d8f671a8cb1
+      size: 1012
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_train//identities/same_if_same_name_ends.py/heuristic_matrix.pkl
+      md5: 904040b0e2da1dc262100243b0b6bf1c
+      size: 10788
+  ApplyHeuristics@apache_train__/identities/not_same_if_only_first_names_match.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/not_same_if_only_first_names_match.py"
+      --dataset "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cloned-bohr/heuristics//identities/not_same_if_only_first_names_match.py
+      md5: 3ab55014957eee9b977f40dca25db069
+      size: 898
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_train//identities/not_same_if_only_first_names_match.py/heuristic_matrix.pkl
+      md5: da1d6bd306f829310d9912ac048b0cc2
+      size: 10800
+  ApplyHeuristics@apache_test__/identities/same_if_short_relative_edit_distance.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_short_relative_edit_distance.py"
+      --dataset "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/same_if_short_relative_edit_distance.py
+      md5: 7b674d99fecbf4bb0848cdb518b9aabe
+      size: 1078
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_test//identities/same_if_short_relative_edit_distance.py/heuristic_matrix.pkl
+      md5: e21765b580e4f7a3d1bc7e0f68e75409
+      size: 960
+  ApplyHeuristics@apache_train__/identities/same_if_same_names.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_same_names.py"
+      --dataset "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cloned-bohr/heuristics//identities/same_if_same_names.py
+      md5: 873c8a3fd7d4c747fb66bc3ca4ca758c
+      size: 710
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_train//identities/same_if_same_names.py/heuristic_matrix.pkl
+      md5: cd3c9197ff341535ca2fbf5bc8858dd4
+      size: 10784
+  ApplyHeuristics@apache_test__/identities/same_if_short_relative_edit_dist_per_words.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_short_relative_edit_dist_per_words.py"
+      --dataset "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/same_if_short_relative_edit_dist_per_words.py
+      md5: ec4b9060f2ce86e64454d41a90f85112
+      size: 1677
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_test//identities/same_if_short_relative_edit_dist_per_words.py/heuristic_matrix.pkl
+      md5: 90f015fa9ab3d65c5a440535323f1896
+      size: 966
+  ApplyHeuristics@apache_train__/identities/same_if_partially_first_and_last_names_in_email.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_partially_first_and_last_names_in_email.py"
+      --dataset "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: cloned-bohr/heuristics//identities/same_if_partially_first_and_last_names_in_email.py
+      md5: 39897899e79081fbfc2e2cf0e4e999f2
+      size: 2211
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_train//identities/same_if_partially_first_and_last_names_in_email.py/heuristic_matrix.pkl
+      md5: d0783f5fdb0048077ccf6b9e32da5973
+      size: 10813
+  ApplyHeuristics@apache_test__/identities/same_if_same_name_ends.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_same_name_ends.py"
+      --dataset "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/same_if_same_name_ends.py
+      md5: 266094b8aa61c61e58db8d8f671a8cb1
+      size: 1012
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_test//identities/same_if_same_name_ends.py/heuristic_matrix.pkl
+      md5: 0b616d3a5ff9d797d698d911c175e4d4
+      size: 946
+  ApplyHeuristics@apache_test__/identities/same_if_same_names.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_same_names.py"
+      --dataset "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/same_if_same_names.py
+      md5: 873c8a3fd7d4c747fb66bc3ca4ca758c
+      size: 710
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_test//identities/same_if_same_names.py/heuristic_matrix.pkl
+      md5: 00fc3f2de73dc37d82b5267c9ee6ab29
+      size: 942
+  ApplyHeuristics@apache_test__/identities/same_if_partially_first_and_last_names_in_email.py:
+    cmd: bohr porcelain apply-heuristics --heuristic-group "/identities/same_if_partially_first_and_last_names_in_email.py"
+      --dataset "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/same_if_partially_first_and_last_names_in_email.py
+      md5: 39897899e79081fbfc2e2cf0e4e999f2
+      size: 2211
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__heuristics/apache_test//identities/same_if_partially_first_and_last_names_in_email.py/heuristic_matrix.pkl
+      md5: a02547842711f1e1576c2208265058dc
+      size: 971
+  ComputeSingleHeuristicMetrics__identities:
+    cmd: bohr porcelain compute-single-heuristic-metric identities
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: cloned-bohr/heuristics//identities/not_same_if_only_first_names_match.py
+      md5: 3ab55014957eee9b977f40dca25db069
+      size: 898
+    - path: cloned-bohr/heuristics//identities/same_emails_without_domain.py
+      md5: e74739444ed364d654a6fe6b4511113b
+      size: 769
+    - path: cloned-bohr/heuristics//identities/same_if_contains_large_two_part_name.py
+      md5: b0d1d4c5a514edb3f6d056a22386400e
+      size: 844
+    - path: cloned-bohr/heuristics//identities/same_if_first_and_last_names_in_email.py
+      md5: 2258704da395a473a3d29bd94a90b9c9
+      size: 1405
+    - path: cloned-bohr/heuristics//identities/same_if_partially_first_and_last_names_in_email.py
+      md5: 39897899e79081fbfc2e2cf0e4e999f2
+      size: 2211
+    - path: cloned-bohr/heuristics//identities/same_if_same_name_ends.py
+      md5: 266094b8aa61c61e58db8d8f671a8cb1
+      size: 1012
+    - path: cloned-bohr/heuristics//identities/same_if_same_names.py
+      md5: 873c8a3fd7d4c747fb66bc3ca4ca758c
+      size: 710
+    - path: cloned-bohr/heuristics//identities/same_if_short_relative_edit_dist_per_words.py
+      md5: ec4b9060f2ce86e64454d41a90f85112
+      size: 1677
+    - path: cloned-bohr/heuristics//identities/same_if_short_relative_edit_distance.py
+      md5: 7b674d99fecbf4bb0848cdb518b9aabe
+      size: 1078
+    - path: runs/__heuristics/apache_test//identities/not_same_if_only_first_names_match.py/heuristic_matrix.pkl
+      md5: 5df7a164ef37c82eaef7a30850b12665
+      size: 958
+    - path: runs/__heuristics/apache_test//identities/same_emails_without_domain.py/heuristic_matrix.pkl
+      md5: 7cc7480699a51dc3128d1c46cc618360
+      size: 950
+    - path: runs/__heuristics/apache_test//identities/same_if_contains_large_two_part_name.py/heuristic_matrix.pkl
+      md5: 8415e50f7de2b8dba433dd4498c53b5d
+      size: 960
+    - path: runs/__heuristics/apache_test//identities/same_if_first_and_last_names_in_email.py/heuristic_matrix.pkl
+      md5: 31ce17d640937e7ba75de7ecd088eaac
+      size: 961
+    - path: runs/__heuristics/apache_test//identities/same_if_partially_first_and_last_names_in_email.py/heuristic_matrix.pkl
+      md5: a02547842711f1e1576c2208265058dc
+      size: 971
+    - path: runs/__heuristics/apache_test//identities/same_if_same_name_ends.py/heuristic_matrix.pkl
+      md5: 0b616d3a5ff9d797d698d911c175e4d4
+      size: 946
+    - path: runs/__heuristics/apache_test//identities/same_if_same_names.py/heuristic_matrix.pkl
+      md5: 00fc3f2de73dc37d82b5267c9ee6ab29
+      size: 942
+    - path: runs/__heuristics/apache_test//identities/same_if_short_relative_edit_dist_per_words.py/heuristic_matrix.pkl
+      md5: 90f015fa9ab3d65c5a440535323f1896
+      size: 966
+    - path: runs/__heuristics/apache_test//identities/same_if_short_relative_edit_distance.py/heuristic_matrix.pkl
+      md5: e21765b580e4f7a3d1bc7e0f68e75409
+      size: 960
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/__single_heuristic_metrics/identities/apache_test//identities/not_same_if_only_first_names_match.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/identities/apache_test//identities/same_emails_without_domain.py/metrics.txt
+      md5: 2a89df405ad48c4b8c1454334ab5f183
+      size: 100
+    - path: runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_contains_large_two_part_name.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_first_and_last_names_in_email.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_partially_first_and_last_names_in_email.py/metrics.txt
+      md5: c47ed9e252b927cee70750f8ccfe29d9
+      size: 84
+    - path: runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_same_name_ends.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_same_names.py/metrics.txt
+      md5: c36e02d41f08fc05a0703f36fdb7ffb2
+      size: 84
+    - path: runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_short_relative_edit_dist_per_words.py/metrics.txt
+      md5: f5ebb9177b563a2fc2b0fe0ef0e08dc8
+      size: 100
+    - path: runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_short_relative_edit_distance.py/metrics.txt
+      md5: f5ebb9177b563a2fc2b0fe0ef0e08dc8
+      size: 100
+  FetchMultipleHeuristicOutputs@trivial__apache_test:
+    cmd: bohr porcelain combine-heuristics "trivial" --dataset "apache_test"
+    deps:
+    - path: runs/__heuristics/apache_test
+      md5: c336486bafd9c09470723f7fd89eed81.dir
+      size: 8812
+      nfiles: 18
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+        experiments.trivial.heuristics_classifier: .
+    outs:
+    - path: runs/identities/trivial/apache_test/heuristic_matrix.pkl
+      md5: 85d0bded7c35bae23bde131d6f4afccc
+      size: 3138
+  FetchMultipleHeuristicOutputs@trivial__apache_train:
+    cmd: bohr porcelain combine-heuristics "trivial" --dataset "apache_train"
+    deps:
+    - path: runs/__heuristics/apache_train
+      md5: 159af253e10a1a9a04e249684734fb7b.dir
+      size: 97390
+      nfiles: 18
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+        experiments.trivial.heuristics_classifier: .
+    outs:
+    - path: runs/identities/trivial/apache_train/heuristic_matrix.pkl
+      md5: 001e0c8531471af31a343d447ccfee5e
+      size: 91709
+  TrainModel__trivial:
+    cmd: bohr porcelain train-model trivial
+    deps:
+    - path: runs/identities/trivial/apache_train/heuristic_matrix.pkl
+      md5: 001e0c8531471af31a343d447ccfee5e
+      size: 91709
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/identities/trivial/label_model.pkl
+      md5: dae7c1bf1418daec587df8e1b87462ba
+      size: 7036
+    - path: runs/identities/trivial/label_model_weights.csv
+      md5: 2981007ec1ce5f62d22291680bfa322a
+      size: 637
+  PrepareDataset@trivial__apache_test:
+    cmd: bohr porcelain prepare-dataset "trivial" "apache_test"
+    deps:
+    - path: runs/identities/trivial/apache_test/heuristic_matrix.pkl
+      md5: 85d0bded7c35bae23bde131d6f4afccc
+      size: 3138
+    - path: runs/identities/trivial/label_model.pkl
+      md5: dae7c1bf1418daec587df8e1b87462ba
+      size: 7036
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/identities/trivial/apache_test/labeled.csv
+      md5: baeb13da5b51664166c8a2eca131b875
+      size: 133
+  PrepareDataset@trivial__apache_train:
+    cmd: bohr porcelain prepare-dataset "trivial" "apache_train"
+    deps:
+    - path: runs/identities/trivial/apache_train/heuristic_matrix.pkl
+      md5: 001e0c8531471af31a343d447ccfee5e
+      size: 91709
+    - path: runs/identities/trivial/label_model.pkl
+      md5: dae7c1bf1418daec587df8e1b87462ba
+      size: 7036
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/identities/trivial/apache_train/labeled.csv
+      md5: 2c1962782f4fc99e3cb7903c639fa3cc
+      size: 667
+  ComputeRandomModelMetrics@identities__apache_test:
+    cmd: bohr porcelain compute-random-model-metrics "identities" "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/identities/random_model/apache_test/metrics.txt
+      md5: 6583800c6a912ceaa6e665e26303205d
+      size: 201
+  ComputeZeroModelMetrics@identities__apache_test:
+    cmd: bohr porcelain compute-zero-model-metrics "identities" "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/identities/zero_model/apache_test/metrics.txt
+      md5: 4590791096b50a5593b7f685e156a0d9
+      size: 199
+  CalculateMetrics@trivial__apache_train:
+    cmd: bohr porcelain run-metrics-and-analysis "trivial" "apache_train"
+    deps:
+    - path: cached-datasets/apache_train.jsonl
+      md5: d28b11b095f2c9599055a58851c10a4b
+      size: 1634
+    - path: runs/identities/trivial/apache_train/heuristic_matrix.pkl
+      md5: 001e0c8531471af31a343d447ccfee5e
+      size: 91709
+    - path: runs/identities/trivial/label_model.pkl
+      md5: dae7c1bf1418daec587df8e1b87462ba
+      size: 7036
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/identities/trivial/apache_train/analysis.csv
+      md5: cf66a055f8c16cd4a651d8e45c760f87
+      size: 763
+    - path: runs/identities/trivial/apache_train/analysis.json
+      md5: 74a1a9b5f6ec024721d0c0d8be2dc4ea
+      size: 2331
+    - path: runs/identities/trivial/apache_train/metrics.txt
+      md5: 5791408da3a02094875c13d78480ac3a
+      size: 55
+  CalculateMetrics@trivial__apache_test:
+    cmd: bohr porcelain run-metrics-and-analysis "trivial" "apache_test"
+    deps:
+    - path: cached-datasets/apache_test.jsonl
+      md5: ef35c5bae125f8e21c3bb2be187469d0
+      size: 277
+    - path: runs/identities/trivial/apache_test/heuristic_matrix.pkl
+      md5: 85d0bded7c35bae23bde131d6f4afccc
+      size: 3138
+    - path: runs/identities/trivial/label_model.pkl
+      md5: dae7c1bf1418daec587df8e1b87462ba
+      size: 7036
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/identities/trivial/apache_test/analysis.csv
+      md5: af083854c17b947dad5025e8e3c33e5d
+      size: 748
+    - path: runs/identities/trivial/apache_test/analysis.json
+      md5: 4e0e6530dab5157e6043673b4058a397
+      size: 3520
+    - path: runs/identities/trivial/apache_test/metrics.txt
+      md5: fc08deb5b90021a1c1656d06ee315905
+      size: 218

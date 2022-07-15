@@ -1,0 +1,6 @@
+bohr_runtime_version: 0.7.0
+experiments:
+  keywords_in_message:
+    heuristics_classifier: bugginess
+  keywords_in_message_refactoring:
+    heuristics_classifier: bugginess

@@ -1,0 +1,251 @@
+stages:
+  ApplyHeuristics:
+    do:
+      always_changed: false
+      cmd: bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}"
+        --dataset "${item.dataset}"
+      deps:
+      - cloned-bohr/heuristics/${item.heuristic_group}
+      - cached-datasets/${item.dataset}.jsonl
+      metrics: []
+      outs:
+      - runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl
+      params:
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+      apache_test__/identities/not_same_if_only_first_names_match.py:
+        dataset: apache_test
+        heuristic_group: /identities/not_same_if_only_first_names_match.py
+      apache_test__/identities/same_emails_without_domain.py:
+        dataset: apache_test
+        heuristic_group: /identities/same_emails_without_domain.py
+      apache_test__/identities/same_if_contains_large_two_part_name.py:
+        dataset: apache_test
+        heuristic_group: /identities/same_if_contains_large_two_part_name.py
+      apache_test__/identities/same_if_first_and_last_names_in_email.py:
+        dataset: apache_test
+        heuristic_group: /identities/same_if_first_and_last_names_in_email.py
+      apache_test__/identities/same_if_partially_first_and_last_names_in_email.py:
+        dataset: apache_test
+        heuristic_group: /identities/same_if_partially_first_and_last_names_in_email.py
+      apache_test__/identities/same_if_same_name_ends.py:
+        dataset: apache_test
+        heuristic_group: /identities/same_if_same_name_ends.py
+      apache_test__/identities/same_if_same_names.py:
+        dataset: apache_test
+        heuristic_group: /identities/same_if_same_names.py
+      apache_test__/identities/same_if_short_relative_edit_dist_per_words.py:
+        dataset: apache_test
+        heuristic_group: /identities/same_if_short_relative_edit_dist_per_words.py
+      apache_test__/identities/same_if_short_relative_edit_distance.py:
+        dataset: apache_test
+        heuristic_group: /identities/same_if_short_relative_edit_distance.py
+      apache_train__/identities/not_same_if_only_first_names_match.py:
+        dataset: apache_train
+        heuristic_group: /identities/not_same_if_only_first_names_match.py
+      apache_train__/identities/same_emails_without_domain.py:
+        dataset: apache_train
+        heuristic_group: /identities/same_emails_without_domain.py
+      apache_train__/identities/same_if_contains_large_two_part_name.py:
+        dataset: apache_train
+        heuristic_group: /identities/same_if_contains_large_two_part_name.py
+      apache_train__/identities/same_if_first_and_last_names_in_email.py:
+        dataset: apache_train
+        heuristic_group: /identities/same_if_first_and_last_names_in_email.py
+      apache_train__/identities/same_if_partially_first_and_last_names_in_email.py:
+        dataset: apache_train
+        heuristic_group: /identities/same_if_partially_first_and_last_names_in_email.py
+      apache_train__/identities/same_if_same_name_ends.py:
+        dataset: apache_train
+        heuristic_group: /identities/same_if_same_name_ends.py
+      apache_train__/identities/same_if_same_names.py:
+        dataset: apache_train
+        heuristic_group: /identities/same_if_same_names.py
+      apache_train__/identities/same_if_short_relative_edit_dist_per_words.py:
+        dataset: apache_train
+        heuristic_group: /identities/same_if_short_relative_edit_dist_per_words.py
+      apache_train__/identities/same_if_short_relative_edit_distance.py:
+        dataset: apache_train
+        heuristic_group: /identities/same_if_short_relative_edit_distance.py
+  CalculateMetrics:
+    do:
+      always_changed: false
+      cmd: bohr porcelain run-metrics-and-analysis "${item.exp}" "${item.dataset}"
+      deps:
+      - runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl
+      - runs/${item.task}/${item.exp}/label_model.pkl
+      - cached-datasets/${item.dataset}.jsonl
+      metrics:
+      - runs/${item.task}/${item.exp}/${item.dataset}/metrics.txt:
+          cache: false
+      outs:
+      - runs/${item.task}/${item.exp}/${item.dataset}/analysis.json:
+          cache: false
+      - runs/${item.task}/${item.exp}/${item.dataset}/analysis.csv:
+          cache: false
+      params:
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+      trivial__apache_test:
+        dataset: apache_test
+        exp: trivial
+        task: identities
+      trivial__apache_train:
+        dataset: apache_train
+        exp: trivial
+        task: identities
+  ComputeRandomModelMetrics:
+    do:
+      always_changed: false
+      cmd: bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"
+      deps:
+      - cached-datasets/${item.dataset}.jsonl
+      metrics:
+      - runs/${item.task}/random_model/${item.dataset}/metrics.txt:
+          cache: false
+      outs: []
+      params:
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+      identities__apache_test:
+        dataset: apache_test
+        task: identities
+  ComputeSingleHeuristicMetrics__identities:
+    always_changed: false
+    cmd: bohr porcelain compute-single-heuristic-metric identities
+    deps:
+    - cached-datasets/apache_test.jsonl
+    - cloned-bohr/heuristics//identities/not_same_if_only_first_names_match.py
+    - runs/__heuristics/apache_test//identities/not_same_if_only_first_names_match.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics//identities/same_emails_without_domain.py
+    - runs/__heuristics/apache_test//identities/same_emails_without_domain.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics//identities/same_if_contains_large_two_part_name.py
+    - runs/__heuristics/apache_test//identities/same_if_contains_large_two_part_name.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics//identities/same_if_first_and_last_names_in_email.py
+    - runs/__heuristics/apache_test//identities/same_if_first_and_last_names_in_email.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics//identities/same_if_partially_first_and_last_names_in_email.py
+    - runs/__heuristics/apache_test//identities/same_if_partially_first_and_last_names_in_email.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics//identities/same_if_same_name_ends.py
+    - runs/__heuristics/apache_test//identities/same_if_same_name_ends.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics//identities/same_if_same_names.py
+    - runs/__heuristics/apache_test//identities/same_if_same_names.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics//identities/same_if_short_relative_edit_dist_per_words.py
+    - runs/__heuristics/apache_test//identities/same_if_short_relative_edit_dist_per_words.py/heuristic_matrix.pkl
+    - cloned-bohr/heuristics//identities/same_if_short_relative_edit_distance.py
+    - runs/__heuristics/apache_test//identities/same_if_short_relative_edit_distance.py/heuristic_matrix.pkl
+    metrics: []
+    outs:
+    - runs/__single_heuristic_metrics/identities/apache_test//identities/not_same_if_only_first_names_match.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/identities/apache_test//identities/same_emails_without_domain.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_contains_large_two_part_name.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_first_and_last_names_in_email.py/metrics.txt:
+        cache: false
+    - ? runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_partially_first_and_last_names_in_email.py/metrics.txt
+      : cache: false
+    - runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_same_name_ends.py/metrics.txt:
+        cache: false
+    - runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_same_names.py/metrics.txt:
+        cache: false
+    - ? runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_short_relative_edit_dist_per_words.py/metrics.txt
+      : cache: false
+    - runs/__single_heuristic_metrics/identities/apache_test//identities/same_if_short_relative_edit_distance.py/metrics.txt:
+        cache: false
+    params:
+    - bohr.lock:
+      - bohr_runtime_version
+  ComputeZeroModelMetrics:
+    do:
+      always_changed: false
+      cmd: bohr porcelain compute-zero-model-metrics "${item.task}" "${item.dataset}"
+      deps:
+      - cached-datasets/${item.dataset}.jsonl
+      metrics:
+      - runs/${item.task}/zero_model/${item.dataset}/metrics.txt:
+          cache: false
+      outs: []
+      params:
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+      identities__apache_test:
+        dataset: apache_test
+        task: identities
+  FetchMultipleHeuristicOutputs:
+    do:
+      always_changed: false
+      cmd: bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"
+      deps:
+      - runs/__heuristics/${item.dataset}
+      metrics: []
+      outs:
+      - runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl
+      params:
+      - bohr.lock:
+        - experiments.${item.exp}.heuristics_classifier
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+      trivial__apache_test:
+        dataset: apache_test
+        exp: trivial
+        task: identities
+      trivial__apache_train:
+        dataset: apache_train
+        exp: trivial
+        task: identities
+  LoadDatasets:
+    do:
+      always_changed: true
+      cmd: bohr porcelain load-dataset "${item}"
+      deps: []
+      metrics: []
+      outs:
+      - cached-datasets/${item}.jsonl
+      - cached-datasets/${item}.jsonl.metadata.json:
+          cache: false
+      params:
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+    - apache_test
+    - apache_train
+  PrepareDataset:
+    do:
+      always_changed: false
+      cmd: bohr porcelain prepare-dataset "${item.exp}" "${item.dataset}"
+      deps:
+      - runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl
+      - runs/${item.task}/${item.exp}/label_model.pkl
+      metrics: []
+      outs:
+      - runs/${item.task}/${item.exp}/${item.dataset}/labeled.csv
+      params:
+      - bohr.lock:
+        - bohr_runtime_version
+    foreach:
+      trivial__apache_test:
+        dataset: apache_test
+        exp: trivial
+        task: identities
+      trivial__apache_train:
+        dataset: apache_train
+        exp: trivial
+        task: identities
+  TrainModel__trivial:
+    always_changed: false
+    cmd: bohr porcelain train-model trivial
+    deps:
+    - runs/identities/trivial/apache_train/heuristic_matrix.pkl
+    metrics: []
+    outs:
+    - runs/identities/trivial/label_model.pkl
+    - runs/identities/trivial/label_model_weights.csv
+    params:
+    - bohr.lock:
+      - bohr_runtime_version

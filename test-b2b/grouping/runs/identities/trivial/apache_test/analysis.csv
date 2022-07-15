@@ -1,0 +1,10 @@
+,j,Polarity,Coverage,Overlaps,Conflicts,Correct,Incorrect,Emp. Acc.
+not_same_if_only_first_names_match,0,[],0.0,0.0,0.0,0,0,0.0
+same_emails_without_domain,1,[1],0.13333333333333333,0.06666666666666667,0.06666666666666667,2,2,0.5
+same_if_contains_large_two_part_name,2,[],0.0,0.0,0.0,0,0,0.0
+same_if_first_and_last_names_in_email,3,[],0.0,0.0,0.0,0,0,0.0
+same_if_partially_first_and_last_names_in_email,4,[1],0.2,0.0,0.0,6,0,1.0
+same_if_same_name_ends,5,[],0.0,0.0,0.0,0,0,0.0
+same_if_same_names,6,[],0.0,0.0,0.0,0,0,0.0
+same_if_short_relative_edit_dist_per_words,7,[0],0.06666666666666667,0.06666666666666667,0.06666666666666667,2,0,1.0
+same_if_short_relative_edit_distance,8,[0],0.06666666666666667,0.06666666666666667,0.06666666666666667,2,0,1.0
