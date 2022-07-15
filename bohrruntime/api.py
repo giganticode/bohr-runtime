@@ -33,7 +33,7 @@ def clone(url: str, revision: Optional[str] = None) -> None:
         raise RuntimeError(f"Directory {repo_name} already exists")
     repo = Repo.clone_from(url, repo_name, depth=1)
     repo.head.reset(revision, index=True, working_tree=True)
-    dvc_repo = dvc.Repo.init(repo_name)
+    dvc_repo = dvc.Repo(repo_name)
     dvc_repo.pull()
 
 

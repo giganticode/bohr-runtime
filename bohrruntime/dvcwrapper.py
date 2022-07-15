@@ -13,7 +13,7 @@ def status(fs: Optional[StorageEngine] = None) -> str:
     fs = fs or StorageEngine.init()
     command = ["dvc", "status"]
     logger.debug(f"Running dvc command: {command}")
-    return subprocess.check_output(command, cwd=fs.root, encoding="utf8")
+    return subprocess.check_output(command, cwd=fs.fs.root, encoding="utf8")
 
 
 class DvcRunFailed(Exception):
