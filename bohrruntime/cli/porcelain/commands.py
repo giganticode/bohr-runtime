@@ -5,7 +5,7 @@ import click
 from bohrruntime import setup_loggers
 from bohrruntime.bohrconfig import load_workspace
 from bohrruntime.datamodel.experiment import SynteticExperiment
-from bohrruntime.heuristicuri import HeuristicURI
+from bohrruntime.heuristics import HeuristicURI
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.profiler import Profiler
 

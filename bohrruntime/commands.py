@@ -9,7 +9,11 @@ from git import Repo
 import bohrruntime.dvcwrapper as pipeline_manager
 from bohrruntime.bohrconfig import load_workspace
 from bohrruntime.datamodel.workspace import Workspace
-from bohrruntime.heuristicuri import HeuristicURI
+from bohrruntime.heuristics import (
+    FileSystemHeuristicLoader,
+    HeuristicLoader,
+    HeuristicURI,
+)
 from bohrruntime.pipeline import (
     MultiStage,
     dvc_config_from_tasks,
@@ -17,11 +21,7 @@ from bohrruntime.pipeline import (
     get_params,
     get_stages_list,
 )
-from bohrruntime.storageengine import (
-    FileSystemHeuristicLoader,
-    HeuristicLoader,
-    StorageEngine,
-)
+from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.paths import AbsolutePath, create_fs
 
 logger = logging.getLogger(__name__)

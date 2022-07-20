@@ -15,7 +15,7 @@ from bohrruntime.datasource import (
     query_dataset_from_explorer,
     save_dataset,
 )
-from bohrruntime.heuristicuri import HeuristicURI
+from bohrruntime.heuristics import HeuristicURI
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.tasktypes.labeling.lfs import HeuristicApplier
 

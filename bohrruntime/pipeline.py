@@ -17,7 +17,7 @@ from bohrruntime.datamodel.dataset import Dataset
 from bohrruntime.datamodel.experiment import Experiment, SynteticExperiment
 from bohrruntime.datamodel.task import Task
 from bohrruntime.datamodel.workspace import Workspace
-from bohrruntime.heuristicuri import HeuristicURI, PathTemplate
+from bohrruntime.heuristics import HeuristicURI, PathTemplate
 from bohrruntime.stages import (
     apply_heuristics_to_dataset,
     calculate_experiment_metrics,
@@ -532,7 +532,7 @@ def get_stages_list(workspace: Workspace, storage_engine: StorageEngine) -> List
     >>> from bohrlabels.core import Label, LabelSet
     >>> from enum import auto
     >>> from bohrruntime.tasktypes.labeling.core import LabelingTask
-    >>> from bohrruntime.heuristicuri import add_template_heuristic
+    >>> from bohrruntime.heuristics import add_template_heuristic
     >>> from bohrruntime.testtools import StubHeuristicLoader, get_stub_storage_engine
     >>> from frozendict import frozendict
     >>> class TestLabel(Label): Yes = auto(); No = auto()

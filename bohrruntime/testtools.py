@@ -9,8 +9,8 @@ from fs.memoryfs import MemoryFS
 from bohrruntime.datamodel.dataset import Dataset
 from bohrruntime.datamodel.experiment import Experiment
 from bohrruntime.datamodel.task import Task
-from bohrruntime.heuristicuri import HeuristicURI
-from bohrruntime.storageengine import BohrPathStructure, HeuristicLoader, StorageEngine
+from bohrruntime.heuristics import HeuristicLoader, HeuristicURI
+from bohrruntime.storageengine import BohrPathStructure, StorageEngine
 
 # class StubTask(Task):
 #     def load_ground_truth_labels(self, func):

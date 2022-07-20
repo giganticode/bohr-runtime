@@ -1,14 +1,11 @@
-import inspect
 import json
 import logging
 import pickle
-from abc import abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
-from bohrapi.core import ArtifactType, HeuristicObj
 from fs.base import FS
 from fs.memoryfs import MemoryFS
 
@@ -16,104 +13,15 @@ from bohrruntime.datamodel.dataset import Dataset
 from bohrruntime.datamodel.experiment import Experiment
 from bohrruntime.datamodel.model import HeuristicOutputs, Model
 from bohrruntime.datamodel.task import PreparedDataset, Task
-from bohrruntime.heuristicuri import HeuristicURI, PathTemplate
+from bohrruntime.heuristics import (
+    FileSystemHeuristicLoader,
+    HeuristicLoader,
+    HeuristicURI,
+    PathTemplate,
+)
 from bohrruntime.util.paths import create_fs
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class HeuristicLoader:
-    heuristic_fs: FS
-
-    def get_heuristic_uris(
-        self,
-        heuristic_uri: HeuristicURI = None,
-        input_artifact_type: Optional[ArtifactType] = None,
-        error_if_none_found: bool = True,
-    ) -> List[HeuristicURI]:
-        """
-        >>> from fs.memoryfs import MemoryFS
-        >>> hl = HeuristicLoader(MemoryFS())
-        >>> hl.get_heuristic_uris(error_if_none_found=False)
-        []
-        >>>
-        """
-        heuristic_uri = heuristic_uri or HeuristicURI.from_path_and_fs(
-            "/", self.heuristic_fs
-        )
-        heuristic_files: List[HeuristicURI] = []
-        if heuristic_uri.is_heuristic_file():
-            heuristic_files.append(heuristic_uri)
-        else:
-            for root, dirs, files in self.heuristic_fs.walk(str(heuristic_uri.path)):
-                for file in files:
-                    path_to_heuristic: HeuristicURI = HeuristicURI(
-                        Path(f"{root}/{file.name}"), self.heuristic_fs
-                    )
-                    if path_to_heuristic.is_heuristic_file():
-                        heuristic_files.append(path_to_heuristic)
-        if input_artifact_type is not None:
-            res: List[HeuristicURI] = []
-            for h in heuristic_files:
-                if self.load_heuristics(h, input_artifact_type):
-                    res.append(h)
-            heuristic_files = res
-        if error_if_none_found and len(heuristic_files) == 0:
-            raise RuntimeError(
-                f"No heuristic groups are found at path: {heuristic_uri}."
-            )
-        return sorted(heuristic_files)
-
-    def load_all_heuristics(
-        self, artifact_type: Type = None
-    ) -> Dict[HeuristicURI, List[HeuristicObj]]:
-        map: Dict[HeuristicURI, List[HeuristicObj]] = {}
-
-        for heuristic_uri in self.get_heuristic_uris(artifact_type):
-            hs = self.load_heuristics(heuristic_uri, artifact_type)
-            if len(hs) > 0:
-                map[heuristic_uri] = hs
-        return map
-
-    @abstractmethod
-    def load_heuristics_by_uri(
-        self, heuristic_uri: HeuristicURI
-    ) -> List[Tuple[str, Union[HeuristicObj, List[HeuristicObj]]]]:
-        pass
-
-    def load_heuristics(
-        self, heuristic_uri: HeuristicURI, artifact_type: Optional[Type] = None
-    ) -> List[HeuristicObj]:
-
-        loaded_heuristics = self.load_heuristics_by_uri(heuristic_uri)
-
-        def is_heuristic_of_needed_type(obj, artifact_type):
-            return isinstance(obj, HeuristicObj) and (
-                obj.artifact_type_applied_to == artifact_type or artifact_type is None
-            )
-
-        heuristics: List[HeuristicObj] = []
-        for name, obj in loaded_heuristics:
-            if is_heuristic_of_needed_type(obj, artifact_type):
-                if name != (filename := heuristic_uri.path.name):
-                    raise ValueError(
-                        f"For consistency, file and heuristic name must be the same.\n"
-                        f"Hovewer, filename is {filename}, heuristic name is {name}."
-                    )
-                heuristics.append(obj)
-        for name, obj in loaded_heuristics:
-            if (
-                isinstance(obj, list)
-                and len(obj) > 0
-                and (
-                    is_heuristic_of_needed_type(obj[0], artifact_type)
-                    or artifact_type is None
-                )
-            ):
-                heuristics.extend(obj)
-        check_names_unique(heuristics)
-        return heuristics
 
 
 @dataclass
@@ -341,28 +249,3 @@ class StorageEngine:
         return self.fs.makedir(
             self.path_structure.exp_dataset_dir(exp, dataset), recreate=True
         )
-
-
-@dataclass
-class FileSystemHeuristicLoader(HeuristicLoader):
-    def load_heuristics_by_uri(
-        self, heuristic_uri: HeuristicURI
-    ) -> List[Tuple[str, Union[HeuristicObj, List[HeuristicObj]]]]:
-        import importlib.util
-
-        heuristic_file_abs_path = heuristic_uri.to_filesystem_path()
-        spec = importlib.util.spec_from_file_location(
-            "heuristic.module", heuristic_file_abs_path
-        )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return [(name, obj) for name, obj in inspect.getmembers(module)]
-
-
-def check_names_unique(heuristics: List[HeuristicObj]) -> None:
-    name_set = set()
-    for heuristic in heuristics:
-        name = heuristic.func.__name__
-        if name in name_set:
-            raise ValueError(f"Heuristic with name {name} already exists.")
-        name_set.add(name)
