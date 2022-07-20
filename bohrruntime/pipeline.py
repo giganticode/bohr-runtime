@@ -39,26 +39,26 @@ DATASET_TEMPLATE = SimpleNamespace(id="${item.dataset}")
 
 
 def iterate_workspace(
-    workspace: Workspace, fs: StorageEngine, iterate_heuristics: bool = True
+    workspace: Workspace, storage_engine: StorageEngine, iterate_heuristics: bool = True
 ) -> Union[List[Tuple[Experiment, Dataset]], List[Tuple[Experiment, Dataset, str]]]:
     """
-    >>> from bohrruntime.testtools import get_stub_experiment, VirtualStorageEngine
+    >>> from bohrruntime.testtools import get_stub_experiment, StubHeuristicLoader, get_stub_storage_engine
     >>> workspace = Workspace('0.0.1', [get_stub_experiment(no_training_dataset=True)])
-    >>> fs = VirtualStorageEngine()
-    >>> (experiment1, dataset1, heuristic_group1), (experiment2, dataset2, heuristic_group2) = iterate_workspace(workspace, fs)
+    >>> storage_engine = get_stub_storage_engine()
+    >>> (experiment1, dataset1, heuristic_group1), (experiment2, dataset2, heuristic_group2) = iterate_workspace(workspace, storage_engine)
     >>> experiment1 is experiment2
     True
     >>> experiment1
-    Experiment(name='stub-exp', task=LabelingTask(name='stub-task', author='stub-author', description='stub-description', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, test_datasets={Dataset(id='stub-dataset', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None): None}, labels=(NumericLabel(label=536870896, hierarchy=<enum 'CommitLabel'>), NumericLabel(label=15, hierarchy=<enum 'CommitLabel'>)), class_balance=None), train_dataset=None, heuristics_classifier=None, extra_test_datasets=frozendict.frozendict({}))
+    Experiment(name='stub-exp', task=LabelingTask(name='stub-task', author='stub-author', description='stub-description', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, test_datasets={Dataset(id='stub-dataset', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None, path=None): None}, labels=(CommitLabel.NonBugFix, CommitLabel.BugFix), class_balance=None), train_dataset=None, heuristics_classifier=None, extra_test_datasets=frozendict.frozendict({}))
     >>> dataset1 is dataset2
     True
     >>> dataset1
-    Dataset(id='stub-dataset', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None)
+    Dataset(id='stub-dataset', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None, path=None)
     >>> heuristic_group1
     '/heuristic1'
     >>> heuristic_group2
     '/heuristic2'
-    >>> (experiment3, dataset3, heuristic_group3), = iterate_workspace(workspace, fs, iterate_heuristics=False)
+    >>> (experiment3, dataset3, heuristic_group3), = iterate_workspace(workspace, storage_engine, iterate_heuristics=False)
     >>> experiment3 is experiment1
     True
     >>> dataset3 is dataset1
@@ -66,7 +66,7 @@ def iterate_workspace(
     >>> heuristic_group3 is None
     True
     """
-    heuristic_loader = fs.get_heuristic_loader()
+    heuristic_loader = storage_engine.get_heuristic_loader()
     for experiment in sorted(workspace.experiments, key=lambda x: x.name):
         heuristic_groups = heuristic_loader.get_heuristic_uris(
             input_artifact_type=experiment.task.heuristic_input_artifact_type
@@ -100,7 +100,7 @@ def stringify_paths(
 
 @dataclass(repr=False)
 class Stage(ABC):
-    fs: StorageEngine
+    storage_engine: StorageEngine
 
     @abstractmethod
     def execute(self) -> None:
@@ -162,7 +162,7 @@ class Stage(ABC):
 
 
 @dataclass(repr=False)
-class MultipleCommandStage(Stage):
+class MultiStage(Stage):
     workspace: Workspace
 
     def n_stages(self) -> int:
@@ -177,12 +177,14 @@ class MultipleCommandStage(Stage):
             }
         return foreach
 
+    def get_stage_names(self) -> List[str]:
+        stage = self.stage_name()
+        return [f"{stage}@{each}" for each in self.get_for_each()]
+
     def to_dvc_config_dict(
         self,
     ) -> Dict:
-        parent = next(
-            iter(super(MultipleCommandStage, self).to_dvc_config_dict().values())
-        )
+        parent = next(iter(super(MultiStage, self).to_dvc_config_dict().values()))
         foreach = self.get_for_each()
         dct = {
             self.stage_name(): {
@@ -194,7 +196,12 @@ class MultipleCommandStage(Stage):
 
     def get_iterating_over(self) -> Sequence:
         return sorted(
-            {(e, d) for e, d, h in iterate_workspace(self.workspace, self.fs, False)},
+            {
+                (e, d)
+                for e, d, h in iterate_workspace(
+                    self.workspace, self.storage_engine, False
+                )
+            },
             key=lambda d: (d[0].name, d[1]),
         )
 
@@ -209,10 +216,10 @@ class MultipleCommandStage(Stage):
         }
 
 
-class LoadDatasetsCommand(MultipleCommandStage):
+class LoadDatasetsCommand(MultiStage):
     def execute(self) -> None:
         for dataset in self.get_iterating_over():
-            load_dataset(dataset, self.fs)
+            load_dataset(dataset, self.storage_engine)
 
     def get_iterating_over(self) -> Sequence:
         return sorted({d for exp in self.workspace.experiments for d in exp.datasets})
@@ -225,8 +232,12 @@ class LoadDatasetsCommand(MultipleCommandStage):
 
     def get_outs(self) -> List[str]:
         outs = [
-            self.fs.path_structure.dataset("${item}"),
-            {self.fs.path_structure.dataset_metadata("${item}"): {"cache": False}},
+            self.storage_engine.path_structure.dataset("${item}"),
+            {
+                self.storage_engine.path_structure.dataset_metadata("${item}"): {
+                    "cache": False
+                }
+            },
         ]
         return outs
 
@@ -237,11 +248,11 @@ class LoadDatasetsCommand(MultipleCommandStage):
         return False
 
 
-class ApplyHeuristicsCommand(MultipleCommandStage):
+class ApplyHeuristicsCommand(MultiStage):
     def execute(self) -> None:
         for dataset, heuristic_group in self.get_iterating_over():
             apply_heuristics_to_dataset(
-                SnorkelHeuristicApplier(), heuristic_group, dataset, self.fs
+                SnorkelHeuristicApplier(), heuristic_group, dataset, self.storage_engine
             )
 
     def get_cmd(self) -> str:
@@ -250,16 +261,16 @@ class ApplyHeuristicsCommand(MultipleCommandStage):
 
     def get_deps(self) -> List[str]:
         deps = [
-            self.fs.path_structure.heuristic_group(
+            self.storage_engine.path_structure.heuristic_group(
                 PathTemplate("${item.heuristic_group}")
             ),
-            self.fs.path_structure.dataset(DATASET_TEMPLATE.id),
+            self.storage_engine.path_structure.dataset(DATASET_TEMPLATE.id),
         ]
         return deps
 
     def get_outs(self) -> List[Any]:
         outs = [
-            self.fs.heuristic_matrix_file(
+            self.storage_engine.heuristic_matrix_file(
                 DATASET_TEMPLATE, PathTemplate("${item.heuristic_group}")
             )
         ]
@@ -267,7 +278,12 @@ class ApplyHeuristicsCommand(MultipleCommandStage):
 
     def get_iterating_over(self) -> Sequence:
         return sorted(
-            {(d, h) for _, d, h in iterate_workspace(self.workspace, self.fs, True)},
+            {
+                (d, h)
+                for _, d, h in iterate_workspace(
+                    self.workspace, self.storage_engine, True
+                )
+            },
             key=lambda d: (d[0], d[1]),
         )
 
@@ -287,7 +303,7 @@ class ComputeSingleHeuristicMetricsStage(Stage):
     task: Task
 
     def execute(self) -> None:
-        calculate_single_heuristic_metrics(self.task, self.fs)
+        calculate_single_heuristic_metrics(self.task, self.storage_engine)
 
     def stage_name(self) -> str:
         return f"ComputeSingleHeuristicMetrics__{self.task.name}"
@@ -297,20 +313,24 @@ class ComputeSingleHeuristicMetricsStage(Stage):
 
     def get_deps(self) -> List[str]:
         deps = []
-        heuristic_loader = self.fs.get_heuristic_loader()
+        heuristic_loader = self.storage_engine.get_heuristic_loader()
         for dataset in self.task.test_datasets:
-            deps.append(self.fs.path_structure.dataset(dataset.id))
+            deps.append(self.storage_engine.path_structure.dataset(dataset.id))
         for heuristic_group in heuristic_loader.get_heuristic_uris(
             input_artifact_type=self.task.heuristic_input_artifact_type
         ):
-            deps.append(self.fs.path_structure.heuristic_group(heuristic_group))
+            deps.append(
+                self.storage_engine.path_structure.heuristic_group(heuristic_group)
+            )
             for dataset in self.task.test_datasets:
-                deps.append(self.fs.heuristic_matrix_file(dataset, heuristic_group))
+                deps.append(
+                    self.storage_engine.heuristic_matrix_file(dataset, heuristic_group)
+                )
         return deps
 
     def get_outs(self) -> List[str]:
         outputs = []
-        heuristic_loader = self.fs.get_heuristic_loader()
+        heuristic_loader = self.storage_engine.get_heuristic_loader()
         for dataset in self.task.test_datasets:
             heuristic_groups = heuristic_loader.get_heuristic_uris(
                 input_artifact_type=self.task.heuristic_input_artifact_type
@@ -318,7 +338,7 @@ class ComputeSingleHeuristicMetricsStage(Stage):
             for heuristic_group in heuristic_groups:
                 outputs.append(
                     {
-                        self.fs.single_heuristic_metrics(
+                        self.storage_engine.single_heuristic_metrics(
                             self.task, dataset, heuristic_group
                         ): {"cache": False}
                     }
@@ -326,38 +346,40 @@ class ComputeSingleHeuristicMetricsStage(Stage):
         return outputs
 
 
-class FetchMultipleHeuristicOutputsCommand(MultipleCommandStage):
+class FetchMultipleHeuristicOutputsCommand(MultiStage):
     def execute(self) -> None:
         for experiment, dataset in self.get_iterating_over():
-            combine_applied_heuristics(experiment, dataset, self.fs)
+            combine_applied_heuristics(experiment, dataset, self.storage_engine)
 
     def get_cmd(self) -> str:
         return 'bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"'
 
     def get_deps(self) -> List[str]:
-        return [self.fs.path_structure.heuristic_dataset_dir(DATASET_TEMPLATE)]
+        return [
+            self.storage_engine.path_structure.heuristic_dataset_dir(DATASET_TEMPLATE)
+        ]
 
     def get_params(self) -> List:
         return [{"bohr.lock": ["experiments.${item.exp}.heuristics_classifier"]}]
 
     def get_outs(self) -> List[str]:
         outs = [
-            self.fs.path_structure.experiment_label_matrix_file(
+            self.storage_engine.path_structure.experiment_label_matrix_file(
                 EXPERIMENT_TEMPLATE, DATASET_TEMPLATE
             )
         ]
         return outs
 
 
-class CalculateMetricsCommand(MultipleCommandStage):
+class CalculateMetricsCommand(MultiStage):
     def execute(self) -> None:
         for experiment, dataset in self.get_iterating_over():
-            calculate_experiment_metrics(experiment, dataset, self.fs)
+            calculate_experiment_metrics(experiment, dataset, self.storage_engine)
 
     def get_metrics(self) -> List:
         metrics = [
             str(
-                self.fs.path_structure.experiment_metrics(
+                self.storage_engine.path_structure.experiment_metrics(
                     EXPERIMENT_TEMPLATE, DATASET_TEMPLATE
                 )
             )
@@ -369,23 +391,23 @@ class CalculateMetricsCommand(MultipleCommandStage):
 
     def get_deps(self) -> List:
         deps = [
-            self.fs.path_structure.experiment_label_matrix_file(
+            self.storage_engine.path_structure.experiment_label_matrix_file(
                 EXPERIMENT_TEMPLATE, DATASET_TEMPLATE
             ),
-            self.fs.path_structure.label_model(EXPERIMENT_TEMPLATE),
-            self.fs.path_structure.dataset(DATASET_TEMPLATE.id),
+            self.storage_engine.path_structure.label_model(EXPERIMENT_TEMPLATE),
+            self.storage_engine.path_structure.dataset(DATASET_TEMPLATE.id),
         ]
         return deps
 
     def get_outs(self) -> List:
         outs = [
             {
-                self.fs.path_structure.analysis_json(
+                self.storage_engine.path_structure.analysis_json(
                     EXPERIMENT_TEMPLATE, DATASET_TEMPLATE
                 ): {"cache": False}
             },
             {
-                self.fs.path_structure.analysis_csv(
+                self.storage_engine.path_structure.analysis_csv(
                     EXPERIMENT_TEMPLATE, DATASET_TEMPLATE
                 ): {"cache": False}
             },
@@ -393,11 +415,11 @@ class CalculateMetricsCommand(MultipleCommandStage):
         return outs
 
 
-class ComputePredefinedModelMetricsCommand(MultipleCommandStage):
+class ComputePredefinedModelMetricsCommand(MultiStage):
     def execute(self) -> None:
         for task, dataset in self.get_iterating_over():
             exp = SynteticExperiment("random_model", task, type="random")
-            calculate_experiment_metrics(exp, dataset, self.fs)
+            calculate_experiment_metrics(exp, dataset, self.storage_engine)
 
     def get_model_name(self) -> str:
         return f"{self.get_model_type()}_model"
@@ -409,7 +431,7 @@ class ComputePredefinedModelMetricsCommand(MultipleCommandStage):
     def get_metrics(self) -> List:
         metrics = [
             str(
-                self.fs.path_structure.experiment_metrics(
+                self.storage_engine.path_structure.experiment_metrics(
                     SimpleNamespace(name=self.get_model_name(), task=TASK_TEMPLATE),
                     DATASET_TEMPLATE,
                 )
@@ -418,7 +440,7 @@ class ComputePredefinedModelMetricsCommand(MultipleCommandStage):
         return metrics
 
     def get_deps(self) -> List:
-        return [self.fs.path_structure.dataset(DATASET_TEMPLATE.id)]
+        return [self.storage_engine.path_structure.dataset(DATASET_TEMPLATE.id)]
 
     def get_iterating_over(self) -> Sequence:
         all_tasks = {exp.task for exp in self.workspace.experiments}
@@ -460,15 +482,12 @@ class TrainModelStage(Stage):
     def execute(self) -> None:
         pass
 
-    def stage_name(self) -> str:
-        return f"TrainModel__{self.exp.name}"
-
     def get_cmd(self):
         return f"bohr porcelain train-model {self.exp.name}"
 
     def get_deps(self) -> List[str]:
         deps = [
-            self.fs.path_structure.experiment_label_matrix_file(
+            self.storage_engine.path_structure.experiment_label_matrix_file(
                 self.exp, self.exp.train_dataset
             )
         ]
@@ -476,52 +495,53 @@ class TrainModelStage(Stage):
 
     def get_outs(self) -> List[str]:
         outs = [
-            self.fs.path_structure.label_model(self.exp),
-            self.fs.path_structure.label_model_weights(self.exp),
+            self.storage_engine.path_structure.label_model(self.exp),
+            self.storage_engine.path_structure.label_model_weights(self.exp),
         ]
         return outs
 
 
-class PrepareDatasetCommand(MultipleCommandStage):
+class PrepareDatasetCommand(MultiStage):
     def execute(self) -> None:
         for experiment, dataset in tqdm(self.get_iterating_over()):
-            prepare_dataset(experiment, dataset, self.fs)
+            prepare_dataset(experiment, dataset, self.storage_engine)
 
     def get_cmd(self) -> str:
         return 'bohr porcelain prepare-dataset "${item.exp}" "${item.dataset}"'
 
     def get_deps(self) -> List:
         deps = [
-            self.fs.path_structure.experiment_label_matrix_file(
+            self.storage_engine.path_structure.experiment_label_matrix_file(
                 EXPERIMENT_TEMPLATE, DATASET_TEMPLATE
             ),
-            self.fs.path_structure.label_model(EXPERIMENT_TEMPLATE),
+            self.storage_engine.path_structure.label_model(EXPERIMENT_TEMPLATE),
         ]
         return deps
 
     def get_outs(self) -> List:
         outs = [
-            self.fs.path_structure.labeled_dataset(
+            self.storage_engine.path_structure.labeled_dataset(
                 EXPERIMENT_TEMPLATE, DATASET_TEMPLATE
             )
         ]
         return outs
 
 
-def get_stages_list(workspace: Workspace, fs: StorageEngine) -> List[Stage]:
+def get_stages_list(workspace: Workspace, storage_engine: StorageEngine) -> List[Stage]:
     """
-    >>> from bohrlabels.core import Label
+    >>> from bohrlabels.core import Label, LabelSet
     >>> from enum import auto
     >>> from bohrruntime.tasktypes.labeling.core import LabelingTask
+    >>> from bohrruntime.heuristicuri import add_template_heuristic
+    >>> from bohrruntime.testtools import StubHeuristicLoader, get_stub_storage_engine
     >>> from frozendict import frozendict
     >>> class TestLabel(Label): Yes = auto(); No = auto()
     >>> train = Dataset("id.train", Commit)
     >>> test = Dataset("id.test", Commit)
-    >>> labels = (TestLabel.Yes, TestLabel.No)
-    >>> task = LabelingTask("name", "author", "desc", Commit, labels, frozendict({test: lambda x:x}), TestLabel)
-    >>> from bohrruntime import bohr_framework_root
-    >>> get_stages_list(Workspace('0.x.x', [Experiment('exp', task, train, 'bugginess/conventional_commit_regex')]), StorageEngine.init(bohr_framework_root.parent / Path('test-b2b/scenario1')))
-    [{'LoadDatasets': {'foreach': ['id.test', 'id.train'], 'do': {'cmd': 'bohr porcelain load-dataset "${item}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': [], 'outs': ['cached-datasets/${item}.jsonl', {'cached-datasets/${item}.jsonl.metadata.json': {'cache': False}}], 'metrics': []}}}, {'ApplyHeuristics': {'foreach': {'id.test__bugginess/conventional_commit_regex.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/conventional_commit_regex.py'}, 'id.test__bugginess/filemetrics/all_files_test_add.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/all_files_test_add.py'}, 'id.test__bugginess/filemetrics/all_files_test_fix.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/all_files_test_fix.py'}, 'id.test__bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py'}, 'id.test__bugginess/filemetrics/buggless_if_many_lines_changed.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/buggless_if_many_lines_changed.py'}, 'id.test__bugginess/filemetrics/bugless_if_at_least_2_removed_files.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_at_least_2_removed_files.py'}, 'id.test__bugginess/filemetrics/bugless_if_at_least_5_added_files.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_at_least_5_added_files.py'}, 'id.test__bugginess/filemetrics/bugless_if_many_files_changes.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_many_files_changes.py'}, 'id.test__bugginess/filemetrics/bugless_if_not_code_files.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_not_code_files.py'}, 'id.test__bugginess/filemetrics/bugless_if_one_added_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_one_added_file.py'}, 'id.test__bugginess/filemetrics/bugless_if_one_removed_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_one_removed_file.py'}, 'id.test__bugginess/filemetrics/no_files_have_modified_status.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/no_files_have_modified_status.py'}, 'id.test__bugginess/filemetrics/refactoring_if_at_least_2_renamed.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/refactoring_if_at_least_2_renamed.py'}, 'id.test__bugginess/keywords/bug_keywords_lookup_in_issue_body.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_issue_body.py'}, 'id.test__bugginess/keywords/bug_keywords_lookup_in_issue_label.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_issue_label.py'}, 'id.test__bugginess/keywords/bug_keywords_lookup_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_message.py'}, 'id.test__bugginess/keywords/buggless_keywords_lookup_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/buggless_keywords_lookup_in_message.py'}, 'id.test__bugginess/keywords/bugless_keywords_lookup_in_issue_body.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bugless_keywords_lookup_in_issue_body.py'}, 'id.test__bugginess/keywords/bugless_keywords_lookup_in_issue_label.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bugless_keywords_lookup_in_issue_label.py'}, 'id.test__bugginess/keywords/github_ref_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/github_ref_in_message.py'}, 'id.test__bugginess/keywords/init_commit_message_keywords.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/init_commit_message_keywords.py'}, 'id.test__bugginess/keywords/version_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/version_in_message.py'}, 'id.test__bugginess/sstubs/commit_explorer_output_init.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_init.py'}, 'id.test__bugginess/sstubs/commit_explorer_output_merge.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_merge.py'}, 'id.test__bugginess/sstubs/commit_explorer_output_refactoring_miner.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_refactoring_miner.py'}, 'id.test__bugginess/sstubs/commit_explorer_output_sstubs.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_sstubs.py'}, 'id.test__bugginess/versionbump/contains_digit_replacement_change.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/contains_digit_replacement_change.py'}, 'id.test__bugginess/versionbump/contains_package_lock_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/contains_package_lock_file.py'}, 'id.test__bugginess/versionbump/contains_python_version_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/contains_python_version_file.py'}, 'id.test__bugginess/versionbump/contains_ruby_version_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/contains_ruby_version_file.py'}, 'id.test__bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py'}, 'id.test__bugginess/versionbump/maven_plugin_version_bump.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/maven_plugin_version_bump.py'}, 'id.test__bugginess/versionbump/version_bump_keywords_lookup_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/version_bump_keywords_lookup_in_message.py'}, 'id.test__bugginess/versionbump/version_regex.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/version_regex.py'}, 'id.test__bugginess/versionbump/version_regex2.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/version_regex2.py'}, 'id.test__bugginess/versionbump/version_regex3.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/version_regex3.py'}, 'id.test__bugginess/wip/removed_fixme.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/wip/removed_fixme.py'}, 'id.test__bugginess/wip/removed_todo.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/wip/removed_todo.py'}, 'id.test__bugginess/wip/wip_keyword_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/wip/wip_keyword_in_message.py'}, 'id.train__bugginess/conventional_commit_regex.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/conventional_commit_regex.py'}, 'id.train__bugginess/filemetrics/all_files_test_add.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/all_files_test_add.py'}, 'id.train__bugginess/filemetrics/all_files_test_fix.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/all_files_test_fix.py'}, 'id.train__bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py'}, 'id.train__bugginess/filemetrics/buggless_if_many_lines_changed.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/buggless_if_many_lines_changed.py'}, 'id.train__bugginess/filemetrics/bugless_if_at_least_2_removed_files.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_at_least_2_removed_files.py'}, 'id.train__bugginess/filemetrics/bugless_if_at_least_5_added_files.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_at_least_5_added_files.py'}, 'id.train__bugginess/filemetrics/bugless_if_many_files_changes.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_many_files_changes.py'}, 'id.train__bugginess/filemetrics/bugless_if_not_code_files.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_not_code_files.py'}, 'id.train__bugginess/filemetrics/bugless_if_one_added_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_one_added_file.py'}, 'id.train__bugginess/filemetrics/bugless_if_one_removed_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_one_removed_file.py'}, 'id.train__bugginess/filemetrics/no_files_have_modified_status.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/no_files_have_modified_status.py'}, 'id.train__bugginess/filemetrics/refactoring_if_at_least_2_renamed.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/refactoring_if_at_least_2_renamed.py'}, 'id.train__bugginess/keywords/bug_keywords_lookup_in_issue_body.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_issue_body.py'}, 'id.train__bugginess/keywords/bug_keywords_lookup_in_issue_label.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_issue_label.py'}, 'id.train__bugginess/keywords/bug_keywords_lookup_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_message.py'}, 'id.train__bugginess/keywords/buggless_keywords_lookup_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/buggless_keywords_lookup_in_message.py'}, 'id.train__bugginess/keywords/bugless_keywords_lookup_in_issue_body.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bugless_keywords_lookup_in_issue_body.py'}, 'id.train__bugginess/keywords/bugless_keywords_lookup_in_issue_label.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bugless_keywords_lookup_in_issue_label.py'}, 'id.train__bugginess/keywords/github_ref_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/github_ref_in_message.py'}, 'id.train__bugginess/keywords/init_commit_message_keywords.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/init_commit_message_keywords.py'}, 'id.train__bugginess/keywords/version_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/version_in_message.py'}, 'id.train__bugginess/sstubs/commit_explorer_output_init.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_init.py'}, 'id.train__bugginess/sstubs/commit_explorer_output_merge.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_merge.py'}, 'id.train__bugginess/sstubs/commit_explorer_output_refactoring_miner.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_refactoring_miner.py'}, 'id.train__bugginess/sstubs/commit_explorer_output_sstubs.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_sstubs.py'}, 'id.train__bugginess/versionbump/contains_digit_replacement_change.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/contains_digit_replacement_change.py'}, 'id.train__bugginess/versionbump/contains_package_lock_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/contains_package_lock_file.py'}, 'id.train__bugginess/versionbump/contains_python_version_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/contains_python_version_file.py'}, 'id.train__bugginess/versionbump/contains_ruby_version_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/contains_ruby_version_file.py'}, 'id.train__bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py'}, 'id.train__bugginess/versionbump/maven_plugin_version_bump.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/maven_plugin_version_bump.py'}, 'id.train__bugginess/versionbump/version_bump_keywords_lookup_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/version_bump_keywords_lookup_in_message.py'}, 'id.train__bugginess/versionbump/version_regex.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/version_regex.py'}, 'id.train__bugginess/versionbump/version_regex2.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/version_regex2.py'}, 'id.train__bugginess/versionbump/version_regex3.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/version_regex3.py'}, 'id.train__bugginess/wip/removed_fixme.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/wip/removed_fixme.py'}, 'id.train__bugginess/wip/removed_todo.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/wip/removed_todo.py'}, 'id.train__bugginess/wip/wip_keyword_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/wip/wip_keyword_in_message.py'}}, 'do': {'cmd': 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cloned-bohr/heuristics/${item.heuristic_group}', 'cached-datasets/${item.dataset}.jsonl'], 'outs': ['runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl'], 'metrics': []}}}, [{'ComputeSingleHeuristicMetrics__name': {'cmd': 'bohr porcelain compute-single-heuristic-metric name', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/id.test.jsonl', 'cloned-bohr/heuristics/bugginess/conventional_commit_regex.py', 'runs/__heuristics/id.test/bugginess/conventional_commit_regex.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/all_files_test_add.py', 'runs/__heuristics/id.test/bugginess/filemetrics/all_files_test_add.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/all_files_test_fix.py', 'runs/__heuristics/id.test/bugginess/filemetrics/all_files_test_fix.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py', 'runs/__heuristics/id.test/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/buggless_if_many_lines_changed.py', 'runs/__heuristics/id.test/bugginess/filemetrics/buggless_if_many_lines_changed.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py', 'runs/__heuristics/id.test/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_at_least_5_added_files.py', 'runs/__heuristics/id.test/bugginess/filemetrics/bugless_if_at_least_5_added_files.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_many_files_changes.py', 'runs/__heuristics/id.test/bugginess/filemetrics/bugless_if_many_files_changes.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_not_code_files.py', 'runs/__heuristics/id.test/bugginess/filemetrics/bugless_if_not_code_files.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_one_added_file.py', 'runs/__heuristics/id.test/bugginess/filemetrics/bugless_if_one_added_file.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/bugless_if_one_removed_file.py', 'runs/__heuristics/id.test/bugginess/filemetrics/bugless_if_one_removed_file.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/no_files_have_modified_status.py', 'runs/__heuristics/id.test/bugginess/filemetrics/no_files_have_modified_status.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py', 'runs/__heuristics/id.test/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/keywords/bug_keywords_lookup_in_issue_body.py', 'runs/__heuristics/id.test/bugginess/keywords/bug_keywords_lookup_in_issue_body.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/keywords/bug_keywords_lookup_in_issue_label.py', 'runs/__heuristics/id.test/bugginess/keywords/bug_keywords_lookup_in_issue_label.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/keywords/bug_keywords_lookup_in_message.py', 'runs/__heuristics/id.test/bugginess/keywords/bug_keywords_lookup_in_message.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/keywords/buggless_keywords_lookup_in_message.py', 'runs/__heuristics/id.test/bugginess/keywords/buggless_keywords_lookup_in_message.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py', 'runs/__heuristics/id.test/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py', 'runs/__heuristics/id.test/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/keywords/github_ref_in_message.py', 'runs/__heuristics/id.test/bugginess/keywords/github_ref_in_message.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/keywords/init_commit_message_keywords.py', 'runs/__heuristics/id.test/bugginess/keywords/init_commit_message_keywords.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/keywords/version_in_message.py', 'runs/__heuristics/id.test/bugginess/keywords/version_in_message.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_init.py', 'runs/__heuristics/id.test/bugginess/sstubs/commit_explorer_output_init.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_merge.py', 'runs/__heuristics/id.test/bugginess/sstubs/commit_explorer_output_merge.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_refactoring_miner.py', 'runs/__heuristics/id.test/bugginess/sstubs/commit_explorer_output_refactoring_miner.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/sstubs/commit_explorer_output_sstubs.py', 'runs/__heuristics/id.test/bugginess/sstubs/commit_explorer_output_sstubs.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/contains_digit_replacement_change.py', 'runs/__heuristics/id.test/bugginess/versionbump/contains_digit_replacement_change.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/contains_package_lock_file.py', 'runs/__heuristics/id.test/bugginess/versionbump/contains_package_lock_file.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/contains_python_version_file.py', 'runs/__heuristics/id.test/bugginess/versionbump/contains_python_version_file.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/contains_ruby_version_file.py', 'runs/__heuristics/id.test/bugginess/versionbump/contains_ruby_version_file.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py', 'runs/__heuristics/id.test/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/maven_plugin_version_bump.py', 'runs/__heuristics/id.test/bugginess/versionbump/maven_plugin_version_bump.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/version_bump_keywords_lookup_in_message.py', 'runs/__heuristics/id.test/bugginess/versionbump/version_bump_keywords_lookup_in_message.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/version_regex.py', 'runs/__heuristics/id.test/bugginess/versionbump/version_regex.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/version_regex2.py', 'runs/__heuristics/id.test/bugginess/versionbump/version_regex2.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/versionbump/version_regex3.py', 'runs/__heuristics/id.test/bugginess/versionbump/version_regex3.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/wip/removed_fixme.py', 'runs/__heuristics/id.test/bugginess/wip/removed_fixme.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/wip/removed_todo.py', 'runs/__heuristics/id.test/bugginess/wip/removed_todo.py/heuristic_matrix.pkl', 'cloned-bohr/heuristics/bugginess/wip/wip_keyword_in_message.py', 'runs/__heuristics/id.test/bugginess/wip/wip_keyword_in_message.py/heuristic_matrix.pkl'], 'outs': [{'runs/__single_heuristic_metrics/name/id.test/bugginess/conventional_commit_regex.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/all_files_test_add.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/all_files_test_fix.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/buggless_if_many_lines_changed.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/bugless_if_at_least_2_removed_files.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/bugless_if_at_least_5_added_files.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/bugless_if_many_files_changes.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/bugless_if_not_code_files.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/bugless_if_one_added_file.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/bugless_if_one_removed_file.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/no_files_have_modified_status.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/filemetrics/refactoring_if_at_least_2_renamed.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/keywords/bug_keywords_lookup_in_issue_body.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/keywords/bug_keywords_lookup_in_issue_label.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/keywords/bug_keywords_lookup_in_message.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/keywords/buggless_keywords_lookup_in_message.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/keywords/bugless_keywords_lookup_in_issue_body.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/keywords/bugless_keywords_lookup_in_issue_label.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/keywords/github_ref_in_message.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/keywords/init_commit_message_keywords.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/keywords/version_in_message.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/sstubs/commit_explorer_output_init.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/sstubs/commit_explorer_output_merge.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/sstubs/commit_explorer_output_refactoring_miner.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/sstubs/commit_explorer_output_sstubs.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/contains_digit_replacement_change.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/contains_package_lock_file.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/contains_python_version_file.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/contains_ruby_version_file.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/maven_plugin_version_bump.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/version_bump_keywords_lookup_in_message.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/version_regex.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/version_regex2.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/versionbump/version_regex3.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/wip/removed_fixme.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/wip/removed_todo.py/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test/bugginess/wip/wip_keyword_in_message.py/metrics.txt': {'cache': False}}], 'metrics': []}}], {'FetchMultipleHeuristicOutputs': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['experiments.${item.exp}.heuristics_classifier']}, {'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/__heuristics/${item.dataset}'], 'outs': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl'], 'metrics': []}}}, [{'TrainModel__exp': {'cmd': 'bohr porcelain train-model exp', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/name/exp/id.train/heuristic_matrix.pkl'], 'outs': ['runs/name/exp/label_model.pkl', 'runs/name/exp/label_model_weights.csv'], 'metrics': []}}], {'PrepareDataset': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain prepare-dataset "${item.exp}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl', 'runs/${item.task}/${item.exp}/label_model.pkl'], 'outs': ['runs/${item.task}/${item.exp}/${item.dataset}/labeled.csv'], 'metrics': []}}}, {'ComputeRandomModelMetrics': {'foreach': {'name__id.test': {'dataset': 'id.test', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/${item.dataset}.jsonl'], 'outs': [], 'metrics': [{'runs/${item.task}/random_model/${item.dataset}/metrics.txt': {'cache': False}}]}}}, {'ComputeZeroModelMetrics': {'foreach': {'name__id.test': {'dataset': 'id.test', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain compute-zero-model-metrics "${item.task}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/${item.dataset}.jsonl'], 'outs': [], 'metrics': [{'runs/${item.task}/zero_model/${item.dataset}/metrics.txt': {'cache': False}}]}}}, {'CalculateMetrics': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain run-metrics-and-analysis "${item.exp}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl', 'runs/${item.task}/${item.exp}/label_model.pkl', 'cached-datasets/${item.dataset}.jsonl'], 'outs': [{'runs/${item.task}/${item.exp}/${item.dataset}/analysis.json': {'cache': False}}, {'runs/${item.task}/${item.exp}/${item.dataset}/analysis.csv': {'cache': False}}], 'metrics': [{'runs/${item.task}/${item.exp}/${item.dataset}/metrics.txt': {'cache': False}}]}}}]
+    >>> labels = (LabelSet.of(TestLabel.Yes), LabelSet.of(TestLabel.No))
+    >>> task = LabelingTask("name", "author", "desc", Commit, frozendict({test: lambda x:x}), labels)
+    >>> get_stages_list(Workspace('0.x.x', [Experiment('exp', task, train, '/')]), get_stub_storage_engine())
+    [{'LoadDatasets': {'foreach': ['id.test', 'id.train'], 'do': {'cmd': 'bohr porcelain load-dataset "${item}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': [], 'outs': ['cached-datasets/${item}.jsonl', {'cached-datasets/${item}.jsonl.metadata.json': {'cache': False}}], 'metrics': [], 'always_changed': False}}}, {'ApplyHeuristics': {'foreach': {'id.test__/heuristic1': {'dataset': 'id.test', 'heuristic_group': '/heuristic1'}, 'id.test__/heuristic2': {'dataset': 'id.test', 'heuristic_group': '/heuristic2'}, 'id.train__/heuristic1': {'dataset': 'id.train', 'heuristic_group': '/heuristic1'}, 'id.train__/heuristic2': {'dataset': 'id.train', 'heuristic_group': '/heuristic2'}}, 'do': {'cmd': 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cloned-bohr/heuristics/${item.heuristic_group}', 'cached-datasets/${item.dataset}.jsonl'], 'outs': ['runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl'], 'metrics': [], 'always_changed': False}}}, [{'ComputeSingleHeuristicMetrics__name': {'cmd': 'bohr porcelain compute-single-heuristic-metric name', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/id.test.jsonl', 'cloned-bohr/heuristics//heuristic1', 'runs/__heuristics/id.test//heuristic1/heuristic_matrix.pkl', 'cloned-bohr/heuristics//heuristic2', 'runs/__heuristics/id.test//heuristic2/heuristic_matrix.pkl'], 'outs': [{'runs/__single_heuristic_metrics/name/id.test//heuristic1/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test//heuristic2/metrics.txt': {'cache': False}}], 'metrics': [], 'always_changed': False}}], {'FetchMultipleHeuristicOutputs': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['experiments.${item.exp}.heuristics_classifier']}, {'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/__heuristics/${item.dataset}'], 'outs': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl'], 'metrics': [], 'always_changed': False}}}, [{'TrainMod': {'cmd': 'bohr porcelain train-model exp', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/name/exp/id.train/heuristic_matrix.pkl'], 'outs': ['runs/name/exp/label_model.pkl', 'runs/name/exp/label_model_weights.csv'], 'metrics': [], 'always_changed': False}}], {'PrepareDataset': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain prepare-dataset "${item.exp}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl', 'runs/${item.task}/${item.exp}/label_model.pkl'], 'outs': ['runs/${item.task}/${item.exp}/${item.dataset}/labeled.csv'], 'metrics': [], 'always_changed': False}}}, {'ComputeRandomModelMetrics': {'foreach': {'name__id.test': {'dataset': 'id.test', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/${item.dataset}.jsonl'], 'outs': [], 'metrics': [{'runs/${item.task}/random_model/${item.dataset}/metrics.txt': {'cache': False}}], 'always_changed': False}}}, {'ComputeZeroModelMetrics': {'foreach': {'name__id.test': {'dataset': 'id.test', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain compute-zero-model-metrics "${item.task}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/${item.dataset}.jsonl'], 'outs': [], 'metrics': [{'runs/${item.task}/zero_model/${item.dataset}/metrics.txt': {'cache': False}}], 'always_changed': False}}}, {'CalculateMetrics': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain run-metrics-and-analysis "${item.exp}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl', 'runs/${item.task}/${item.exp}/label_model.pkl', 'cached-datasets/${item.dataset}.jsonl'], 'outs': [{'runs/${item.task}/${item.exp}/${item.dataset}/analysis.json': {'cache': False}}, {'runs/${item.task}/${item.exp}/${item.dataset}/analysis.csv': {'cache': False}}], 'metrics': [{'runs/${item.task}/${item.exp}/${item.dataset}/metrics.txt': {'cache': False}}], 'always_changed': False}}}]
     """
     if len(workspace.experiments) == 0:
         raise ValueError("At least of task should be specified")
@@ -530,39 +550,46 @@ def get_stages_list(workspace: Workspace, fs: StorageEngine) -> List[Stage]:
         {exp.task for exp in workspace.experiments}, key=lambda t: t.name
     )
 
-    stages: List[Union[MultipleCommandStage, List[Stage]]] = [
-        LoadDatasetsCommand(fs, workspace),
-        ApplyHeuristicsCommand(fs, workspace),
-        [ComputeSingleHeuristicMetricsStage(fs, task) for task in all_tasks],
-        FetchMultipleHeuristicOutputsCommand(fs, workspace),
+    stages: List[Union[MultiStage, List[Stage]]] = [
+        LoadDatasetsCommand(storage_engine, workspace),
+        ApplyHeuristicsCommand(storage_engine, workspace),
         [
-            TrainModelStage(fs, exp)
+            ComputeSingleHeuristicMetricsStage(storage_engine, task)
+            for task in all_tasks
+        ],
+        FetchMultipleHeuristicOutputsCommand(storage_engine, workspace),
+        [
+            TrainModelStage(storage_engine, exp)
             for exp in sorted(workspace.experiments, key=lambda x: x.name)
         ],
-        PrepareDatasetCommand(fs, workspace),
-        ComputeRandomModelMetricsCommand(fs, workspace),
-        ComputeZeroModelMetricsCommand(fs, workspace),
-        CalculateMetricsCommand(fs, workspace),
+        PrepareDatasetCommand(storage_engine, workspace),
+        ComputeRandomModelMetricsCommand(storage_engine, workspace),
+        ComputeZeroModelMetricsCommand(
+            storage_engine, workspace
+        ),  # TODO compute zero and random metric could be one stage (baselines?)
+        CalculateMetricsCommand(storage_engine, workspace),
     ]
     return stages
 
 
 def dvc_config_from_tasks(stages: List[Stage]) -> Dict:
     """
-    >>> from bohrlabels.core import Label
+    >>> from bohrlabels.core import Label, LabelSet
+    >>> from bohrlabels.labels import MatchLabel
     >>> from enum import auto
     >>> from bohrruntime.tasktypes.labeling.core import LabelingTask
+    >>> from bohrruntime.testtools import get_stub_storage_engine
     >>> class TestLabel(Label): Yes = auto(); No = auto()
     >>> train = Dataset("id.train", Commit)
     >>> test = Dataset("id.test", Commit)
-    >>> labels = (TestLabel.Yes, TestLabel.No)
-    >>> task = LabelingTask("name", "author", "desc", Commit, labels, {test: lambda x:x}, TestLabel)
+    >>> labels = (LabelSet.of(MatchLabel.NoMatch), LabelSet.of(MatchLabel.Match))
+    >>> task = LabelingTask("name", "author", "desc", Commit, {test: lambda x:x}, labels)
     >>> from bohrruntime import bohr_framework_root
-    >>> fs = StorageEngine.init(bohr_framework_root.parent / Path('test-b2b/scenario1'))
+    >>> storage_engine = get_stub_storage_engine()
     >>> workspace = Workspace('0.x.x', [Experiment('exp', task, train, 'bugginess/conventional_commit_regex')])
-    >>> stages = [LoadDatasetsCommand(fs, workspace), ApplyHeuristicsCommand(fs, workspace)]
+    >>> stages = [LoadDatasetsCommand(storage_engine, workspace), ApplyHeuristicsCommand(storage_engine, workspace)]
     >>> dvc_config_from_tasks(stages)
-    {'stages': {'LoadDatasets': {'foreach': ['id.test', 'id.train'], 'do': {'cmd': 'bohr porcelain load-dataset "${item}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': [], 'outs': ['cached-datasets/${item}.jsonl', {'cached-datasets/${item}.jsonl.metadata.json': {'cache': False}}], 'metrics': []}}, 'ApplyHeuristics': {'foreach': {'id.test__bugginess/conventional_commit_regex.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/conventional_commit_regex.py'}, 'id.test__bugginess/filemetrics/all_files_test_add.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/all_files_test_add.py'}, 'id.test__bugginess/filemetrics/all_files_test_fix.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/all_files_test_fix.py'}, 'id.test__bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py'}, 'id.test__bugginess/filemetrics/buggless_if_many_lines_changed.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/buggless_if_many_lines_changed.py'}, 'id.test__bugginess/filemetrics/bugless_if_at_least_2_removed_files.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_at_least_2_removed_files.py'}, 'id.test__bugginess/filemetrics/bugless_if_at_least_5_added_files.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_at_least_5_added_files.py'}, 'id.test__bugginess/filemetrics/bugless_if_many_files_changes.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_many_files_changes.py'}, 'id.test__bugginess/filemetrics/bugless_if_not_code_files.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_not_code_files.py'}, 'id.test__bugginess/filemetrics/bugless_if_one_added_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_one_added_file.py'}, 'id.test__bugginess/filemetrics/bugless_if_one_removed_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/bugless_if_one_removed_file.py'}, 'id.test__bugginess/filemetrics/no_files_have_modified_status.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/no_files_have_modified_status.py'}, 'id.test__bugginess/filemetrics/refactoring_if_at_least_2_renamed.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/filemetrics/refactoring_if_at_least_2_renamed.py'}, 'id.test__bugginess/keywords/bug_keywords_lookup_in_issue_body.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_issue_body.py'}, 'id.test__bugginess/keywords/bug_keywords_lookup_in_issue_label.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_issue_label.py'}, 'id.test__bugginess/keywords/bug_keywords_lookup_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_message.py'}, 'id.test__bugginess/keywords/buggless_keywords_lookup_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/buggless_keywords_lookup_in_message.py'}, 'id.test__bugginess/keywords/bugless_keywords_lookup_in_issue_body.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bugless_keywords_lookup_in_issue_body.py'}, 'id.test__bugginess/keywords/bugless_keywords_lookup_in_issue_label.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/bugless_keywords_lookup_in_issue_label.py'}, 'id.test__bugginess/keywords/github_ref_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/github_ref_in_message.py'}, 'id.test__bugginess/keywords/init_commit_message_keywords.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/init_commit_message_keywords.py'}, 'id.test__bugginess/keywords/version_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/keywords/version_in_message.py'}, 'id.test__bugginess/sstubs/commit_explorer_output_init.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_init.py'}, 'id.test__bugginess/sstubs/commit_explorer_output_merge.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_merge.py'}, 'id.test__bugginess/sstubs/commit_explorer_output_refactoring_miner.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_refactoring_miner.py'}, 'id.test__bugginess/sstubs/commit_explorer_output_sstubs.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_sstubs.py'}, 'id.test__bugginess/versionbump/contains_digit_replacement_change.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/contains_digit_replacement_change.py'}, 'id.test__bugginess/versionbump/contains_package_lock_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/contains_package_lock_file.py'}, 'id.test__bugginess/versionbump/contains_python_version_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/contains_python_version_file.py'}, 'id.test__bugginess/versionbump/contains_ruby_version_file.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/contains_ruby_version_file.py'}, 'id.test__bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py'}, 'id.test__bugginess/versionbump/maven_plugin_version_bump.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/maven_plugin_version_bump.py'}, 'id.test__bugginess/versionbump/version_bump_keywords_lookup_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/version_bump_keywords_lookup_in_message.py'}, 'id.test__bugginess/versionbump/version_regex.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/version_regex.py'}, 'id.test__bugginess/versionbump/version_regex2.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/version_regex2.py'}, 'id.test__bugginess/versionbump/version_regex3.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/versionbump/version_regex3.py'}, 'id.test__bugginess/wip/removed_fixme.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/wip/removed_fixme.py'}, 'id.test__bugginess/wip/removed_todo.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/wip/removed_todo.py'}, 'id.test__bugginess/wip/wip_keyword_in_message.py': {'dataset': 'id.test', 'heuristic_group': 'bugginess/wip/wip_keyword_in_message.py'}, 'id.train__bugginess/conventional_commit_regex.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/conventional_commit_regex.py'}, 'id.train__bugginess/filemetrics/all_files_test_add.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/all_files_test_add.py'}, 'id.train__bugginess/filemetrics/all_files_test_fix.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/all_files_test_fix.py'}, 'id.train__bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bug_if_only_changed_lines_in_one_code_file.py'}, 'id.train__bugginess/filemetrics/buggless_if_many_lines_changed.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/buggless_if_many_lines_changed.py'}, 'id.train__bugginess/filemetrics/bugless_if_at_least_2_removed_files.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_at_least_2_removed_files.py'}, 'id.train__bugginess/filemetrics/bugless_if_at_least_5_added_files.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_at_least_5_added_files.py'}, 'id.train__bugginess/filemetrics/bugless_if_many_files_changes.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_many_files_changes.py'}, 'id.train__bugginess/filemetrics/bugless_if_not_code_files.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_not_code_files.py'}, 'id.train__bugginess/filemetrics/bugless_if_one_added_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_one_added_file.py'}, 'id.train__bugginess/filemetrics/bugless_if_one_removed_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/bugless_if_one_removed_file.py'}, 'id.train__bugginess/filemetrics/no_files_have_modified_status.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/no_files_have_modified_status.py'}, 'id.train__bugginess/filemetrics/refactoring_if_at_least_2_renamed.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/filemetrics/refactoring_if_at_least_2_renamed.py'}, 'id.train__bugginess/keywords/bug_keywords_lookup_in_issue_body.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_issue_body.py'}, 'id.train__bugginess/keywords/bug_keywords_lookup_in_issue_label.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_issue_label.py'}, 'id.train__bugginess/keywords/bug_keywords_lookup_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bug_keywords_lookup_in_message.py'}, 'id.train__bugginess/keywords/buggless_keywords_lookup_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/buggless_keywords_lookup_in_message.py'}, 'id.train__bugginess/keywords/bugless_keywords_lookup_in_issue_body.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bugless_keywords_lookup_in_issue_body.py'}, 'id.train__bugginess/keywords/bugless_keywords_lookup_in_issue_label.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/bugless_keywords_lookup_in_issue_label.py'}, 'id.train__bugginess/keywords/github_ref_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/github_ref_in_message.py'}, 'id.train__bugginess/keywords/init_commit_message_keywords.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/init_commit_message_keywords.py'}, 'id.train__bugginess/keywords/version_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/keywords/version_in_message.py'}, 'id.train__bugginess/sstubs/commit_explorer_output_init.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_init.py'}, 'id.train__bugginess/sstubs/commit_explorer_output_merge.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_merge.py'}, 'id.train__bugginess/sstubs/commit_explorer_output_refactoring_miner.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_refactoring_miner.py'}, 'id.train__bugginess/sstubs/commit_explorer_output_sstubs.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/sstubs/commit_explorer_output_sstubs.py'}, 'id.train__bugginess/versionbump/contains_digit_replacement_change.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/contains_digit_replacement_change.py'}, 'id.train__bugginess/versionbump/contains_package_lock_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/contains_package_lock_file.py'}, 'id.train__bugginess/versionbump/contains_python_version_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/contains_python_version_file.py'}, 'id.train__bugginess/versionbump/contains_ruby_version_file.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/contains_ruby_version_file.py'}, 'id.train__bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/dependency_bump_keywords_lookup_in_message.py'}, 'id.train__bugginess/versionbump/maven_plugin_version_bump.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/maven_plugin_version_bump.py'}, 'id.train__bugginess/versionbump/version_bump_keywords_lookup_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/version_bump_keywords_lookup_in_message.py'}, 'id.train__bugginess/versionbump/version_regex.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/version_regex.py'}, 'id.train__bugginess/versionbump/version_regex2.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/version_regex2.py'}, 'id.train__bugginess/versionbump/version_regex3.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/versionbump/version_regex3.py'}, 'id.train__bugginess/wip/removed_fixme.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/wip/removed_fixme.py'}, 'id.train__bugginess/wip/removed_todo.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/wip/removed_todo.py'}, 'id.train__bugginess/wip/wip_keyword_in_message.py': {'dataset': 'id.train', 'heuristic_group': 'bugginess/wip/wip_keyword_in_message.py'}}, 'do': {'cmd': 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cloned-bohr/heuristics/${item.heuristic_group}', 'cached-datasets/${item.dataset}.jsonl'], 'outs': ['runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl'], 'metrics': []}}}}
+    {'stages': {'LoadDatasets': {'foreach': ['id.test', 'id.train'], 'do': {'cmd': 'bohr porcelain load-dataset "${item}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': [], 'outs': ['cached-datasets/${item}.jsonl', {'cached-datasets/${item}.jsonl.metadata.json': {'cache': False}}], 'metrics': [], 'always_changed': False}}, 'ApplyHeuristics': {'foreach': {'id.test__/heuristic1': {'dataset': 'id.test', 'heuristic_group': '/heuristic1'}, 'id.test__/heuristic2': {'dataset': 'id.test', 'heuristic_group': '/heuristic2'}, 'id.train__/heuristic1': {'dataset': 'id.train', 'heuristic_group': '/heuristic1'}, 'id.train__/heuristic2': {'dataset': 'id.train', 'heuristic_group': '/heuristic2'}}, 'do': {'cmd': 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cloned-bohr/heuristics/${item.heuristic_group}', 'cached-datasets/${item.dataset}.jsonl'], 'outs': ['runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl'], 'metrics': [], 'always_changed': False}}}}
     """
     final_dict = {"stages": {}}
     for multi_stage in stages:
@@ -638,9 +665,9 @@ def fetch_heuristics_if_needed(
             repo.git.checkout(rev_to_checkout)
 
 
-def get_params(workspace: Workspace, fs: StorageEngine) -> Dict:
+def get_params(workspace: Workspace, storage_engine: StorageEngine) -> Dict:
     params = {"bohr_runtime_version": workspace.bohr_runtime_version, "experiments": {}}
-    heuristic_subfs = fs.heuristics_subfs()
+    heuristic_subfs = storage_engine.heuristics_subfs()
     for exp in workspace.experiments:
         heuristic_groups = exp.heuristic_groups
         params["experiments"][exp.name] = {

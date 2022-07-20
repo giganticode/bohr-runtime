@@ -1,21 +1,23 @@
 """
+>>> from bohrlabels.core import LabelSet
+>>> from bohrlabels.labels import CommitLabel
+>>> from bohrapi.artifacts import Commit
 >>> from bohrruntime.tasktypes.labeling.core import LabelingTask
 >>> from bohrruntime.datamodel.experiment import Experiment
->>> class TestArtifact(Artifact): pass
->>> test_train_dataset = Dataset(id='test_train_dataset', top_artifact=TestArtifact)
->>> test_test_dataset = Dataset(id='test_test_dataset', top_artifact=TestArtifact)
->>> task = LabelingTask(name='test_task', author='test_author', description='test_description', top_artifact=TestArtifact, labels=[CommitLabel.BugFix, CommitLabel.NonBugFix], test_datasets={test_test_dataset: None})
+>>> test_train_dataset = Dataset(id='test_train_dataset', heuristic_input_artifact_type=Commit)
+>>> test_test_dataset = Dataset(id='test_test_dataset', heuristic_input_artifact_type=Commit)
+>>> task = LabelingTask(name='test_task', author='test_author', description='test_description', heuristic_input_artifact_type=Commit, labels=(LabelSet.of(CommitLabel.BugFix), LabelSet.of(CommitLabel.NonBugFix)), test_datasets={test_test_dataset: None})
 >>> task.get_dataset_by_id('test_test_dataset')
-Dataset(id='test_test_dataset', top_artifact=<class 'core.TestArtifact'>, query=None, projection=None, n_datapoints=None)
+Dataset(id='test_test_dataset', heuristic_input_artifact_type=<class 'bohrapi.artifacts.commit.Commit'>, query=None, projection=None, n_datapoints=None, path=None)
 >>> task.get_dataset_by_id('unknown_dataset')
 Traceback (most recent call last):
 ...
 ValueError: Dataset unknown_dataset is not found in task test_task
->>> task_with_one_label = LabelingTask(name='test_task', author='test_author', description='test_description', top_artifact=TestArtifact, labels=[CommitLabel.NonBugFix], test_datasets={test_test_dataset: None})
+>>> task_with_one_label = LabelingTask(name='test_task', author='test_author', description='test_description', heuristic_input_artifact_type=Commit, labels=(CommitLabel.NonBugFix), test_datasets={test_test_dataset: None})
 Traceback (most recent call last):
 ...
-ValueError: At least 2 labels have to be specified
->>> zero_test_datasets_task = LabelingTask(name='test_task', author='test_author', description='test_description', top_artifact=TestArtifact, labels=[CommitLabel.NonBugFix, CommitLabel.NonBugFix], test_datasets={})
+TypeError: object of type 'CommitLabel' has no len()
+>>> zero_test_datasets_task = LabelingTask(name='test_task', author='test_author', description='test_description', heuristic_input_artifact_type=Commit, labels=(LabelSet.of(CommitLabel.NonBugFix), LabelSet.of(CommitLabel.NonBugFix)), test_datasets={})
 Traceback (most recent call last):
 ...
 ValueError: At least 1 test dataset has to be specified
@@ -54,8 +56,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-import numpy as np
-from bohrapi.core import Artifact, ArtifactType, DataPointToLabelFunction
+from bohrapi.core import ArtifactType, DataPointToLabelFunction
 from fs.base import FS
 
 from bohrruntime.datamodel.dataset import Dataset

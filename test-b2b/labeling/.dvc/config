@@ -1,5 +1,7 @@
 [core]
     check_update = false
-    remote = ironspeed-test
-['remote "ironspeed-test"']
+['remote "read"']
     url = ssh://10.10.20.160/home/hbabii/.dvcstorage/bohr-test
+['remote "write"']
+    url = ssh://10.10.20.160/home/hbabii/.dvcstorage/bohr-test
+    user = hbabii

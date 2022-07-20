@@ -63,7 +63,7 @@ def convert_proxies_to_real_objects(proxy_workspace: proxies.Workspace) -> Works
     >>> experiment = get_stub_experiment(task)
     >>> workspace = Workspace("0.6.0", [experiment])
     >>> convert_proxies_to_real_objects(workspace)
-    Workspace(bohr_runtime_version='0.6.0', experiments=[Experiment(name='stub-exp', task=LabelingTask(name='stub-task', author='stub-author', description='stub-description', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, test_datasets=frozendict.frozendict({Dataset(id='dataset1', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None): None}), labels=(NumericLabel(label=536870896, hierarchy=<enum 'CommitLabel'>), NumericLabel(label=15, hierarchy=<enum 'CommitLabel'>)), class_balance=None), train_dataset=Dataset(id='stub-test-dataset', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None), heuristics_classifier=None, extra_test_datasets=frozendict.frozendict({}))])
+    Workspace(bohr_runtime_version='0.6.0', experiments=[Experiment(name='stub-exp', task=LabelingTask(name='stub-task', author='stub-author', description='stub-description', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, test_datasets=frozendict.frozendict({Dataset(id='dataset1', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None, path=None): None}), labels=(['NonBugFix'], ['BugFix']), class_balance=None), train_dataset=Dataset(id='stub-test-dataset', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None, path=None), heuristics_classifier=None, extra_test_datasets=frozendict.frozendict({}))])
     """
     task_proxies: Dict[str, Task] = {}
     dataset_proxies: Dict[str, Dataset] = {}
@@ -117,9 +117,9 @@ def load_workspace(fs: Optional[FS] = None) -> Workspace:
     Traceback (most recent call last):
     ...
     ValueError: Object of type Workspace not found in bohr.py
-    >>> fs.writetext('bohr.py', 'from bohrapi.core import Workspace; w=Workspace("0.6.0", [])')
+    >>> fs.writetext('bohr.py', 'from bohrapi.core import Workspace; w=Workspace("0.7.0", [])')
     >>> load_workspace(fs)
-    Workspace(bohr_runtime_version='0.6.0', experiments=[])
+    Workspace(bohr_runtime_version='0.7.0', experiments=[])
     """
     fs = fs or create_fs()
     try:

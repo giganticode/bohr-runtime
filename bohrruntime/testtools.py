@@ -1,6 +1,8 @@
-from typing import List, Optional
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple, Type, Union
 
-from bohrapi.core import Artifact, ArtifactType
+from bohrapi.artifacts import Commit
+from bohrapi.core import Artifact, ArtifactType, HeuristicObj
 from bohrlabels.labels import CommitLabel
 from fs.memoryfs import MemoryFS
 
@@ -62,23 +64,29 @@ def get_stub_experiment(
     return Experiment("stub-exp", task or get_stub_task(), training_dataset)
 
 
-class VirtualHeuristicLoader(HeuristicLoader):
+class StubHeuristicLoader(HeuristicLoader):
+    def load_heuristics_by_uri(
+        self, heuristic_uri: HeuristicURI
+    ) -> List[Tuple[str, Union[HeuristicObj, List[HeuristicObj]]]]:
+        return [
+            (
+                "heuristic1",
+                HeuristicObj(lambda x: x, lambda x: x, artifact_type_applied_to=Commit),
+            )
+        ]
+
     def get_heuristic_uris(
         self,
         heuristic_uri: HeuristicURI = None,
         input_artifact_type: Optional[ArtifactType] = None,
         error_if_none_found: bool = True,
     ) -> List[HeuristicURI]:
-        fs = MemoryFS()
         return [
-            HeuristicURI.from_path_and_fs("/heuristic1", fs),
-            HeuristicURI.from_path_and_fs("/heuristic2", fs),
+            HeuristicURI.from_path_and_fs("/heuristic1", self.heuristic_fs),
+            HeuristicURI.from_path_and_fs("/heuristic2", self.heuristic_fs),
         ]
 
 
-class VirtualStorageEngine(StorageEngine):
-    def __init__(self):
-        super(VirtualStorageEngine, self).__init__(MemoryFS(), BohrPathStructure())
-
-    def get_heuristic_loader(self) -> HeuristicLoader:
-        return VirtualHeuristicLoader(MemoryFS())
+def get_stub_storage_engine() -> StorageEngine:
+    fs = MemoryFS()
+    return StorageEngine(fs, BohrPathStructure(), StubHeuristicLoader(fs))

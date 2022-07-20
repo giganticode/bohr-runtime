@@ -37,31 +37,7 @@ def apply_heuristics_to_dataset(
     dataset: Dataset,
     storage_engine: StorageEngine,
 ) -> None:
-    """
-    >>> from bohrapi.core import Heuristic, Artifact
-    >>> from enum import auto
-    >>> class TestArtifact(Artifact): pass
-    >>> class TestLabel(Label): Yes = auto(); No = auto()
-
-    >>> @Heuristic(TestArtifact)
-    ... def heuristic_yes(artifact: TestArtifact) -> Optional[OneOrManyLabels]:
-    ...     if artifact.raw_data['name'] == 'yes':
-    ...         return TestLabel.Yes
-
-    >>> @Heuristic(TestArtifact)
-    ... def heuristic_no(artifact: TestArtifact) -> Optional[OneOrManyLabels]:
-    ...     if artifact.raw_data['name'] == 'no':
-    ...         return TestLabel.No
-
-    >>> apply_heuristics_to_dataset([heuristic_yes, heuristic_no], [TestArtifact({'name': 'yes'}), TestArtifact({'name': 'no'}), TestArtifact({'name': 'maybe'})])
-       heuristic_yes  heuristic_no
-    0              1            -1
-    1             -1             2
-    2             -1            -1
-    """
-    heuristics = storage_engine.get_heuristic_loader().load_heuristics_by_uri(
-        heuristic_uri
-    )
+    heuristics = storage_engine.get_heuristic_loader().load_heuristics(heuristic_uri)
     if not heuristics:
         raise AssertionError(f"No heuristics at {heuristic_uri}")
     artifacts = dataset.load_artifacts(storage_engine.cached_datasets_subfs())
@@ -153,7 +129,7 @@ def calculate_single_heuristic_metrics(
             input_artifact_type=task.heuristic_input_artifact_type
         )
         for heuristic_uri in heuristic_groups:
-            heuristics = heuristic_loader.load_heuristics_by_uri(heuristic_uri)
+            heuristics = heuristic_loader.load_heuristics(heuristic_uri)
             if not heuristics:
                 raise AssertionError(
                     f"No heuristics at {heuristic_uri.absolute_path()}"

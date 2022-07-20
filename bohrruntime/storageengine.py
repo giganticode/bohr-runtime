@@ -3,9 +3,9 @@ import json
 import logging
 import pickle
 from abc import abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import pandas as pd
 from bohrapi.core import ArtifactType, HeuristicObj
@@ -56,7 +56,7 @@ class HeuristicLoader:
         if input_artifact_type is not None:
             res: List[HeuristicURI] = []
             for h in heuristic_files:
-                if self.load_heuristics_by_uri(h, input_artifact_type):
+                if self.load_heuristics(h, input_artifact_type):
                     res.append(h)
             heuristic_files = res
         if error_if_none_found and len(heuristic_files) == 0:
@@ -71,16 +71,49 @@ class HeuristicLoader:
         map: Dict[HeuristicURI, List[HeuristicObj]] = {}
 
         for heuristic_uri in self.get_heuristic_uris(artifact_type):
-            hs = self.load_heuristics_by_uri(heuristic_uri, artifact_type)
+            hs = self.load_heuristics(heuristic_uri, artifact_type)
             if len(hs) > 0:
                 map[heuristic_uri] = hs
         return map
 
     @abstractmethod
     def load_heuristics_by_uri(
+        self, heuristic_uri: HeuristicURI
+    ) -> List[Tuple[str, Union[HeuristicObj, List[HeuristicObj]]]]:
+        pass
+
+    def load_heuristics(
         self, heuristic_uri: HeuristicURI, artifact_type: Optional[Type] = None
     ) -> List[HeuristicObj]:
-        pass
+
+        loaded_heuristics = self.load_heuristics_by_uri(heuristic_uri)
+
+        def is_heuristic_of_needed_type(obj, artifact_type):
+            return isinstance(obj, HeuristicObj) and (
+                obj.artifact_type_applied_to == artifact_type or artifact_type is None
+            )
+
+        heuristics: List[HeuristicObj] = []
+        for name, obj in loaded_heuristics:
+            if is_heuristic_of_needed_type(obj, artifact_type):
+                if name != (filename := heuristic_uri.path.name):
+                    raise ValueError(
+                        f"For consistency, file and heuristic name must be the same.\n"
+                        f"Hovewer, filename is {filename}, heuristic name is {name}."
+                    )
+                heuristics.append(obj)
+        for name, obj in loaded_heuristics:
+            if (
+                isinstance(obj, list)
+                and len(obj) > 0
+                and (
+                    is_heuristic_of_needed_type(obj[0], artifact_type)
+                    or artifact_type is None
+                )
+            ):
+                heuristics.extend(obj)
+        check_names_unique(heuristics)
+        return heuristics
 
 
 @dataclass
@@ -143,6 +176,7 @@ class BohrPathStructure:
 class StorageEngine:
     fs: FS
     path_structure: BohrPathStructure
+    heuristic_loader: HeuristicLoader = field(default=None)
 
     @staticmethod
     def init(fs: Optional[FS] = None) -> "StorageEngine":
@@ -189,9 +223,9 @@ class StorageEngine:
         return self.fs.makedir(self.path_structure.cached_datasets, recreate=True)
 
     def get_heuristic_loader(self) -> HeuristicLoader:
-        return FileSystemHeuristicLoader(
+        return self.heuristic_loader or FileSystemHeuristicLoader(
             self.heuristics_subfs()
-        )  # TODO heuristic loader type depends on fs
+        )
 
     def single_heuristic_metrics(
         self,
@@ -214,10 +248,10 @@ class StorageEngine:
         self, exp: Experiment, dataset: Dataset
     ) -> HeuristicOutputs:
         """
-        >>> from bohrruntime.testtools import get_stub_experiment, get_stub_dataset, VirtualHeuristicLoader
+        >>> from bohrruntime.testtools import get_stub_experiment, get_stub_dataset, StubHeuristicLoader
         >>> import pickle
         >>> stub_fs = MemoryFS()
-        >>> bohrfs = StorageEngine(stub_fs, BohrPathStructure('/root'))
+        >>> bohrfs = StorageEngine(stub_fs, BohrPathStructure('/root'), StubHeuristicLoader(stub_fs))
         >>> sub_fs = stub_fs.makedirs('runs/stub-task/stub-exp/stub-dataset/')
         >>> df = pd.DataFrame()
         >>> with sub_fs.open('heuristic_matrix.pkl', 'wb', encoding='utf-8') as f:
@@ -225,7 +259,9 @@ class StorageEngine:
         >>> exp = get_stub_experiment()
         >>> dataset = get_stub_dataset()
         >>> bohrfs.load_heuristic_outputs(exp, dataset)
-        HeuristicOutputs(label_matrix=array([], shape=(0, 0), dtype=float64))
+        HeuristicOutputs(label_matrix=Empty DataFrame
+        Columns: []
+        Index: [])
         """
         all_heuristics_file = self.path_structure.experiment_label_matrix_file(
             exp, dataset
@@ -310,8 +346,8 @@ class StorageEngine:
 @dataclass
 class FileSystemHeuristicLoader(HeuristicLoader):
     def load_heuristics_by_uri(
-        self, heuristic_uri: HeuristicURI, artifact_type: Optional[Type] = None
-    ) -> List[HeuristicObj]:
+        self, heuristic_uri: HeuristicURI
+    ) -> List[Tuple[str, Union[HeuristicObj, List[HeuristicObj]]]]:
         import importlib.util
 
         heuristic_file_abs_path = heuristic_uri.to_filesystem_path()
@@ -320,33 +356,7 @@ class FileSystemHeuristicLoader(HeuristicLoader):
         )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-
-        def is_heuristic_of_needed_type(obj, artifact_type):
-            return isinstance(obj, HeuristicObj) and (
-                obj.artifact_type_applied_to == artifact_type or artifact_type is None
-            )
-
-        heuristics: List[HeuristicObj] = []
-        for name, obj in inspect.getmembers(module):
-            if is_heuristic_of_needed_type(obj, artifact_type):
-                if name != (filename := heuristic_file_abs_path.stem):
-                    raise ValueError(
-                        f"For consistency, file and heuristic name must be the same.\n"
-                        f"Hovewer, filename is {filename}, heuristic name is {name}."
-                    )
-                heuristics.append(obj)
-        for name, obj in inspect.getmembers(module):
-            if (
-                isinstance(obj, list)
-                and len(obj) > 0
-                and (
-                    is_heuristic_of_needed_type(obj[0], artifact_type)
-                    or artifact_type is None
-                )
-            ):
-                heuristics.extend(obj)
-        check_names_unique(heuristics)
-        return heuristics
+        return [(name, obj) for name, obj in inspect.getmembers(module)]
 
 
 def check_names_unique(heuristics: List[HeuristicObj]) -> None:

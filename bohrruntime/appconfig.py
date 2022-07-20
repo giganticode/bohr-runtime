@@ -1,22 +1,23 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Optional
 
-import toml
+from configobj import ConfigObj
 from fs.base import FS
 
 from bohrruntime.storageengine import StorageEngine
-from bohrruntime.util.paths import AbsolutePath, create_fs, gitignore_file
+from bohrruntime.util.paths import create_fs
 
 
 @dataclass(frozen=True)
 class AppConfig:
     verbose: bool
-    fs: StorageEngine
+    storage_engine: StorageEngine
 
     @staticmethod
     def load(fs: Optional[FS] = None) -> "AppConfig":
         fs = fs or create_fs()
-        config_dict = load_config_dict_from_file(fs)
+        with fs.open(".bohr/config", "rb") as f:
+            config_dict = ConfigObj(f).dict()
         try:
             verbose_str = config_dict["core"]["verbose"]
             verbose = verbose_str == "true" or verbose_str == "True"
@@ -25,29 +26,64 @@ class AppConfig:
         return AppConfig(verbose, StorageEngine.init(fs))
 
 
-def add_to_local_config(key: str, value: str) -> None:
-    fs = create_fs()
-    dct, local_config_path = load_config_dict_from_file(fs, return_path=True)
+def add_to_local_config(fs: FS, key: str, value: str) -> None:
+    """
+    >>> from fs.memoryfs import MemoryFS
+    >>> fs = MemoryFS()
+    >>> add_to_local_config(fs, "section.key", "value")
+    >>> fs.readtext('.bohr/config')
+    '[section]\\n    key = value\\n'
+    >>> add_to_local_config(fs, "key", "value2")
+    >>> fs.readtext('.bohr/config')
+    '[section]\\n    key = value\\n[core]\\n    key = value2\\n'
+    """
     if "." not in key:
-        raise ValueError(f"The key must have format [section].[key] but is {key}")
-    section, key = key.split(".", maxsplit=1)
-    if section not in dct:
-        dct[section] = {}
-    dct[section][key] = value
-    with fs.open(local_config_path, "w") as f:
-        toml.dump(dct, f)
+        key = "core." + key
+    section, section_key = key.rsplit(".", maxsplit=1)
+    set_config_value(fs, ".bohr/config", section, section_key, value)
 
 
 LOCAL_CONFIG_FILE_NAME = "local.config"
+BOHR_CONFIG_DIR = ".bohr"
 
 
-def load_config_dict_from_file(
-    fs: FS, return_path: bool = False
-) -> Union[Dict[str, Any], Tuple[Dict[str, Any], str]]:
-    config_dir_subfs = fs.opendir(".bohr")
-    if not config_dir_subfs.exists(LOCAL_CONFIG_FILE_NAME):
-        config_dir_subfs.touch(LOCAL_CONFIG_FILE_NAME)
-        gitignore_file(config_dir_subfs, LOCAL_CONFIG_FILE_NAME)
-    with config_dir_subfs.open("local.config") as f:
-        dct = toml.load(f)
-    return (dct, ".bohr/local.config") if return_path else dct
+def set_config_value(fs: FS, file: str, section: str, key: str, value: str):
+    """
+    >>> from fs.memoryfs import MemoryFS
+    >>> fs = MemoryFS()
+    >>> set_config_value(fs, '.bohr/config', 'section', 'key', 'value')
+    >>> fs.readtext('.bohr/config')
+    '[section]\\n    key = value\\n'
+    >>> set_config_value(fs, '.bohr/config', 'section', 'key', 'new_value')
+    >>> fs.readtext('.bohr/config')
+    '[section]\\n    key = new_value\\n'
+    >>> set_config_value(fs, '.bohr/config', 'section2', 'key', 'new_value')
+    >>> fs.readtext('.bohr/config')
+    '[section]\\n    key = new_value\\n[section2]\\n    key = new_value\\n'
+    """
+    if not fs.exists(file):
+        *dir, _ = file.split("/")
+        if dir:
+            fs.makedirs("/".join(dir), recreate=True)
+        fs.create(file)
+    with fs.open(file, "rb") as f:
+        dct = ConfigObj(f).dict()
+    if section not in dct:
+        dct[section] = {}
+    dct[section][key] = value
+    with fs.open(file, "wb") as f:
+        c = ConfigObj(dct)
+        c.write(f)
+
+
+def set_remote_read_url(fs: FS, url: str):
+    set_config_value(fs, ".dvc/config", 'remote "read"', "url", url)
+
+
+def set_remote_write_url(fs: FS, url: str):
+    set_config_value(fs, ".dvc/config", 'remote "write"', "url", url)
+
+
+def set_remote_write_credentials(fs: FS, user: str, password: str):
+    set_config_value(fs, ".dvc/config", f'remote "write"', "user", user)
+    set_config_value(fs, ".dvc/config.local", f'remote "write"', "password", password)

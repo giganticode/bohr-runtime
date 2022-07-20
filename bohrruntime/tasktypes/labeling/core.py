@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class CategoryMappingCache(LRUCache):
     """
-    >>> from bohrlabels.labels import CommitLabel
+    >>> from bohrlabels.labels import CommitLabel, BugSeverity
     >>> logger.setLevel("CRITICAL")
 
     >>> cache = CategoryMappingCache([LabelSet.of(CommitLabel.NonBugFix), LabelSet.of(CommitLabel.BugFix)], 10)
@@ -36,7 +36,9 @@ class CategoryMappingCache(LRUCache):
     0
     >>> cache[LabelSet.of(CommitLabel.BugFix)]
     1
-    >>> cache[LabelSet.of(CommitLabel.MinorBugFix)]
+    >>> cache[LabelSet.of(CommitLabel.ConcurrencyBugFix)]
+    1
+    >>> cache[LabelSet.of(BugSeverity.MinorBugFix)]
     1
     >>> cache[LabelSet.of(CommitLabel.CommitLabel)]
     -1
@@ -76,7 +78,7 @@ def check_duplicate_heuristics(all_heuristics_matrix: pd.DataFrame) -> None:
 
 @dataclass(frozen=True)
 class LabelingTask(Task):
-    labels: Tuple[LabelSet]
+    labels: Tuple[LabelSet, ...]
     class_balance: Tuple[float, ...] = None
 
     def get_category_mapping_cache(self) -> CategoryMappingCache:

@@ -50,6 +50,28 @@ class HeuristicApplier(ABC):
 
 
 class SnorkelHeuristicApplier(HeuristicApplier):
+    """
+    >>> from bohrapi.core import Heuristic, Artifact
+    >>> from enum import auto
+    >>> class TestArtifact(Artifact): pass
+
+    >>> @Heuristic(TestArtifact)
+    ... def heuristic_yes(artifact: TestArtifact) -> Optional[OneOrManyLabels]:
+    ...     if artifact.raw_data['name'] == 'yes':
+    ...         return MatchLabel.Match
+
+    >>> @Heuristic(TestArtifact)
+    ... def heuristic_no(artifact: TestArtifact) -> Optional[OneOrManyLabels]:
+    ...     if artifact.raw_data['name'] == 'no':
+    ...         return MatchLabel.NoMatch
+
+    >>> SnorkelHeuristicApplier().apply([heuristic_yes, heuristic_no], [TestArtifact({'name': 'yes'}), TestArtifact({'name': 'no'}), TestArtifact({'name': 'maybe'})])
+    HeuristicOutputs(label_matrix=   heuristic_yes  heuristic_no
+    0              1            -1
+    1             -1             2
+    2             -1            -1)
+    """
+
     def apply(
         self, heuristics: List[HeuristicObj], artifacts: DatapointList
     ) -> HeuristicOutputs:
@@ -75,13 +97,14 @@ def apply_heuristic_and_convert_to_snorkel_label(
 def to_labeling_function(h: HeuristicObj) -> SnorkelLabelingFunction:
     """
     >>> from bohrapi.core import Heuristic, Artifact
+    >>> from bohrlabels.labels import MatchLabel
     >>> from enum import auto
     >>> class TestArtifact(Artifact): pass
     >>> class TestLabel(Label): Test = auto()
 
     >>> @Heuristic(TestArtifact)
     ... def heuristic(artifact: TestArtifact) -> Optional[OneOrManyLabels]:
-    ...     return TestLabel.Test
+    ...     return MatchLabel.Match
     >>> lf = to_labeling_function(heuristic)
     >>> a = TestArtifact({'value': 0})
     >>> lf(a)
@@ -89,7 +112,7 @@ def to_labeling_function(h: HeuristicObj) -> SnorkelLabelingFunction:
 
     >>> @Heuristic(TestArtifact)
     ... def heuristic2(artifact) -> Optional[OneOrManyLabels]:
-    ...     return TestLabel.Test
+    ...     return MatchLabel.Match
     >>> lf = to_labeling_function(heuristic2)
     >>> lf(3)
     Traceback (most recent call last):
@@ -98,7 +121,7 @@ def to_labeling_function(h: HeuristicObj) -> SnorkelLabelingFunction:
 
     >>> @Heuristic(TestArtifact)
     ... def heuristic3(artifact) -> Optional[OneOrManyLabels]:
-    ...     return TestLabel.Test
+    ...     return MatchLabel.Match
     >>> lf = to_labeling_function(heuristic3)
     >>> lf((3,8))
     Traceback (most recent call last):
@@ -107,7 +130,7 @@ def to_labeling_function(h: HeuristicObj) -> SnorkelLabelingFunction:
 
     >>> @Heuristic(TestArtifact, TestArtifact)
     ... def heuristic4(artifact) -> Optional[OneOrManyLabels]:
-    ...     return TestLabel.Test
+    ...     return MatchLabel.Match
     >>> lf = to_labeling_function(heuristic4)
     >>> lf(3)
     Traceback (most recent call last):
@@ -116,7 +139,7 @@ def to_labeling_function(h: HeuristicObj) -> SnorkelLabelingFunction:
 
     >>> @Heuristic(TestArtifact, TestArtifact)
     ... def heuristic5(artifact) -> Optional[OneOrManyLabels]:
-    ...     return TestLabel.Test
+    ...     return MatchLabel.Match
     >>> lf = to_labeling_function(heuristic5)
     >>> lf((3,5))
     Traceback (most recent call last):
@@ -125,7 +148,7 @@ def to_labeling_function(h: HeuristicObj) -> SnorkelLabelingFunction:
 
     >>> @Heuristic(TestArtifact, TestArtifact)
     ... def heuristic6(artifact: TestArtifact) -> Optional[OneOrManyLabels]:
-    ...     return TestLabel.Test
+    ...     return MatchLabel.Match
     >>> lf = to_labeling_function(heuristic6)
     >>> a = TestArtifact({'value': 0})
     >>> lf((a, a))

@@ -5,13 +5,13 @@ from typing import Optional, Tuple, Type, Union
 import yaml
 from bohrapi.core import HeuristicObj
 from git import Repo
-from tqdm import tqdm
 
-import bohrruntime.dvcwrapper as dvc
+import bohrruntime.dvcwrapper as pipeline_manager
 from bohrruntime.bohrconfig import load_workspace
 from bohrruntime.datamodel.workspace import Workspace
 from bohrruntime.heuristicuri import HeuristicURI
 from bohrruntime.pipeline import (
+    MultiStage,
     dvc_config_from_tasks,
     fetch_heuristics_if_needed,
     get_params,
@@ -33,7 +33,7 @@ def clone(url: str, revision: Optional[str] = None) -> None:
         raise RuntimeError(f"Directory {repo_name} already exists")
     repo = Repo.clone_from(url, repo_name, depth=1)
     repo.head.reset(revision, index=True, working_tree=True)
-    dvc_repo = dvc.Repo(repo_name)
+    dvc_repo = pipeline_manager.Repo(repo_name)
     dvc_repo.pull()
 
 
@@ -41,50 +41,21 @@ def repro(
     force: bool = False,
     workspace: Optional[Workspace] = None,
     storage_engine: Optional[StorageEngine] = None,
-):
+):  # TODO pull here?
 
     storage_engine = storage_engine or StorageEngine.init()
     workspace = workspace or load_workspace()
     refresh_pipeline_config(workspace, storage_engine)
-    commands = get_stages_list(workspace, storage_engine)
-    n_commands = len(commands)
-    for i, command in enumerate(commands):
-        if not isinstance(command, list):
-            command = [command]
-        print(
-            f"===========    Executing stage: {command[0].summary()} [{i}/{n_commands}]"
+    stage = get_stages_list(workspace, storage_engine)
+    n_stages = len(stage)
+    for i, command in enumerate(stage):
+        stage_summary = (
+            command.stage_name()
+            if isinstance(command, MultiStage)
+            else stage[0].stage_name()
         )
-        for c in tqdm(command):
-            repro_stage(c.stage_name(), storage_engine, force=force)
-
-
-def repro_stage(
-    stage_name: str, storage_engine: Optional[StorageEngine] = None, force: bool = False
-):
-    dvc.repro([stage_name], storage_engine=storage_engine, force=force)
-
-
-def run_pipeline(
-    task: Optional[str] = None,
-    force: bool = False,
-    workspace: Optional[Workspace] = None,
-    storage_engine: Optional[StorageEngine] = None,
-    pull: bool = True,
-) -> None:
-    storage_engine = storage_engine or StorageEngine.init()
-    workspace = workspace or load_workspace()
-
-    refresh_pipeline_config(workspace, storage_engine)
-
-    glob = None
-    if task:
-        # if task not in {exp.task for exp in workspace.experiments}:
-        #     raise ValueError(f"Task {task} not found in bohr.json")
-        glob = f"{task}*"
-    if pull:
-        print("Pulling cache from DVC remote...")
-        dvc.pull(storage_engine=storage_engine)
-    dvc.repro(pull=False, glob=glob, force=force, storage_engine=storage_engine)
+        print(f"===========    Executing stage: {stage_summary} [{i+1}/{n_stages}]")
+        pipeline_manager.repro(command, storage_engine=storage_engine, force=force)
 
 
 def refresh_pipeline_config(
@@ -112,7 +83,7 @@ def status(
     fs = fs or StorageEngine.init()
 
     refresh_pipeline_config(work_space, fs)
-    return dvc.status(fs)
+    return pipeline_manager.status(fs)
 
 
 def load_heuristic_by_name(
@@ -129,3 +100,7 @@ def load_heuristic_by_name(
             if h.func.__name__ == name:
                 return h if not return_path else (h, heuristic_uri)
     raise ValueError(f"Heuristic {name} does not exist")
+
+
+def push():
+    pipeline_manager.Repo().push(remote="write")

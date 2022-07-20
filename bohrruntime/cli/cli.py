@@ -7,6 +7,7 @@ from bohrruntime import __version__, api, setup_loggers
 from bohrruntime.appconfig import add_to_local_config
 from bohrruntime.bohrconfig import load_workspace
 from bohrruntime.cli.porcelain.commands import porcelain
+from bohrruntime.cli.remote.commands import remote
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.logging import verbosity
 
@@ -23,6 +24,11 @@ def bohr():
 
 
 @bohr.command()
+def push():
+    api.push()
+
+
+@bohr.command()
 @click.argument("path")
 @click.option("-r", "--rev", help="Revision of BOHR with needed version of task config")
 def clone(
@@ -30,21 +36,6 @@ def clone(
     rev: Optional[str] = None,
 ):
     api.clone(path, rev)
-
-
-@bohr.command()
-@click.argument("task", required=False)
-@click.option("-f", "--force", is_flag=True, help="Force pipeline reproduction")
-@click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
-@click.option("--no-pull", is_flag=True, help="Do not pull from dvc remote")
-def run_pipeline(
-    task: Optional[str],
-    force: bool = False,
-    verbose: bool = False,
-    no_pull: bool = False,
-):
-    with verbosity(verbose):
-        api.run_pipeline(task, force, pull=not no_pull)
 
 
 @bohr.command()
@@ -73,10 +64,14 @@ def refresh(verbose: bool = False):
 @click.argument("key")
 @click.argument("value")
 def config(key: str, value: str):
-    add_to_local_config(key, value)
+    storage_engine = StorageEngine.init()
+    add_to_local_config(storage_engine.fs, key, value)
 
 
 bohr.add_command(porcelain)
+bohr.add_command(remote)
+
+# TODO bohr init - clone template repo.
 
 
 if __name__ == "__main__":

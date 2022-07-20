@@ -6562,7 +6562,7 @@ stages:
     cmd: bohr porcelain prepare-dataset "keywords_in_message_refactoring" "manual_labels.herzig"
     deps:
     - path: runs/refactoring/keywords_in_message_refactoring/label_model.pkl
-      md5: d8ea1718fb5fcdbb916452f3cbdf9604
+      md5: df8244e0e72d90916898947939d43e4e
       size: 336206
     - path: runs/refactoring/keywords_in_message_refactoring/manual_labels.herzig/heuristic_matrix.pkl
       md5: a3638300bce007ae9540813750fdc11c
@@ -6594,7 +6594,7 @@ stages:
     cmd: bohr porcelain prepare-dataset "keywords_in_message_refactoring" "manual_labels.berger"
     deps:
     - path: runs/refactoring/keywords_in_message_refactoring/label_model.pkl
-      md5: d8ea1718fb5fcdbb916452f3cbdf9604
+      md5: df8244e0e72d90916898947939d43e4e
       size: 336206
     - path: runs/refactoring/keywords_in_message_refactoring/manual_labels.berger/heuristic_matrix.pkl
       md5: 1a986bab4ce087ab14c267be3096cae7
@@ -6614,7 +6614,7 @@ stages:
       md5: 056763c6c702c4b91de13a34422ea774
       size: 294646844
     - path: runs/refactoring/keywords_in_message_refactoring/label_model.pkl
-      md5: d8ea1718fb5fcdbb916452f3cbdf9604
+      md5: df8244e0e72d90916898947939d43e4e
       size: 336206
     - path: runs/refactoring/keywords_in_message_refactoring/manual_labels.herzig/heuristic_matrix.pkl
       md5: a3638300bce007ae9540813750fdc11c
@@ -6690,7 +6690,7 @@ stages:
       md5: b6e9246825902031e000966872ca8f11
       size: 25964863
     - path: runs/refactoring/keywords_in_message_refactoring/label_model.pkl
-      md5: d8ea1718fb5fcdbb916452f3cbdf9604
+      md5: df8244e0e72d90916898947939d43e4e
       size: 336206
     - path: runs/refactoring/keywords_in_message_refactoring/manual_labels.berger/heuristic_matrix.pkl
       md5: 1a986bab4ce087ab14c267be3096cae7
@@ -6708,3 +6708,19 @@ stages:
     - path: runs/refactoring/keywords_in_message_refactoring/manual_labels.berger/metrics.txt
       md5: 754c98837af083ded0fd6c8ebcfee830
       size: 57
+  TrainMod:
+    cmd: bohr porcelain train-model keywords_in_message_refactoring
+    deps:
+    - path: runs/refactoring/keywords_in_message_refactoring/manual_labels.berger/heuristic_matrix.pkl
+      md5: 1a986bab4ce087ab14c267be3096cae7
+      size: 382679
+    params:
+      bohr.lock:
+        bohr_runtime_version: 0.7.0
+    outs:
+    - path: runs/refactoring/keywords_in_message_refactoring/label_model.pkl
+      md5: df8244e0e72d90916898947939d43e4e
+      size: 336206
+    - path: runs/refactoring/keywords_in_message_refactoring/label_model_weights.csv
+      md5: b409f125d480941ea2e62fdf4aee0e8f
+      size: 7074

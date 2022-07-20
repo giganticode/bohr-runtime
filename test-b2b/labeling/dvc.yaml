@@ -999,19 +999,7 @@ stages:
         dataset: manual_labels.herzig
         exp: keywords_in_message_refactoring
         task: refactoring
-  TrainModel__keywords_in_message:
-    always_changed: false
-    cmd: bohr porcelain train-model keywords_in_message
-    deps:
-    - runs/bugginess/keywords_in_message/manual_labels.berger/heuristic_matrix.pkl
-    metrics: []
-    outs:
-    - runs/bugginess/keywords_in_message/label_model.pkl
-    - runs/bugginess/keywords_in_message/label_model_weights.csv
-    params:
-    - bohr.lock:
-      - bohr_runtime_version
-  TrainModel__keywords_in_message_refactoring:
+  TrainMod:
     always_changed: false
     cmd: bohr porcelain train-model keywords_in_message_refactoring
     deps:

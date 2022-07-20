@@ -10,6 +10,31 @@ from bohrruntime.util.paths import AbsolutePath
 
 PathTemplate = NewType("PathTemplate", str)
 
+TEMPLATE_HEURISTIC = """# This is automatically generated code. Do not edit manually.
+
+from bohrapi.core import Heuristic
+from bohrlabels.core import OneOrManyLabels
+
+from bohrapi.artifacts import Commit
+from bohrlabels.labels import CommitLabel
+
+
+@Heuristic(Commit)
+def always_non_bubfix(commit: Commit) -> OneOrManyLabels:
+    return CommitLabel.NonBugFix
+"""
+
+
+def get_template_heuristic() -> str:
+    return TEMPLATE_HEURISTIC
+
+
+def add_template_heuristic(fs: FS, path: str) -> None:
+    dir = str(Path(path).parent)
+    fs.makedirs(dir)
+    with fs.open(path, "w") as f:
+        f.write(get_template_heuristic())
+
 
 @dataclass(frozen=True)
 class HeuristicURI:
@@ -17,7 +42,7 @@ class HeuristicURI:
     fs: FS
 
     def __str__(self):
-        raise ValueError()
+        return f"{self.fs}/{self.path}"
 
     def to_module(self) -> str:
         return ".".join(str(self.path).replace("/", ".").split(".")[:-1])

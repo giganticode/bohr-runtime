@@ -10,6 +10,7 @@ import pkg_resources
 from rich.logging import RichHandler
 
 # from bohrruntime.config.appconfig import AppConfig
+from bohrruntime.storageengine import StorageEngine
 
 FORMAT = "%(message)s"
 logging.basicConfig(
