@@ -191,7 +191,8 @@ class HeuristicLoader:
         heuristics: List[HeuristicObj] = []
         for name, obj in loaded_heuristics:
             if is_heuristic_of_needed_type(obj, artifact_type):
-                if name != (filename := heuristic_uri.path.name):
+                ext_len = len(".py")
+                if name != (filename := heuristic_uri.path.name[:-ext_len]):
                     raise ValueError(
                         f"For consistency, file and heuristic name must be the same.\n"
                         f"Hovewer, filename is {filename}, heuristic name is {name}."

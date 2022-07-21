@@ -16,7 +16,7 @@ class AppConfig:
     @staticmethod
     def load(fs: Optional[FS] = None) -> "AppConfig":
         fs = fs or create_fs()
-        with fs.open(".bohr/config", "rb") as f:
+        with fs.open(".bohr/local.config", "rb") as f:
             config_dict = ConfigObj(f).dict()
         try:
             verbose_str = config_dict["core"]["verbose"]
@@ -87,3 +87,4 @@ def set_remote_write_url(fs: FS, url: str):
 def set_remote_write_credentials(fs: FS, user: str, password: str):
     set_config_value(fs, ".dvc/config", f'remote "write"', "user", user)
     set_config_value(fs, ".dvc/config.local", f'remote "write"', "password", password)
+    # TODO gitignore config.local just in case?

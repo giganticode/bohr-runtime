@@ -3,7 +3,8 @@ from typing import Optional
 
 import click
 
-from bohrruntime import __version__, commands, setup_loggers
+import bohrruntime.commands as api
+from bohrruntime import __version__, setup_loggers
 from bohrruntime.appconfig import add_to_local_config
 from bohrruntime.bohrconfig import load_workspace
 from bohrruntime.cli.porcelain.commands import porcelain
