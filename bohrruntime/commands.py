@@ -7,8 +7,8 @@ from bohrapi.core import HeuristicObj
 from git import Repo
 
 import bohrruntime.dvcwrapper as pipeline_manager
-from bohrruntime.bohrconfig import load_workspace
-from bohrruntime.datamodel.workspace import Workspace
+from bohrruntime.bohrconfigparser import load_workspace
+from bohrruntime.datamodel.bohrconfig import BohrConfig
 from bohrruntime.heuristics import (
     FileSystemHeuristicLoader,
     HeuristicLoader,
@@ -39,7 +39,7 @@ def clone(url: str, revision: Optional[str] = None) -> None:
 
 def repro(
     force: bool = False,
-    workspace: Optional[Workspace] = None,
+    workspace: Optional[BohrConfig] = None,
     storage_engine: Optional[StorageEngine] = None,
 ):  # TODO pull here?
 
@@ -59,7 +59,7 @@ def repro(
 
 
 def refresh_pipeline_config(
-    workspace: Workspace, storage_engine: StorageEngine
+    workspace: BohrConfig, storage_engine: StorageEngine
 ) -> None:
     fetch_heuristics_if_needed(
         workspace.experiments[0].revision,
@@ -77,7 +77,7 @@ def refresh_pipeline_config(
 
 
 def status(
-    work_space: Optional[Workspace] = None, fs: Optional[StorageEngine] = None
+    work_space: Optional[BohrConfig] = None, fs: Optional[StorageEngine] = None
 ) -> str:
     work_space = work_space or load_workspace()
     fs = fs or StorageEngine.init()

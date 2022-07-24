@@ -6,7 +6,7 @@ import click
 import bohrruntime.commands as api
 from bohrruntime import __version__, setup_loggers
 from bohrruntime.appconfig import add_to_local_config
-from bohrruntime.bohrconfig import load_workspace
+from bohrruntime.bohrconfigparser import load_workspace
 from bohrruntime.cli.porcelain.commands import porcelain
 from bohrruntime.cli.remote.commands import remote
 from bohrruntime.storageengine import StorageEngine

@@ -10,7 +10,7 @@ DatapointList = Union[List[Artifact], List[Tuple[Artifact, Artifact]]]
 
 
 @dataclass(frozen=True)
-class Dataset(ABC):  # TODO change to ArtifactExplorerDataset
+class Dataset(ABC):
     id: str
     heuristic_input_artifact_type: ArtifactType
     query: Optional[Dict] = field(compare=False, default=None)

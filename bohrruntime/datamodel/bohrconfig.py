@@ -7,7 +7,7 @@ from bohrruntime.datamodel.task import Task
 
 
 @dataclass(frozen=True)
-class Workspace:
+class BohrConfig:
     bohr_runtime_version: str
     experiments: List[Experiment]
 

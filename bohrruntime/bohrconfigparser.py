@@ -9,10 +9,10 @@ from fs.base import FS
 from fs.errors import NoSysPath
 
 from bohrruntime import version
+from bohrruntime.datamodel.bohrconfig import BohrConfig
 from bohrruntime.datamodel.dataset import Dataset
 from bohrruntime.datamodel.experiment import Experiment
 from bohrruntime.datamodel.task import Task
-from bohrruntime.datamodel.workspace import Workspace
 from bohrruntime.tasktypes.grouping.core import GroupingTask
 from bohrruntime.tasktypes.grouping.dataset import GroupingDataset
 from bohrruntime.tasktypes.labeling.core import LabelingTask
@@ -55,15 +55,15 @@ def convert_proxy_to_task(
     return m[task_type](*args)
 
 
-def convert_proxies_to_real_objects(proxy_workspace: proxies.Workspace) -> Workspace:
+def convert_proxies_to_real_objects(proxy_workspace: proxies.Workspace) -> BohrConfig:
     """
     >>> from bohrruntime.testtools import get_stub_dataset, get_stub_task, get_stub_experiment
     >>> dataset = get_stub_dataset(name='dataset1')
     >>> task = get_stub_task(test_dataset=dataset)
     >>> experiment = get_stub_experiment(task)
-    >>> workspace = Workspace("0.6.0", [experiment])
+    >>> workspace = BohrConfig("0.6.0", [experiment])
     >>> convert_proxies_to_real_objects(workspace)
-    Workspace(bohr_runtime_version='0.6.0', experiments=[Experiment(name='stub-exp', task=LabelingTask(name='stub-task', author='stub-author', description='stub-description', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, test_datasets=frozendict.frozendict({Dataset(id='dataset1', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None, path=None): None}), labels=(['NonBugFix'], ['BugFix']), class_balance=None), train_dataset=Dataset(id='stub-test-dataset', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None, path=None), heuristics_classifier=None, extra_test_datasets=frozendict.frozendict({}))])
+    BohrConfig(bohr_runtime_version='0.6.0', experiments=[Experiment(name='stub-exp', task=LabelingTask(name='stub-task', author='stub-author', description='stub-description', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, test_datasets=frozendict.frozendict({Dataset(id='dataset1', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None, path=None): None}), labels=(['NonBugFix'], ['BugFix']), class_balance=None), train_dataset=Dataset(id='stub-test-dataset', heuristic_input_artifact_type=<class 'bohrruntime.testtools.StubArtifact'>, query=None, projection=None, n_datapoints=None, path=None), heuristics_classifier=None, extra_test_datasets=frozendict.frozendict({}))])
     """
     task_proxies: Dict[str, Task] = {}
     dataset_proxies: Dict[str, Dataset] = {}
@@ -105,10 +105,10 @@ def convert_proxies_to_real_objects(proxy_workspace: proxies.Workspace) -> Works
             )
         )
 
-    return Workspace(proxy_workspace.bohr_runtime_version, experiments)
+    return BohrConfig(proxy_workspace.bohr_runtime_version, experiments)
 
 
-def load_workspace(fs: Optional[FS] = None) -> Workspace:
+def load_workspace(fs: Optional[FS] = None) -> BohrConfig:
     """
     >>> from fs.memoryfs import MemoryFS
     >>> fs = MemoryFS()
@@ -119,7 +119,7 @@ def load_workspace(fs: Optional[FS] = None) -> Workspace:
     ValueError: Object of type Workspace not found in bohr.py
     >>> fs.writetext('bohr.py', 'from bohrapi.core import Workspace; w=Workspace("0.7.0", [])')
     >>> load_workspace(fs)
-    Workspace(bohr_runtime_version='0.7.0', experiments=[])
+    BohrConfig(bohr_runtime_version='0.7.0', experiments=[])
     """
     fs = fs or create_fs()
     try:

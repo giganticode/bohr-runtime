@@ -3,7 +3,7 @@ from typing import Optional
 import click
 
 from bohrruntime import setup_loggers
-from bohrruntime.bohrconfig import load_workspace
+from bohrruntime.bohrconfigparser import load_workspace
 from bohrruntime.datamodel.experiment import SynteticExperiment
 from bohrruntime.heuristics import HeuristicURI
 from bohrruntime.storageengine import StorageEngine

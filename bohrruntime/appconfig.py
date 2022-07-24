@@ -16,7 +16,10 @@ class AppConfig:
     @staticmethod
     def load(fs: Optional[FS] = None) -> "AppConfig":
         fs = fs or create_fs()
-        with fs.open(".bohr/local.config", "rb") as f:
+        with fs.open(
+            ".bohr/config",
+            "rb",
+        ) as f:
             config_dict = ConfigObj(f).dict()
         try:
             verbose_str = config_dict["core"]["verbose"]

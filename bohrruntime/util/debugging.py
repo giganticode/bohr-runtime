@@ -15,7 +15,7 @@ from git import Repo
 from tabulate import tabulate
 
 from bohrruntime import appauthor, appname, version
-from bohrruntime.bohrconfig import load_workspace
+from bohrruntime.bohrconfigparser import load_workspace
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.paths import AbsolutePath
 
