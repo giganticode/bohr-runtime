@@ -30,3 +30,7 @@ Getting started with development
 #. Inside the repository, run ``poetry install``. This will create a virtual environment and install the dependencies.
 #. To run python interpreter within the virtual environment, use ``poetry run ...``
 #. For example, to run the tests, execute: ``poetry run pytest --doctest-modules --ignore=test-b2b``
+
+Continious integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CI runs unit-tests and integration tests (two tiny scenarios). Data for the integration tests is downloaded from the unibz squirrel server using DVC via http: http://squirrel.inf.unibz.it:8180. Storage location on the server is ``/data/bohr_dvc_storage``. CI has read-only access to the data.
