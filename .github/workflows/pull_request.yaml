@@ -2,55 +2,55 @@ name: pull_request
 on: [pull_request]
 jobs:
   b2b-tests:
-    runs-on: self-hosted
-    defaults:
-      run:
-        shell: bash -lieo pipefail {0}
-        working-directory: /usr/src/bohr-runtime
-    container: giganticode/bohr-cml-base:latest
+    runs-on: ubuntu-latest
     env:
       repo_token: ${{ secrets.GITHUB_TOKEN }}
-      DVC_IRONSPEED_USERNAME: ${{ secrets.DVC_IRONSPEED_USERNAME }}
-      DVC_IRONSPEED_PASSWORD: ${{ secrets.DVC_IRONSPEED_PASSWORD }}
       PYTHONPATH: /usr/src/bohr-runtime:/usr/src/bohr-runtime/test-b2b/labeling
-      HOME: /root
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     steps:
-      - name: update-base-ref
-        run: |
-          git checkout $GITHUB_BASE_REF
-          git pull
-      - name: checkout-pull-request
-        run: |
-          PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
-          git fetch origin +pull/$PR_NUMBER/head:pr/$PR_NUMBER
-          git checkout pr/$PR_NUMBER
+      - name: Checkout
+        uses: actions/checkout@v2 # Required to mount the Github Workspace to a volume
+        with:
+          fetch-depth: 0
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: build-image
-        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD && bash bin/update-docker.sh "origin/$GITHUB_BASE_REF"
+        run:  echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin && bash bin/update-docker.sh "origin/$GITHUB_BASE_REF"
+      - uses: addnab/docker-run-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: hub.docker.com
+          image: giganticode/bohr-cml-base:latest
+          options: -v ${{ github.workspace }}:/work -e ABC=123
+          run: |
+            echo "Running Script"
+            pwd
+            ls
+            git branch
       - name: install-dependencies
-        run: |
-          /root/.poetry/bin/poetry env info
-          /root/.poetry/bin/poetry run pip install Cython==0.29.23
-          export SKLEARN_NO_OPENMP=1 && /root/.poetry/bin/poetry install
-          /root/.poetry/bin/poetry run bohr -h
+        uses: addnab/docker-run-action@v3
+        with:
+          image: giganticode/bohr-cml-base:latest
+          run: |          
+            /root/.poetry/bin/poetry env info
+            /root/.poetry/bin/poetry run pip install Cython==0.29.23
+            export SKLEARN_NO_OPENMP=1 && /root/.poetry/bin/poetry install
+            /root/.poetry/bin/poetry run bohr -h
       - name: unit-tests
-        run: /root/.poetry/bin/poetry run pytest --doctest-modules --ignore=test-b2b
-      - name: setup-dvc
-        run: |
-          /root/.poetry/bin/poetry run dvc --version
-          cd /usr/src/bohr-runtime/test-b2b/labeling
-          /root/.poetry/bin/poetry run dvc remote modify --local ironspeed-test user $DVC_IRONSPEED_USERNAME
-          /root/.poetry/bin/poetry run dvc remote modify --local ironspeed-test password $DVC_IRONSPEED_PASSWORD
-          /root/.poetry/bin/poetry run dvc config core.check_update false
+        uses: addnab/docker-run-action@v3
+        with:
+          ssh: |
+            default=${{ env.SSH_AUTH_SOCK }}
+          image: giganticode/bohr-cml-base:latest
+          run: /root/.poetry/bin/poetry run pytest --doctest-modules --ignore=test-b2b
       - name: reproduce-bugginess
-        run: |
-          cd /usr/src/bohr-runtime/test-b2b/labeling
-          /root/.poetry/bin/poetry run bohr config paths.software_path /usr/src/tools
-          /root/.poetry/bin/poetry run bohr config core.verbose false
-          /root/.poetry/bin/poetry run bohr status
-          /root/.poetry/bin/poetry run bohr repro bugginess-1k
-          /root/.poetry/bin/poetry run bohr pull -v bugginess-1k berger
+        uses: addnab/docker-run-action@v3
+        with:
+          image: giganticode/bohr-cml-base:latest
+          run: |
+            cd /usr/src/bohr-runtime/test-b2b/labeling
+            /root/.poetry/bin/poetry run bohr repro bugginess
       - name: report-metrics
         run: |
           git fetch --prune
@@ -59,7 +59,4 @@ jobs:
           [ -z "$(/root/.poetry/bin/poetry run dvc metrics diff master)" ]
       - name: cli-commands
         run: |
-          cd /usr/src/bohr-runtime/test-b2b/labeling
-          touch /usr/src/new_dataset.csv
-          /root/.poetry/bin/poetry run bohr dataset add /usr/src/new_dataset.csv -t commit
-          /root/.poetry/bin/poetry run bohr task add sample-task -d desc -t commit -l TangledCommit.NonTangled,TangledCommit.Tangled -c bug --force --use-all-datasets
+          echo "TODO: consider adding testing some cli commands here ?"
