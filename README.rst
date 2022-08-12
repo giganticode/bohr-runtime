@@ -29,4 +29,4 @@ Getting started with development
 #. Clone the repository.
 #. Inside the repository, run ``poetry install``. This will create a virtual environment and install the dependencies.
 #. To run python interpreter within the virtual environment, use ``poetry run ...``
-#. For example, to run the tests, execute: ``poetry run pytest --doctest-modules``
+#. For example, to run the tests, execute: ``poetry run pytest --doctest-modules --ignore=test-b2b``
