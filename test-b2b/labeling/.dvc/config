@@ -1,7 +1,8 @@
 [core]
     check_update = false
+    remote = read
 ['remote "read"']
-    url = ssh://10.10.20.160/home/hbabii/.dvcstorage/bohr-test
+    url = http://squirrel.inf.unibz.it:8180
 ['remote "write"']
-    url = ssh://10.10.20.160/home/hbabii/.dvcstorage/bohr-test
+    url = ssh://squirrel.inf.unibz.it/data/bohr_dvc_storage
     user = hbabii
