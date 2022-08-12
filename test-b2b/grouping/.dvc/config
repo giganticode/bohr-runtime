@@ -1,5 +1,8 @@
 [core]
     check_update = false
-    remote = ironspeed-test
-['remote "ironspeed-test"']
-    url = ssh://10.10.20.160/home/hbabii/.dvcstorage/bohr-test
+    remote = read
+['remote "read"']
+    url = http://squirrel.inf.unibz.it:8180
+['remote "write"']
+    url = ssh://squirrel.inf.unibz.it/data/bohr_dvc_storage
+    user = hbabii
