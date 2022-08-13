@@ -6,7 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/test-b2b/grouping" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test-b2b/labeling" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.8 (bohr-runtime-QEQIEtu6-py3.8)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.8 (bohr-runtime-fou0YokB-py3.8)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="bohr-api" />
     <orderEntry type="module" module-name="bohr-labels" />
