@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-WORKDIR /usr/src/bohr-framework
+WORKDIR /usr/src/bohr-runtime
 
 MAINTAINER hlib <hlibbabii@gmail.com>
 
@@ -37,13 +37,12 @@ RUN apt-get install -y nodejs
 RUN node -v
 RUN npm -v
 
-#RUN npm install -g vega-cli vega-lite
 RUN npm i -g @dvcorg/cml
 
 RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 RUN /root/.pyenv/bin/pyenv install 3.8.0
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | /root/.pyenv/versions/3.8.0/bin/python -
 RUN /root/.poetry/bin/poetry --version
 
 COPY . .
