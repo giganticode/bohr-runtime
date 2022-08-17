@@ -1,7 +1,7 @@
 name: pull_request
 on: [pull_request]
 jobs:
-  b2b-tests:
+  build-docker-image:
     runs-on: ubuntu-latest
     env:
       repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -10,22 +10,16 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@master
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
       - name: Checkout
         uses: actions/checkout@v2 # Required to mount the Github Workspace to a volume
         with:
           fetch-depth: 0
-      - name: Login to DockerHub
+      - name: Login to ghcr
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
@@ -34,49 +28,46 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: giganticode/bohr-cml-base:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          tags: ghcr.io/giganticode/bohr-cml-base:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  run-tests:
+    needs: build-docker-image
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/giganticode/bohr-cml-base:latest
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        PYTHONPATH: /usr/src/bohr-runtime:/usr/src/bohr-runtime/test-b2b/labeling
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: test
+        run: |
+          ls -la /__w/bohr-runtime/bohr-runtime/
+          ls /__w/bohr-runtime/bohr-runtime/.git
       - uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - uses: addnab/docker-run-action@v3
-        with:
-          registry: hub.docker.com
-          image: giganticode/bohr-cml-base:latest
-          options: -v ${{ github.workspace }}:/work -e ABC=123
-          run: |
-            echo "Running Script"
-            pwd
-            ls
-            git branch
       - name: install-dependencies
-        uses: addnab/docker-run-action@v3
-        with:
-          image: giganticode/bohr-cml-base:latest
-          run: |          
-            /root/.poetry/bin/poetry env info
-            /root/.poetry/bin/poetry run pip install Cython==0.29.23
-            export SKLEARN_NO_OPENMP=1 && /root/.poetry/bin/poetry install
-            /root/.poetry/bin/poetry run bohr -h
+        run: |  
+          /root/.poetry/bin/poetry env use /root/.pyenv/versions/3.8.0/bin/python
+          /root/.poetry/bin/poetry env info
+          /root/.poetry/bin/poetry run pip install Cython==0.29.23
+          export SKLEARN_NO_OPENMP=1 && /root/.poetry/bin/poetry install
+          /root/.poetry/bin/poetry run bohr -h
       - name: unit-tests
-        uses: addnab/docker-run-action@v3
-        with:
-          ssh: |
-            default=${{ env.SSH_AUTH_SOCK }}
-          image: giganticode/bohr-cml-base:latest
-          run: /root/.poetry/bin/poetry run pytest --doctest-modules --ignore=test-b2b
+        run: /root/.poetry/bin/poetry run pytest --doctest-modules --ignore=test-b2b
       - name: reproduce-bugginess
-        uses: addnab/docker-run-action@v3
-        with:
-          image: giganticode/bohr-cml-base:latest
-          run: |
-            cd /usr/src/bohr-runtime/test-b2b/labeling
-            /root/.poetry/bin/poetry run bohr repro bugginess
+        run: |
+          cd test-b2b/labeling
+          /root/.poetry/bin/poetry run bohr repro
       - name: report-metrics
         run: |
           git fetch --prune
-          cd /usr/src/bohr-runtime/test-b2b/labeling
+          cd test-b2b/labeling
           /root/.poetry/bin/poetry run dvc metrics diff master
           [ -z "$(/root/.poetry/bin/poetry run dvc metrics diff master)" ]
       - name: cli-commands
