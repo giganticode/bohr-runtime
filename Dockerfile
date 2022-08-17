@@ -45,7 +45,8 @@ RUN /root/.pyenv/bin/pyenv install 3.8.0
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | /root/.pyenv/versions/3.8.0/bin/python -
 RUN /root/.poetry/bin/poetry --version
 
-COPY . .
+COPY pyproject.toml pyproject.toml
+COPY poetry.lock poetry.lock
 
 RUN curl -fsSL https://get.docker.com -o get-docker.sh
 RUN sh get-docker.sh
@@ -54,7 +55,7 @@ RUN docker --version
 RUN $HOME/.poetry/bin/poetry env use /root/.pyenv/versions/3.8.0/bin/python
 RUN $HOME/.poetry/bin/poetry env info
 RUN $HOME/.poetry/bin/poetry run pip install Cython==0.29.23
-RUN $HOME/.poetry/bin/poetry install
+RUN $HOME/.poetry/bin/poetry install --no-root
 
 RUN echo "echo \"image built on $(date)\"" >> /etc/profile
 
