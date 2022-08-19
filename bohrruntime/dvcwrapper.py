@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Union
 
 from dvc.exceptions import ReproductionError
 from dvc.repo import Repo
+from dvc.scm import SCMError
 from tqdm import tqdm
 
 from bohrruntime.pipeline import MultiStage, Stage
@@ -56,7 +57,10 @@ def repro(
 ) -> None:
     if not storage_engine.fs.exists(".dvc"):
         init_dvc(storage_engine)
-    dvc_repo = Repo()
+    try:
+        dvc_repo = Repo()
+    except SCMError:
+        dvc_repo = Repo(scm=False)
 
     substages = (
         stages.get_stage_names()
