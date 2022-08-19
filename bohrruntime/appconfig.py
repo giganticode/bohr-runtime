@@ -3,6 +3,7 @@ from typing import Optional
 
 from configobj import ConfigObj
 from fs.base import FS
+from fs.errors import ResourceNotFound
 
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.paths import create_fs
@@ -16,11 +17,14 @@ class AppConfig:
     @staticmethod
     def load(fs: Optional[FS] = None) -> "AppConfig":
         fs = fs or create_fs()
-        with fs.open(
-            ".bohr/config",
-            "rb",
-        ) as f:
-            config_dict = ConfigObj(f).dict()
+        try:
+            with fs.open(
+                ".bohr/config",
+                "rb",
+            ) as f:
+                config_dict = ConfigObj(f).dict()
+        except ResourceNotFound:
+            config_dict = {}
         try:
             verbose_str = config_dict["core"]["verbose"]
             verbose = verbose_str == "true" or verbose_str == "True"
