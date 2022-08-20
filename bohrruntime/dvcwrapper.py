@@ -50,13 +50,14 @@ class ReproError(Exception):
 
 def repro(
     stages: Union[List[Stage], MultiStage],
-    pull: bool = False,
     force: bool = False,
     storage_engine: StorageEngine = None,
 ) -> None:
     if not storage_engine.fs.exists(".dvc"):
         init_dvc(storage_engine)
     dvc_repo = Repo()
+    if not force:
+        dvc_repo.pull()
 
     substages = (
         stages.get_stage_names()
