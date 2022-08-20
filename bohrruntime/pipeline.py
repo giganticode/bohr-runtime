@@ -132,7 +132,7 @@ class Stage(ABC):
         return self.stage_name()
 
     def stage_name(self) -> str:
-        return type(self).__name__[: -len("Command")]
+        return type(self).__name__[: -len("Stage")]
 
     def n_stages(self) -> int:
         return 1
@@ -218,7 +218,7 @@ class MultiStage(Stage):
         }
 
 
-class LoadDatasetsCommand(MultiStage):
+class LoadDatasetsStage(MultiStage):
     def execute(self) -> None:
         for dataset in self.get_iterating_over():
             load_dataset(dataset, self.storage_engine)
@@ -250,7 +250,7 @@ class LoadDatasetsCommand(MultiStage):
         return False
 
 
-class ApplyHeuristicsCommand(MultiStage):
+class ApplyHeuristicsStage(MultiStage):
     def execute(self) -> None:
         for dataset, heuristic_group in self.get_iterating_over():
             apply_heuristics_to_dataset(
@@ -348,7 +348,7 @@ class ComputeSingleHeuristicMetricsStage(Stage):
         return outputs
 
 
-class FetchMultipleHeuristicOutputsCommand(MultiStage):
+class FetchMultipleHeuristicOutputsStage(MultiStage):
     def execute(self) -> None:
         for experiment, dataset in self.get_iterating_over():
             combine_applied_heuristics(experiment, dataset, self.storage_engine)
@@ -373,7 +373,7 @@ class FetchMultipleHeuristicOutputsCommand(MultiStage):
         return outs
 
 
-class CalculateMetricsCommand(MultiStage):
+class CalculateMetricsStage(MultiStage):
     def execute(self) -> None:
         for experiment, dataset in self.get_iterating_over():
             calculate_experiment_metrics(experiment, dataset, self.storage_engine)
@@ -417,7 +417,7 @@ class CalculateMetricsCommand(MultiStage):
         return outs
 
 
-class ComputePredefinedModelMetricsCommand(MultiStage):
+class ComputePredefinedModelMetricsStage(MultiStage):
     def execute(self) -> None:
         for task, dataset in self.get_iterating_over():
             exp = SynteticExperiment("random_model", task, type="random")
@@ -467,12 +467,12 @@ class ComputePredefinedModelMetricsCommand(MultiStage):
         )
 
 
-class ComputeRandomModelMetricsCommand(ComputePredefinedModelMetricsCommand):
+class ComputeRandomModelMetricsStage(ComputePredefinedModelMetricsStage):
     def get_model_type(self) -> str:
         return "random"
 
 
-class ComputeZeroModelMetricsCommand(ComputePredefinedModelMetricsCommand):
+class ComputeZeroModelMetricsStage(ComputePredefinedModelMetricsStage):
     def get_model_type(self) -> str:
         return "zero"
 
@@ -503,7 +503,7 @@ class TrainModelStage(Stage):
         return outs
 
 
-class PrepareDatasetCommand(MultiStage):
+class PrepareDatasetStage(MultiStage):
     def execute(self) -> None:
         for experiment, dataset in tqdm(self.get_iterating_over()):
             prepare_dataset(experiment, dataset, self.storage_engine)
@@ -555,23 +555,23 @@ def get_stages_list(
     )
 
     stages: List[Union[MultiStage, List[Stage]]] = [
-        LoadDatasetsCommand(storage_engine, workspace),
-        ApplyHeuristicsCommand(storage_engine, workspace),
+        LoadDatasetsStage(storage_engine, workspace),
+        ApplyHeuristicsStage(storage_engine, workspace),
         [
             ComputeSingleHeuristicMetricsStage(storage_engine, task)
             for task in all_tasks
         ],
-        FetchMultipleHeuristicOutputsCommand(storage_engine, workspace),
+        FetchMultipleHeuristicOutputsStage(storage_engine, workspace),
         [
             TrainModelStage(storage_engine, exp)
             for exp in sorted(workspace.experiments, key=lambda x: x.name)
         ],
-        PrepareDatasetCommand(storage_engine, workspace),
-        ComputeRandomModelMetricsCommand(storage_engine, workspace),
-        ComputeZeroModelMetricsCommand(
+        PrepareDatasetStage(storage_engine, workspace),
+        ComputeRandomModelMetricsStage(storage_engine, workspace),
+        ComputeZeroModelMetricsStage(
             storage_engine, workspace
         ),  # TODO compute zero and random metric could be one stage (baselines?)
-        CalculateMetricsCommand(storage_engine, workspace),
+        CalculateMetricsStage(storage_engine, workspace),
     ]
     return stages
 
@@ -591,7 +591,7 @@ def dvc_config_from_tasks(stages: List[Stage]) -> Dict:
     >>> from bohrruntime import bohr_framework_root
     >>> storage_engine = get_stub_storage_engine()
     >>> workspace = BohrConfig('0.x.x', [Experiment('exp', task, train, 'bugginess/conventional_commit_regex')])
-    >>> stages = [LoadDatasetsCommand(storage_engine, workspace), ApplyHeuristicsCommand(storage_engine, workspace)]
+    >>> stages = [LoadDatasetsStage(storage_engine, workspace), ApplyHeuristicsCommand(storage_engine, workspace)]
     >>> dvc_config_from_tasks(stages)
     {'stages': {'LoadDatasets': {'foreach': ['id.test', 'id.train'], 'do': {'cmd': 'bohr porcelain load-dataset "${item}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': [], 'outs': ['cached-datasets/${item}.jsonl', {'cached-datasets/${item}.jsonl.metadata.json': {'cache': False}}], 'metrics': [], 'always_changed': False}}, 'ApplyHeuristics': {'foreach': {'id.test__/heuristic1': {'dataset': 'id.test', 'heuristic_group': '/heuristic1'}, 'id.test__/heuristic2': {'dataset': 'id.test', 'heuristic_group': '/heuristic2'}, 'id.train__/heuristic1': {'dataset': 'id.train', 'heuristic_group': '/heuristic1'}, 'id.train__/heuristic2': {'dataset': 'id.train', 'heuristic_group': '/heuristic2'}}, 'do': {'cmd': 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cloned-bohr/heuristics/${item.heuristic_group}', 'cached-datasets/${item.dataset}.jsonl'], 'outs': ['runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl'], 'metrics': [], 'always_changed': False}}}}
     """
