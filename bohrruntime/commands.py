@@ -49,6 +49,8 @@ def repro(
     refresh_pipeline_config(workspace, storage_engine)
     stage = get_stages_list(workspace, storage_engine)
     n_stages = len(stage)
+    if force:
+        print("Forcing reproduction of all sub-stages ... ")
     for i, command in enumerate(stage):
         stage_summary = (
             command.stage_name()

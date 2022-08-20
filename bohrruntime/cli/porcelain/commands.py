@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Optional
 
 import click
@@ -48,7 +49,7 @@ def apply_heuristics(
         heuristic_applier = workspace.experiments[0].task.get_heuristic_applier()
         apply_heuristics_to_dataset(
             heuristic_applier,
-            HeuristicURI(heuristic_group, fs.heuristics_subfs()),
+            HeuristicURI(Path(heuristic_group), fs.heuristics_subfs()),
             dataset,
             fs,
         )

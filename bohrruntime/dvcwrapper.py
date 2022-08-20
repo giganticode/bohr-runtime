@@ -57,23 +57,23 @@ def repro(
     if not storage_engine.fs.exists(".dvc"):
         init_dvc(storage_engine)
     dvc_repo = Repo()
-    if not force and not no_pull:
-        try:
-            dvc_repo.pull()
-        except CheckoutError:
-            pass
-
     substages = (
         stages.get_stage_names()
         if isinstance(stages, MultiStage)
         else [stage.stage_name() for stage in stages]
     )
+    if not force and not no_pull:
+        try:
+            dvc_repo.pull(substages)
+        except CheckoutError:
+            pass
+
     if not force:
         if len(substages) > 30:
             print("Checking if any stages need to be recomputed ...")
         dvc_status = dvc_repo.status(targets=substages)
         if len(dvc_status) > 0:
-            print(f"Reproducing {len(dvc_status)} out of {len(substages)} stages.")
+            print(f"Reproducing {len(dvc_status)} out of {len(substages)} sub-stages.")
             if len(dvc_status) < 5:
                 reason = parse_status(dvc_status)
                 pprint(f"Reason:\n {reason}")
@@ -81,7 +81,6 @@ def repro(
             print("All outputs are cached.")
         substages_to_rerun = dvc_status.keys()
     else:
-        print("Forcing reproduction of all stages ... ")
         substages_to_rerun = substages
     failed_stages = []
     for substage in tqdm(substages_to_rerun):
