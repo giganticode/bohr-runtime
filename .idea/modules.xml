@@ -6,8 +6,6 @@
       <module fileurl="file://$PROJECT_DIR$/../bohr-api/.idea/bohr-api.iml" filepath="$PROJECT_DIR$/../bohr-api/.idea/bohr-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/../bohr-labels/.idea/bohr-labels.iml" filepath="$PROJECT_DIR$/../bohr-labels/.idea/bohr-labels.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/bohr-runtime.iml" filepath="$PROJECT_DIR$/.idea/bohr-runtime.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../bohr-workdir-bugginess/.idea/bohr-workdir-bugginess.iml" filepath="$PROJECT_DIR$/../bohr-workdir-bugginess/.idea/bohr-workdir-bugginess.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../bohr-workdir-tangling/.idea/bohr-workdir-tangling.iml" filepath="$PROJECT_DIR$/../bohr-workdir-tangling/.idea/bohr-workdir-tangling.iml" />
     </modules>
   </component>
 </project>

@@ -2,14 +2,8 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/../bohr" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../bohr-api" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../bohr-labels" vcs="Git" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/test-b2b/clone-test/bohr" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/test-b2b/grouping/cloned-bohr" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/test-b2b/labeling/cloned-bohr" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/test-b2b/scenario1/cloned-bohr" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/test-b2b/scenario2/cloned-bohr" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/test-b2b/scenario3/cloned-bohr" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../bohr-workdir-bugginess" vcs="Git" />
   </component>
 </project>
