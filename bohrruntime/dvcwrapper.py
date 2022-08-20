@@ -3,7 +3,7 @@ import subprocess
 from pprint import pprint
 from typing import Dict, List, Optional, Union
 
-from dvc.exceptions import ReproductionError
+from dvc.exceptions import ReproductionError, CheckoutError
 from dvc.repo import Repo
 from tqdm import tqdm
 
@@ -51,32 +51,40 @@ class ReproError(Exception):
 def repro(
     stages: Union[List[Stage], MultiStage],
     force: bool = False,
+    no_pull: bool = False,
     storage_engine: StorageEngine = None,
 ) -> None:
     if not storage_engine.fs.exists(".dvc"):
         init_dvc(storage_engine)
     dvc_repo = Repo()
-    if not force:
-        dvc_repo.pull()
+    if not force and not no_pull:
+        try:
+            dvc_repo.pull()
+        except CheckoutError:
+            pass
 
     substages = (
         stages.get_stage_names()
         if isinstance(stages, MultiStage)
         else [stage.stage_name() for stage in stages]
     )
-    if len(substages) > 30:
-        print("Checking if any stages need to be recomputed ...")
-    dvc_status = dvc_repo.status(targets=substages)
-    if len(dvc_status) > 0:
-        print(f"Reproducing {len(dvc_status)} out of {len(substages)} stages.")
-        if len(dvc_status) < 5:
-            reason = parse_status(dvc_status)
-            pprint(f"Reason:\n {reason}")
+    if not force:
+        if len(substages) > 30:
+            print("Checking if any stages need to be recomputed ...")
+        dvc_status = dvc_repo.status(targets=substages)
+        if len(dvc_status) > 0:
+            print(f"Reproducing {len(dvc_status)} out of {len(substages)} stages.")
+            if len(dvc_status) < 5:
+                reason = parse_status(dvc_status)
+                pprint(f"Reason:\n {reason}")
+        else:
+            print("All outputs are cached.")
+        substages_to_rerun = dvc_status.keys()
     else:
-        print("All outputs are cached.")
-    substages = dvc_status.keys()
+        print("Forcing reproduction of all stages ... ")
+        substages_to_rerun = substages
     failed_stages = []
-    for substage in tqdm(substages):
+    for substage in tqdm(substages_to_rerun):
         try:
             dvc_repo.reproduce(substage, force=True, single_item=True)
         except ReproductionError:

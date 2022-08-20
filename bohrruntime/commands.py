@@ -39,9 +39,10 @@ def clone(url: str, revision: Optional[str] = None) -> None:
 
 def repro(
     force: bool = False,
+    no_pull: bool = False,
     workspace: Optional[BohrConfig] = None,
     storage_engine: Optional[StorageEngine] = None,
-):  # TODO pull here?
+):
 
     storage_engine = storage_engine or StorageEngine.init()
     workspace = workspace or load_workspace()
@@ -55,7 +56,7 @@ def repro(
             else stage[0].stage_name()
         )
         print(f"===========    Executing stage: {stage_summary} [{i+1}/{n_stages}]")
-        pipeline_manager.repro(command, storage_engine=storage_engine, force=force)
+        pipeline_manager.repro(command, storage_engine=storage_engine, force=force, no_pull=no_pull)
 
 
 def refresh_pipeline_config(

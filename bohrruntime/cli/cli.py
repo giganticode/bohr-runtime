@@ -41,10 +41,11 @@ def clone(
 
 @bohr.command()
 @click.option("-f", "--force", is_flag=True, help="Force pipeline reproduction")
+@click.option("-P", "--no-pull", is_flag=True, help="Do not pull from remote storage")
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
-def repro(force: bool = False, verbose: bool = False):
+def repro(force: bool = False, no_pull: bool = False, verbose: bool = False):
     with verbosity(verbose):
-        api.repro(force=force)
+        api.repro(force=force, no_pull=no_pull)
 
 
 @bohr.command()
