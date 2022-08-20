@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 WORKDIR /usr/src/bohr-runtime
 
@@ -27,11 +27,10 @@ RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
     libssl-dev \
     openssl \
-    p7zip-full \
-    python-openssl
+    p7zip-full
 
 #cml
-RUN curl -sL https://deb.nodesource.com/setup_15.x | bash
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash
 RUN apt-get update
 RUN apt-get install -y nodejs
 RUN node -v
