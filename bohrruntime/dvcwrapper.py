@@ -1,7 +1,7 @@
 import logging
 import subprocess
 from pprint import pprint
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import yaml
 from dvc.exceptions import ReproductionError, CheckoutError
@@ -13,7 +13,7 @@ from bohrruntime.datamodel.bohrconfig import BohrConfig
 from bohrruntime.datamodel.dataset import Dataset
 from bohrruntime.datamodel.experiment import Experiment
 
-from bohrruntime.pipeline import TemplateStage, Substage, LoadDatasetsStage, Stage, CompoundStage
+from bohrruntime.pipeline import Stage, CompoundStage
 from bohrruntime.storageengine import StorageEngine
 
 logger = logging.getLogger(__name__)
@@ -113,6 +113,7 @@ def dvc_config_from_tasks(stages: List[Stage]) -> Dict:
     >>> from enum import auto
     >>> from bohrruntime.tasktypes.labeling.core import LabelingTask
     >>> from bohrruntime.testtools import get_stub_storage_engine
+    >>> from bohrruntime.pipeline import LoadDatasetsStage, ApplyHeuristicsStage
     >>> class TestLabel(Label): Yes = auto(); No = auto()
     >>> train = Dataset("id.train", Commit)
     >>> test = Dataset("id.test", Commit)
