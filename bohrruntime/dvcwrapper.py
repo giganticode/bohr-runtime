@@ -13,7 +13,7 @@ from bohrruntime.datamodel.bohrconfig import BohrConfig
 from bohrruntime.datamodel.dataset import Dataset
 from bohrruntime.datamodel.experiment import Experiment
 
-from bohrruntime.pipeline import MultiStage, Stage, LoadDatasetsStage
+from bohrruntime.pipeline import TemplateStage, Substage, LoadDatasetsStage, Stage, CompoundStage
 from bohrruntime.storageengine import StorageEngine
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class ReproError(Exception):
 
 
 def repro(
-    stages: Union[List[Stage], MultiStage],
+    stage: Stage,
     force: bool = False,
     no_pull: bool = False,
     storage_engine: StorageEngine = None,
@@ -69,11 +69,7 @@ def repro(
     if not storage_engine.fs.exists(".dvc"):
         init_dvc(storage_engine)
     dvc_repo = Repo()
-    substages = (
-        stages.get_stage_names()
-        if isinstance(stages, MultiStage)
-        else [stage.stage_name() for stage in stages]
-    )
+    substages = stage.get_substage_names()
     if not force and not no_pull:
         try:
             dvc_repo.pull(substages)
@@ -104,13 +100,13 @@ def repro(
         raise ReproError(f"Substages failed to be reproduced:\n {failed_stages}")
 
 
-def save_stages_to_pipeline_config(stages: List[Union[MultiStage, List[Stage]]], storage_engine: StorageEngine):
+def save_stages_to_pipeline_config(stages: List[Stage], storage_engine: StorageEngine):
     dvc_config = dvc_config_from_tasks(stages)
     with storage_engine.fs.open("dvc.yaml", "w") as f:
         f.write(yaml.dump(dvc_config))
 
 
-def dvc_config_from_tasks(stages: List[Union[MultiStage, List[Stage]]]) -> Dict:
+def dvc_config_from_tasks(stages: List[Stage]) -> Dict:
     """
     >>> from bohrlabels.core import Label, LabelSet
     >>> from bohrlabels.labels import MatchLabel
@@ -125,13 +121,13 @@ def dvc_config_from_tasks(stages: List[Union[MultiStage, List[Stage]]]) -> Dict:
     >>> from bohrruntime import bohr_framework_root
     >>> storage_engine = get_stub_storage_engine()
     >>> workspace = BohrConfig('0.x.x', [Experiment('exp', task, train, 'bugginess/conventional_commit_regex')])
-    >>> stages = [LoadDatasetsStage(storage_engine, workspace), ApplyHeuristicsCommand(storage_engine, workspace)]
+    >>> stages = [LoadDatasetsStage(storage_engine, workspace), ApplyHeuristicsStage(storage_engine, workspace)]
     >>> dvc_config_from_tasks(stages)
     {'stages': {'LoadDatasets': {'foreach': ['id.test', 'id.train'], 'do': {'cmd': 'bohr porcelain load-dataset "${item}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': [], 'outs': ['cached-datasets/${item}.jsonl', {'cached-datasets/${item}.jsonl.metadata.json': {'cache': False}}], 'metrics': [], 'always_changed': False}}, 'ApplyHeuristics': {'foreach': {'id.test__/heuristic1': {'dataset': 'id.test', 'heuristic_group': '/heuristic1'}, 'id.test__/heuristic2': {'dataset': 'id.test', 'heuristic_group': '/heuristic2'}, 'id.train__/heuristic1': {'dataset': 'id.train', 'heuristic_group': '/heuristic1'}, 'id.train__/heuristic2': {'dataset': 'id.train', 'heuristic_group': '/heuristic2'}}, 'do': {'cmd': 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cloned-bohr/heuristics/${item.heuristic_group}', 'cached-datasets/${item.dataset}.jsonl'], 'outs': ['runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl'], 'metrics': [], 'always_changed': False}}}}
     """
     final_dict = {"stages": {}}
-    for multi_stage in stages:
-        for stage in multi_stage if isinstance(multi_stage, list) else [multi_stage]:
-            name, dvc_dct = next(iter(stage.to_dvc_config_dict().items()))
+    for stage in stages:
+        for substage in stage.get_substages() if isinstance(stage, CompoundStage) else [stage]:
+            name, dvc_dct = next(iter(substage.to_dvc_config_dict().items()))
             final_dict["stages"][name] = dvc_dct
     return final_dict

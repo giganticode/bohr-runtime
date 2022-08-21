@@ -15,7 +15,7 @@ from bohrruntime.heuristics import (
     HeuristicURI,
 )
 from bohrruntime.pipeline import (
-    MultiStage,
+    TemplateStage,
     fetch_heuristics_if_needed,
     get_params,
     get_stage_list,
@@ -51,14 +51,9 @@ def repro(
     n_stages = len(stage)
     if force:
         print("Forcing reproduction of all sub-stages ... ")
-    for i, command in enumerate(stage):
-        stage_summary = (
-            command.stage_name()
-            if isinstance(command, MultiStage)
-            else stage[0].stage_name()
-        )
-        print(f"===========    Executing stage: {stage_summary} [{i+1}/{n_stages}]")
-        pipeline_manager.repro(command, storage_engine=storage_engine, force=force, no_pull=no_pull)
+    for i, stage in enumerate(stage):
+        print(f"===========    Executing stage: {stage.summary()} [{i+1}/{n_stages}]")
+        pipeline_manager.repro(stage, storage_engine=storage_engine, force=force, no_pull=no_pull)
 
 
 def refresh_pipeline_config(

@@ -102,10 +102,26 @@ def stringify_paths(
 
 @dataclass(repr=False)
 class Stage(ABC):
+
+    @abstractmethod
+    def summary(self):
+        pass
+
+    @abstractmethod
+    def get_substage_names(self) -> List[str]:
+        pass
+
+
+@dataclass(repr=False)
+class SimpleStage(Stage):
     storage_engine: StorageEngine
 
     @abstractmethod
     def execute(self) -> None:
+        pass
+
+    @abstractmethod
+    def dvc_stage_name(self) -> str:
         pass
 
     def to_dvc_config_dict(
@@ -117,7 +133,7 @@ class Stage(ABC):
         outs = stringify_paths(self.get_outs())
         metrics = [{m: {"cache": False}} for m in self.get_metrics()]
         dct = {
-            self.stage_name(): {
+            self.dvc_stage_name(): {
                 "cmd": cmd,
                 "params": params + [{"bohr.lock": ["bohr_runtime_version"]}],
                 "deps": deps,
@@ -134,8 +150,9 @@ class Stage(ABC):
     def stage_name(self) -> str:
         return type(self).__name__[: -len("Stage")]
 
-    def n_stages(self) -> int:
-        return 1
+    @abstractmethod
+    def n_substages(self) -> int:
+        pass
 
     def get_params(self) -> List:
         return []
@@ -164,10 +181,51 @@ class Stage(ABC):
 
 
 @dataclass(repr=False)
-class MultiStage(Stage):
+class Substage(SimpleStage):
+    def n_substages(self) -> int:
+        return 1
+
+    @abstractmethod
+    def get_stage_parameter(self) -> str:
+        pass
+
+    def get_substage_names(self) -> List[str]:
+        raise NotImplementedError()
+
+    def summary(self):
+        raise NotImplementedError()
+
+    def dvc_stage_name(self) -> str:
+        return f"{self.stage_name()}#{self.get_stage_parameter()}"
+
+
+@dataclass(repr=False)
+class CompoundStage(Stage):
+    stages: List[Substage]
+
+    def __post_init__(self):
+        for stage in self.stages:
+            if not isinstance(stage, Substage):
+                raise ValueError(f"Only sub-stages are allowed in compound stages, found: {type(stage)}")
+
+    def get_substages(self) -> List[Substage]:
+        return self.stages
+
+    def summary(self) -> str:
+        return self.stages[0].stage_name()
+
+    def get_substage_names(self) -> List[str]:
+        return [f"{stage.dvc_stage_name()}" for stage in self.stages]
+
+
+@dataclass(repr=False)
+class TemplateStage(SimpleStage):
     workspace: BohrConfig
 
-    def n_stages(self) -> int:
+    def dvc_stage_name(self) -> str:
+        return self.stage_name()
+
+    def n_substages(self) -> int:
         return len(self.get_iterating_over())
 
     def get_for_each(self) -> Dict[str, Dict[str, Any]]:
@@ -179,17 +237,17 @@ class MultiStage(Stage):
             }
         return foreach
 
-    def get_stage_names(self) -> List[str]:
+    def get_substage_names(self) -> List[str]:
         stage = self.stage_name()
         return [f"{stage}@{each}" for each in self.get_for_each()]
 
     def to_dvc_config_dict(
         self,
     ) -> Dict:
-        parent = next(iter(super(MultiStage, self).to_dvc_config_dict().values()))
+        parent = next(iter(super(TemplateStage, self).to_dvc_config_dict().values()))
         foreach = self.get_for_each()
         dct = {
-            self.stage_name(): {
+            self.dvc_stage_name(): {
                 "foreach": foreach,
                 "do": parent,
             }
@@ -218,7 +276,7 @@ class MultiStage(Stage):
         }
 
 
-class LoadDatasetsStage(MultiStage):
+class LoadDatasetsStage(TemplateStage):
     def execute(self) -> None:
         for dataset in self.get_iterating_over():
             load_dataset(dataset, self.storage_engine)
@@ -250,7 +308,7 @@ class LoadDatasetsStage(MultiStage):
         return False
 
 
-class ApplyHeuristicsStage(MultiStage):
+class ApplyHeuristicsStage(TemplateStage):
     def execute(self) -> None:
         for dataset, heuristic_group in self.get_iterating_over():
             apply_heuristics_to_dataset(
@@ -301,14 +359,14 @@ class ApplyHeuristicsStage(MultiStage):
 
 
 @dataclass(repr=False)
-class ComputeSingleHeuristicMetricsStage(Stage):
+class ComputeSingleHeuristicMetricsStage(Substage):
     task: Task
+
+    def get_stage_parameter(self) -> str:
+        return self.task.name
 
     def execute(self) -> None:
         calculate_single_heuristic_metrics(self.task, self.storage_engine)
-
-    def stage_name(self) -> str:
-        return f"ComputeSingleHeuristicMetrics__{self.task.name}"
 
     def get_cmd(self) -> str:
         return f"bohr porcelain compute-single-heuristic-metric {self.task.name}"
@@ -348,7 +406,7 @@ class ComputeSingleHeuristicMetricsStage(Stage):
         return outputs
 
 
-class FetchMultipleHeuristicOutputsStage(MultiStage):
+class FetchMultipleHeuristicOutputsStage(TemplateStage):
     def execute(self) -> None:
         for experiment, dataset in self.get_iterating_over():
             combine_applied_heuristics(experiment, dataset, self.storage_engine)
@@ -373,7 +431,7 @@ class FetchMultipleHeuristicOutputsStage(MultiStage):
         return outs
 
 
-class CalculateMetricsStage(MultiStage):
+class CalculateMetricsStage(TemplateStage):
     def execute(self) -> None:
         for experiment, dataset in self.get_iterating_over():
             calculate_experiment_metrics(experiment, dataset, self.storage_engine)
@@ -417,7 +475,7 @@ class CalculateMetricsStage(MultiStage):
         return outs
 
 
-class ComputePredefinedModelMetricsStage(MultiStage):
+class ComputePredefinedModelMetricsStage(TemplateStage):
     def execute(self) -> None:
         for task, dataset in self.get_iterating_over():
             exp = SynteticExperiment("random_model", task, type="random")
@@ -478,8 +536,11 @@ class ComputeZeroModelMetricsStage(ComputePredefinedModelMetricsStage):
 
 
 @dataclass(repr=False)
-class TrainModelStage(Stage):
+class TrainModelStage(Substage):
     exp: Experiment
+
+    def get_stage_parameter(self) -> str:
+        return self.exp.name
 
     def execute(self) -> None:
         pass
@@ -503,7 +564,7 @@ class TrainModelStage(Stage):
         return outs
 
 
-class PrepareDatasetStage(MultiStage):
+class PrepareDatasetStage(TemplateStage):
     def execute(self) -> None:
         for experiment, dataset in tqdm(self.get_iterating_over()):
             prepare_dataset(experiment, dataset, self.storage_engine)
@@ -531,7 +592,7 @@ class PrepareDatasetStage(MultiStage):
 
 def get_stage_list(
     workspace: BohrConfig, storage_engine: StorageEngine
-) -> List[Union[MultiStage, List[Stage]]]:
+) -> List[Stage]:
     """
     >>> from bohrlabels.core import Label, LabelSet
     >>> from enum import auto
@@ -554,18 +615,18 @@ def get_stage_list(
         {exp.task for exp in workspace.experiments}, key=lambda t: t.name
     )
 
-    stages: List[Union[MultiStage, List[Stage]]] = [
+    stages: List[Stage] = [
         LoadDatasetsStage(storage_engine, workspace),
         ApplyHeuristicsStage(storage_engine, workspace),
-        [
+        CompoundStage([
             ComputeSingleHeuristicMetricsStage(storage_engine, task)
             for task in all_tasks
-        ],
+        ]),
         FetchMultipleHeuristicOutputsStage(storage_engine, workspace),
-        [
+        CompoundStage([
             TrainModelStage(storage_engine, exp)
             for exp in sorted(workspace.experiments, key=lambda x: x.name)
-        ],
+        ]),
         PrepareDatasetStage(storage_engine, workspace),
         ComputeRandomModelMetricsStage(storage_engine, workspace),
         ComputeZeroModelMetricsStage(
