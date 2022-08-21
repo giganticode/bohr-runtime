@@ -16,11 +16,11 @@ from bohrruntime.heuristics import (
 )
 from bohrruntime.pipeline import (
     MultiStage,
-    dvc_config_from_tasks,
     fetch_heuristics_if_needed,
     get_params,
-    get_stages_list,
+    get_stage_list,
 )
+from bohrruntime.dvcwrapper import save_stages_to_pipeline_config
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.paths import AbsolutePath, create_fs
 
@@ -47,7 +47,7 @@ def repro(
     storage_engine = storage_engine or StorageEngine.init()
     workspace = workspace or load_workspace()
     refresh_pipeline_config(workspace, storage_engine)
-    stage = get_stages_list(workspace, storage_engine)
+    stage = get_stage_list(workspace, storage_engine)
     n_stages = len(stage)
     if force:
         print("Forcing reproduction of all sub-stages ... ")
@@ -69,10 +69,8 @@ def refresh_pipeline_config(
         AbsolutePath(Path(storage_engine.cloned_bohr_subfs().getsyspath("."))),
     )
 
-    stages = get_stages_list(workspace, storage_engine)
-    dvc_config = dvc_config_from_tasks(stages)
-    with storage_engine.fs.open("dvc.yaml", "w") as f:
-        f.write(yaml.dump(dvc_config))
+    stages = get_stage_list(workspace, storage_engine)
+    save_stages_to_pipeline_config(stages, storage_engine)
 
     params = get_params(workspace, storage_engine)
     with storage_engine.fs.open("bohr.lock", "w") as f:
