@@ -1,6 +1,7 @@
 [core]
     check_update = false
     remote = read
+    autostage = true
 ['remote "read"']
     url = http://squirrel.inf.unibz.it:8180
 ['remote "write"']
