@@ -62,7 +62,6 @@ jobs:
           /root/.poetry/bin/poetry run bohr repro
       - name: report-metrics-bugginess
         run: |
-          git fetch --prune
           cd test-b2b/labeling
           /root/.poetry/bin/poetry run dvc metrics diff master
           [ -z "$(/root/.poetry/bin/poetry run dvc metrics diff master)" ]
