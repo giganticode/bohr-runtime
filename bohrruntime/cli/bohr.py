@@ -7,7 +7,6 @@ import bohrruntime.commands as api
 from bohrruntime import __version__, setup_loggers
 from bohrruntime.appconfig import add_to_local_config
 from bohrruntime.bohrconfigparser import load_workspace
-from bohrruntime.cli.porcelain.commands import porcelain
 from bohrruntime.cli.remote.commands import remote
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.logging import verbosity
@@ -70,11 +69,7 @@ def config(key: str, value: str):
     add_to_local_config(storage_engine.fs, key, value)
 
 
-bohr.add_command(porcelain)
 bohr.add_command(remote)
 
 # TODO bohr init - clone template repo.
 
-
-if __name__ == "__main__":
-    bohr()

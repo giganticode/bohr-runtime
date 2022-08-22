@@ -6,13 +6,13 @@
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
-    <option name="SDK_HOME" value="$USER_HOME$/Library/Caches/pypoetry/virtualenvs/bohr-runtime-QEQIEtu6-py3.8/bin/python" />
+    <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test-b2b/grouping" />
-    <option name="IS_MODULE_SDK" value="false" />
+    <option name="IS_MODULE_SDK" value="true" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bohrruntime/cli/cli.py" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bohrruntime/cli/bohr.py" />
     <option name="PARAMETERS" value="repro" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />

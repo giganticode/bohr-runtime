@@ -12,7 +12,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bohrruntime/cli/cli.py" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bohrruntime/cli/bohr.py" />
     <option name="PARAMETERS" value="remote set-write-url &quot;ssh://10.10.20.160/home/hbabii/.dvcstorage/bohr-test&quot;" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />

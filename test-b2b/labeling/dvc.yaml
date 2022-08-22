@@ -2,7 +2,7 @@ stages:
   ApplyHeuristics:
     do:
       always_changed: false
-      cmd: bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}"
+      cmd: bohr-internal apply-heuristics --heuristic-group "${item.heuristic_group}"
         --dataset "${item.dataset}"
       deps:
       - cloned-bohr/heuristics/${item.heuristic_group}
@@ -365,7 +365,7 @@ stages:
   CalculateMetrics:
     do:
       always_changed: false
-      cmd: bohr porcelain run-metrics-and-analysis "${item.exp}" "${item.dataset}"
+      cmd: bohr-internal run-metrics-and-analysis "${item.exp}" "${item.dataset}"
       deps:
       - runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl
       - runs/${item.task}/${item.exp}/label_model.pkl
@@ -401,7 +401,7 @@ stages:
   ComputeRandomModelMetrics:
     do:
       always_changed: false
-      cmd: bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"
+      cmd: bohr-internal compute-random-model-metrics "${item.task}" "${item.dataset}"
       deps:
       - cached-datasets/${item.dataset}.jsonl
       metrics:
@@ -420,7 +420,7 @@ stages:
         task: refactoring
   ComputeSingleHeuristicMetrics#bugginess:
     always_changed: false
-    cmd: bohr porcelain compute-single-heuristic-metric bugginess
+    cmd: bohr-internal compute-single-heuristic-metric bugginess
     deps:
     - cached-datasets/manual_labels.herzig.jsonl
     - cloned-bohr/heuristics//bugginess/add_keyword.py
@@ -662,7 +662,7 @@ stages:
       - bohr_runtime_version
   ComputeSingleHeuristicMetrics#refactoring:
     always_changed: false
-    cmd: bohr porcelain compute-single-heuristic-metric refactoring
+    cmd: bohr-internal compute-single-heuristic-metric refactoring
     deps:
     - cached-datasets/manual_labels.herzig.jsonl
     - cloned-bohr/heuristics//bugginess/add_keyword.py
@@ -905,7 +905,7 @@ stages:
   ComputeZeroModelMetrics:
     do:
       always_changed: false
-      cmd: bohr porcelain compute-zero-model-metrics "${item.task}" "${item.dataset}"
+      cmd: bohr-internal compute-zero-model-metrics "${item.task}" "${item.dataset}"
       deps:
       - cached-datasets/${item.dataset}.jsonl
       metrics:
@@ -925,7 +925,7 @@ stages:
   FetchMultipleHeuristicOutputs:
     do:
       always_changed: false
-      cmd: bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"
+      cmd: bohr-internal combine-heuristics "${item.exp}" --dataset "${item.dataset}"
       deps:
       - runs/__heuristics/${item.dataset}
       metrics: []
@@ -956,7 +956,7 @@ stages:
   LoadDatasets:
     do:
       always_changed: false
-      cmd: bohr porcelain load-dataset "${item}"
+      cmd: bohr-internal load-dataset "${item}"
       deps: []
       metrics: []
       outs:
@@ -972,7 +972,7 @@ stages:
   PrepareDataset:
     do:
       always_changed: false
-      cmd: bohr porcelain prepare-dataset "${item.exp}" "${item.dataset}"
+      cmd: bohr-internal prepare-dataset "${item.exp}" "${item.dataset}"
       deps:
       - runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl
       - runs/${item.task}/${item.exp}/label_model.pkl
@@ -1001,7 +1001,7 @@ stages:
         task: refactoring
   TrainModel#keywords_in_message:
     always_changed: false
-    cmd: bohr porcelain train-model keywords_in_message
+    cmd: bohr-internal train-model keywords_in_message
     deps:
     - runs/bugginess/keywords_in_message/manual_labels.berger/heuristic_matrix.pkl
     metrics: []
@@ -1013,7 +1013,7 @@ stages:
       - bohr_runtime_version
   TrainModel#keywords_in_message_refactoring:
     always_changed: false
-    cmd: bohr porcelain train-model keywords_in_message_refactoring
+    cmd: bohr-internal train-model keywords_in_message_refactoring
     deps:
     - runs/refactoring/keywords_in_message_refactoring/manual_labels.berger/heuristic_matrix.pkl
     metrics: []

@@ -294,7 +294,7 @@ class LoadDatasetsStage(TemplateStage):
         return [d.id for d in self.get_iterating_over()]
 
     def get_cmd(self) -> str:
-        return 'bohr porcelain load-dataset "${item}"'
+        return 'bohr-internal load-dataset "${item}"'
 
     def get_outs(self) -> List[str]:
         outs = [
@@ -322,7 +322,7 @@ class ApplyHeuristicsStage(TemplateStage):
             )
 
     def get_cmd(self) -> str:
-        cmd = 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"'
+        cmd = 'bohr-internal apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"'
         return cmd
 
     def get_deps(self) -> List[str]:
@@ -375,7 +375,7 @@ class ComputeSingleHeuristicMetricsStage(Substage):
         calculate_single_heuristic_metrics(self.task, self.storage_engine)
 
     def get_cmd(self) -> str:
-        return f"bohr porcelain compute-single-heuristic-metric {self.task.name}"
+        return f"bohr-internal compute-single-heuristic-metric {self.task.name}"
 
     def get_deps(self) -> List[str]:
         deps = []
@@ -418,7 +418,7 @@ class FetchMultipleHeuristicOutputsStage(TemplateStage):
             combine_applied_heuristics(experiment, dataset, self.storage_engine)
 
     def get_cmd(self) -> str:
-        return 'bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"'
+        return 'bohr-internal combine-heuristics "${item.exp}" --dataset "${item.dataset}"'
 
     def get_deps(self) -> List[str]:
         return [
@@ -453,7 +453,7 @@ class CalculateMetricsStage(TemplateStage):
         return metrics
 
     def get_cmd(self) -> str:
-        return 'bohr porcelain run-metrics-and-analysis "${item.exp}" "${item.dataset}"'
+        return 'bohr-internal run-metrics-and-analysis "${item.exp}" "${item.dataset}"'
 
     def get_deps(self) -> List:
         deps = [
@@ -525,7 +525,7 @@ class ComputePredefinedModelMetricsStage(TemplateStage):
 
     def get_cmd(self) -> str:
         return (
-            "bohr porcelain compute-"
+            "bohr-internal compute-"
             + self.get_model_type()
             + '-model-metrics "${item.task}" "${item.dataset}"'
         )
@@ -552,7 +552,7 @@ class TrainModelStage(Substage):
         pass
 
     def get_cmd(self):
-        return f"bohr porcelain train-model {self.exp.name}"
+        return f"bohr-internal train-model {self.exp.name}"
 
     def get_deps(self) -> List[str]:
         deps = [
@@ -576,7 +576,7 @@ class PrepareDatasetStage(TemplateStage):
             prepare_dataset(experiment, dataset, self.storage_engine)
 
     def get_cmd(self) -> str:
-        return 'bohr porcelain prepare-dataset "${item.exp}" "${item.dataset}"'
+        return 'bohr-internal prepare-dataset "${item.exp}" "${item.dataset}"'
 
     def get_deps(self) -> List:
         deps = [
@@ -612,7 +612,7 @@ def get_stage_list(
     >>> labels = (LabelSet.of(TestLabel.Yes), LabelSet.of(TestLabel.No))
     >>> task = LabelingTask("name", "author", "desc", Commit, frozendict({test: lambda x:x}), labels)
     >>> get_stage_list(BohrConfig('0.x.x', [Experiment('exp', task, train, '/')]), get_stub_storage_engine())
-    [{'LoadDatasets': {'foreach': ['id.test', 'id.train'], 'do': {'cmd': 'bohr porcelain load-dataset "${item}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': [], 'outs': ['cached-datasets/${item}.jsonl', {'cached-datasets/${item}.jsonl.metadata.json': {'cache': False}}], 'metrics': [], 'always_changed': False}}}, {'ApplyHeuristics': {'foreach': {'id.test__/heuristic1': {'dataset': 'id.test', 'heuristic_group': '/heuristic1'}, 'id.test__/heuristic2': {'dataset': 'id.test', 'heuristic_group': '/heuristic2'}, 'id.train__/heuristic1': {'dataset': 'id.train', 'heuristic_group': '/heuristic1'}, 'id.train__/heuristic2': {'dataset': 'id.train', 'heuristic_group': '/heuristic2'}}, 'do': {'cmd': 'bohr porcelain apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cloned-bohr/heuristics/${item.heuristic_group}', 'cached-datasets/${item.dataset}.jsonl'], 'outs': ['runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl'], 'metrics': [], 'always_changed': False}}}, {'ComputeSingleHeuristicMetrics#name': {'cmd': 'bohr porcelain compute-single-heuristic-metric name', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/id.test.jsonl', 'cloned-bohr/heuristics//heuristic1', 'runs/__heuristics/id.test//heuristic1/heuristic_matrix.pkl', 'cloned-bohr/heuristics//heuristic2', 'runs/__heuristics/id.test//heuristic2/heuristic_matrix.pkl'], 'outs': [{'runs/__single_heuristic_metrics/name/id.test//heuristic1/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test//heuristic2/metrics.txt': {'cache': False}}], 'metrics': [], 'always_changed': False}}, {'FetchMultipleHeuristicOutputs': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain combine-heuristics "${item.exp}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['experiments.${item.exp}.heuristics_classifier']}, {'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/__heuristics/${item.dataset}'], 'outs': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl'], 'metrics': [], 'always_changed': False}}}, {'TrainModel#exp': {'cmd': 'bohr porcelain train-model exp', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/name/exp/id.train/heuristic_matrix.pkl'], 'outs': ['runs/name/exp/label_model.pkl', 'runs/name/exp/label_model_weights.csv'], 'metrics': [], 'always_changed': False}}, {'PrepareDataset': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain prepare-dataset "${item.exp}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl', 'runs/${item.task}/${item.exp}/label_model.pkl'], 'outs': ['runs/${item.task}/${item.exp}/${item.dataset}/labeled.csv'], 'metrics': [], 'always_changed': False}}}, {'ComputeRandomModelMetrics': {'foreach': {'name__id.test': {'dataset': 'id.test', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain compute-random-model-metrics "${item.task}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/${item.dataset}.jsonl'], 'outs': [], 'metrics': [{'runs/${item.task}/random_model/${item.dataset}/metrics.txt': {'cache': False}}], 'always_changed': False}}}, {'ComputeZeroModelMetrics': {'foreach': {'name__id.test': {'dataset': 'id.test', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain compute-zero-model-metrics "${item.task}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/${item.dataset}.jsonl'], 'outs': [], 'metrics': [{'runs/${item.task}/zero_model/${item.dataset}/metrics.txt': {'cache': False}}], 'always_changed': False}}}, {'CalculateMetrics': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr porcelain run-metrics-and-analysis "${item.exp}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl', 'runs/${item.task}/${item.exp}/label_model.pkl', 'cached-datasets/${item.dataset}.jsonl'], 'outs': [{'runs/${item.task}/${item.exp}/${item.dataset}/analysis.json': {'cache': False}}, {'runs/${item.task}/${item.exp}/${item.dataset}/analysis.csv': {'cache': False}}], 'metrics': [{'runs/${item.task}/${item.exp}/${item.dataset}/metrics.txt': {'cache': False}}], 'always_changed': False}}}]
+    [{'LoadDatasets': {'foreach': ['id.test', 'id.train'], 'do': {'cmd': 'bohr-internal load-dataset "${item}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': [], 'outs': ['cached-datasets/${item}.jsonl', {'cached-datasets/${item}.jsonl.metadata.json': {'cache': False}}], 'metrics': [], 'always_changed': False}}}, {'ApplyHeuristics': {'foreach': {'id.test__/heuristic1': {'dataset': 'id.test', 'heuristic_group': '/heuristic1'}, 'id.test__/heuristic2': {'dataset': 'id.test', 'heuristic_group': '/heuristic2'}, 'id.train__/heuristic1': {'dataset': 'id.train', 'heuristic_group': '/heuristic1'}, 'id.train__/heuristic2': {'dataset': 'id.train', 'heuristic_group': '/heuristic2'}}, 'do': {'cmd': 'bohr-internal apply-heuristics --heuristic-group "${item.heuristic_group}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cloned-bohr/heuristics/${item.heuristic_group}', 'cached-datasets/${item.dataset}.jsonl'], 'outs': ['runs/__heuristics/${item.dataset}/${item.heuristic_group}/heuristic_matrix.pkl'], 'metrics': [], 'always_changed': False}}}, {'ComputeSingleHeuristicMetrics#name': {'cmd': 'bohr-internal compute-single-heuristic-metric name', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/id.test.jsonl', 'cloned-bohr/heuristics//heuristic1', 'runs/__heuristics/id.test//heuristic1/heuristic_matrix.pkl', 'cloned-bohr/heuristics//heuristic2', 'runs/__heuristics/id.test//heuristic2/heuristic_matrix.pkl'], 'outs': [{'runs/__single_heuristic_metrics/name/id.test//heuristic1/metrics.txt': {'cache': False}}, {'runs/__single_heuristic_metrics/name/id.test//heuristic2/metrics.txt': {'cache': False}}], 'metrics': [], 'always_changed': False}}, {'FetchMultipleHeuristicOutputs': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr-internal combine-heuristics "${item.exp}" --dataset "${item.dataset}"', 'params': [{'bohr.lock': ['experiments.${item.exp}.heuristics_classifier']}, {'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/__heuristics/${item.dataset}'], 'outs': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl'], 'metrics': [], 'always_changed': False}}}, {'TrainModel#exp': {'cmd': 'bohr-internal train-model exp', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/name/exp/id.train/heuristic_matrix.pkl'], 'outs': ['runs/name/exp/label_model.pkl', 'runs/name/exp/label_model_weights.csv'], 'metrics': [], 'always_changed': False}}, {'PrepareDataset': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr-internal prepare-dataset "${item.exp}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl', 'runs/${item.task}/${item.exp}/label_model.pkl'], 'outs': ['runs/${item.task}/${item.exp}/${item.dataset}/labeled.csv'], 'metrics': [], 'always_changed': False}}}, {'ComputeRandomModelMetrics': {'foreach': {'name__id.test': {'dataset': 'id.test', 'task': 'name'}}, 'do': {'cmd': 'bohr-internal compute-random-model-metrics "${item.task}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/${item.dataset}.jsonl'], 'outs': [], 'metrics': [{'runs/${item.task}/random_model/${item.dataset}/metrics.txt': {'cache': False}}], 'always_changed': False}}}, {'ComputeZeroModelMetrics': {'foreach': {'name__id.test': {'dataset': 'id.test', 'task': 'name'}}, 'do': {'cmd': 'bohr-internal compute-zero-model-metrics "${item.task}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['cached-datasets/${item.dataset}.jsonl'], 'outs': [], 'metrics': [{'runs/${item.task}/zero_model/${item.dataset}/metrics.txt': {'cache': False}}], 'always_changed': False}}}, {'CalculateMetrics': {'foreach': {'exp__id.test': {'dataset': 'id.test', 'exp': 'exp', 'task': 'name'}, 'exp__id.train': {'dataset': 'id.train', 'exp': 'exp', 'task': 'name'}}, 'do': {'cmd': 'bohr-internal run-metrics-and-analysis "${item.exp}" "${item.dataset}"', 'params': [{'bohr.lock': ['bohr_runtime_version']}], 'deps': ['runs/${item.task}/${item.exp}/${item.dataset}/heuristic_matrix.pkl', 'runs/${item.task}/${item.exp}/label_model.pkl', 'cached-datasets/${item.dataset}.jsonl'], 'outs': [{'runs/${item.task}/${item.exp}/${item.dataset}/analysis.json': {'cache': False}}, {'runs/${item.task}/${item.exp}/${item.dataset}/analysis.csv': {'cache': False}}], 'metrics': [{'runs/${item.task}/${item.exp}/${item.dataset}/metrics.txt': {'cache': False}}], 'always_changed': False}}}]
     """
     if len(workspace.experiments) == 0:
         raise ValueError("At least of task should be specified")

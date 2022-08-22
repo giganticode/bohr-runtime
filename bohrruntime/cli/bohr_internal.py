@@ -1,3 +1,6 @@
+import logging
+
+from bohrruntime import __version__
 from pathlib import Path
 from typing import Optional
 
@@ -10,13 +13,19 @@ from bohrruntime.heuristics import HeuristicURI
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.profiler import Profiler
 
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
-@click.group()
-def porcelain():
+
+logger = logging.getLogger(__name__)
+
+
+@click.group(context_settings=CONTEXT_SETTINGS)
+@click.version_option(__version__)
+def bohr_internal():
     pass
 
 
-@porcelain.command()
+@bohr_internal.command()
 @click.argument("exp")
 @click.argument("dataset")
 @click.option("--debug", is_flag=True)
@@ -31,7 +40,7 @@ def prepare_dataset(exp: str, dataset: str, debug: bool):
     prepare_dataset(exp, dataset, fs)
 
 
-@porcelain.command()
+@bohr_internal.command()
 @click.option("--heuristic-group", type=str)
 @click.option("--dataset", type=str)
 @click.option("--profile", is_flag=True)
@@ -55,7 +64,7 @@ def apply_heuristics(
         )
 
 
-@porcelain.command()
+@bohr_internal.command()
 @click.argument("task", type=str)
 def compute_single_heuristic_metric(task: Optional[str]):
     from bohrruntime.stages import calculate_single_heuristic_metrics
@@ -67,7 +76,7 @@ def compute_single_heuristic_metric(task: Optional[str]):
     calculate_single_heuristic_metrics(task, fs)
 
 
-@porcelain.command()
+@bohr_internal.command()
 @click.argument("exp")
 @click.option("--dataset", type=str)
 def combine_heuristics(exp: Optional[str], dataset: Optional[str]):
@@ -82,7 +91,7 @@ def combine_heuristics(exp: Optional[str], dataset: Optional[str]):
     combine_applied_heuristics(exp, dataset, fs)
 
 
-@porcelain.command()
+@bohr_internal.command()
 @click.argument("dataset", type=str)
 def load_dataset(dataset: str):
     from bohrruntime.stages import load_dataset
@@ -96,7 +105,7 @@ def load_dataset(dataset: str):
     load_dataset(dataset, fs)
 
 
-@porcelain.command()
+@bohr_internal.command()
 @click.argument("exp")
 def train_model(exp: str):
     from bohrruntime.stages import train_model
@@ -109,7 +118,7 @@ def train_model(exp: str):
     train_model(exp, fs)
 
 
-@porcelain.command()
+@bohr_internal.command()
 @click.argument("exp")
 @click.argument("dataset")
 def run_metrics_and_analysis(exp: str, dataset: str):
@@ -123,7 +132,7 @@ def run_metrics_and_analysis(exp: str, dataset: str):
     calculate_experiment_metrics(exp, dataset, fs)
 
 
-@porcelain.command()
+@bohr_internal.command()
 @click.argument("task")
 @click.argument("dataset")
 def compute_random_model_metrics(task: str, dataset: str):
@@ -138,7 +147,7 @@ def compute_random_model_metrics(task: str, dataset: str):
     calculate_experiment_metrics(exp, dataset, fs)
 
 
-@porcelain.command()
+@bohr_internal.command()
 @click.argument("task")
 @click.argument("dataset")
 def compute_zero_model_metrics(task: str, dataset: str):
