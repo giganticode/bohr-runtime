@@ -7,3 +7,6 @@
 config/env/local.env
 
 bohr.egg-info
+
+.coverage
+coverage.xml
