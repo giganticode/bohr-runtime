@@ -5,13 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       repo_token: ${{ secrets.GITHUB_TOKEN }}
-      PYTHONPATH: /usr/src/bohr-runtime:/usr/src/bohr-runtime/test-b2b/labeling
     steps:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@master
       - name: Checkout
-        uses: actions/checkout@v2 # Required to mount the Github Workspace to a volume
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: Login to ghcr
@@ -38,7 +37,6 @@ jobs:
       image: ghcr.io/giganticode/bohr-cml-base:latest
       env:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        PYTHONPATH: /usr/src/bohr-runtime:/usr/src/bohr-runtime/test-b2b/labeling
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -55,7 +53,19 @@ jobs:
           export SKLEARN_NO_OPENMP=1 && /root/.poetry/bin/poetry install
           /root/.poetry/bin/poetry run bohr -h
       - name: unit-tests
-        run: /root/.poetry/bin/poetry run pytest --doctest-modules --ignore=test-b2b
+        run: |
+          /root/.poetry/bin/poetry run pytest --doctest-modules --ignore=test-b2b
+      - name: coverage
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+          /root/.poetry/bin/poetry run coverage run -m pytest --doctest-modules --ignore=test-b2b
+          /root/.poetry/bin/poetry run coverage xml
+          git config --global --add safe.directory /__w/bohr-runtime/bohr-runtime # to prevent dubious ownership error
+          ./cc-test-reporter after-build -t coverage.py --exit-code $?
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       - name: reproduce-bugginess
         run: |
           cd test-b2b/labeling
