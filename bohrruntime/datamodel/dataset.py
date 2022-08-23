@@ -34,8 +34,9 @@ class Dataset(ABC):
     ) -> DatapointList:
         path = f"{self.id}.jsonl"
         if not cached_datasets_fs.exists(path):
-            raise RuntimeError(
-                f"Dataset {self.id} should have been loaded by a dvc stage first!"  # TODO doesn't have to know about DVC
+            raise AssertionError(
+                f"Dataset {self.id} not found in the filesystem. \n"
+                f"It should have been loaded previously as a part of a pipeline stage."
             )
         artifact_list = []
         with cached_datasets_fs.open(path) as f:
