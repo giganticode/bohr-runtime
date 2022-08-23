@@ -49,7 +49,8 @@ def parse_status(status: Dict):
                 if reason_to_rerun_stage == 'changed command':
                     pass
                 elif reason_to_rerun_stage == 'always changed':
-                    res1.append(reason_to_rerun_stage)
+                    res1 = ['stage configured to always be rerun']
+                    break
                 else:
                     raise AssertionError()
             else:
