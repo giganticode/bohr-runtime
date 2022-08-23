@@ -69,7 +69,7 @@ jobs:
       - name: reproduce-bugginess
         run: |
           cd test-b2b/labeling
-          /root/.poetry/bin/poetry run bohr repro
+          /root/.poetry/bin/poetry run bohr repro --only-cached-datasets # since this container will have no access to artifact-explorer running on ironspeed
       - name: report-metrics-bugginess
         run: |
           cd test-b2b/labeling
