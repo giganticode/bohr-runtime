@@ -73,3 +73,6 @@ bohr.add_command(remote)
 
 # TODO bohr init - clone template repo.
 
+
+if __name__ == '__main__':
+    bohr()

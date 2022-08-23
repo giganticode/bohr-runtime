@@ -160,3 +160,7 @@ def compute_zero_model_metrics(task: str, dataset: str):
     dataset = workspace.get_dataset_by_id(dataset)
     exp = SynteticExperiment("zero_model", task, type="zero")
     calculate_experiment_metrics(exp, dataset, fs)
+
+
+if __name__ == '__main__':
+    bohr_internal()
