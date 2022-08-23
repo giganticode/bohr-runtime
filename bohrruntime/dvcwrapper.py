@@ -40,19 +40,27 @@ def init_dvc(storage_engine: StorageEngine) -> None:
 
 
 def parse_status(status: Dict):
-    vals = status.values()
+    reasons_to_rerun_stages = status.values()
     res = []
-    for val in vals:
+    for reasons_to_rerun_stage in reasons_to_rerun_stages:
         res1 = []
-        for item in val:
-            for key, value in item.items():
-                if key == "changed deps":
-                    res1.append(value)
-                elif key == "changed outs":
+        for reason_to_rerun_stage in reasons_to_rerun_stage:
+            if isinstance(reason_to_rerun_stage, str):
+                if reason_to_rerun_stage == 'changed command':
                     pass
+                elif reason_to_rerun_stage == 'always changed':
+                    res1.append(reason_to_rerun_stage)
                 else:
                     raise AssertionError()
-            res.append(res1)
+            else:
+                for reason, file in reason_to_rerun_stage.items():
+                    if reason == "changed deps":
+                        res1.append(file)
+                    elif reason == "changed outs":
+                        pass
+                    else:
+                        raise AssertionError()
+        res.append(res1)
     return res
 
 
@@ -64,6 +72,7 @@ def repro(
     stage: Stage,
     force: bool = False,
     no_pull: bool = False,
+    only_cached_datasets: bool = False,
     storage_engine: StorageEngine = None,
 ) -> None:
     if not storage_engine.fs.exists(".dvc"):
@@ -74,7 +83,9 @@ def repro(
         try:
             dvc_repo.pull(substages)
         except CheckoutError:
-            pass
+            if only_cached_datasets:
+                raise ReproError('Reproduction failed, could not retrieved data from local or remote cache. \n'
+                                 'Remove --only-cached-dataset flag to try to retieve the data from datasource.')
 
     if not force:
         if len(substages) > 30:

@@ -40,6 +40,7 @@ def clone(url: str, revision: Optional[str] = None) -> None:
 def repro(
     force: bool = False,
     no_pull: bool = False,
+    only_cached_datasets: bool = False,
     workspace: Optional[BohrConfig] = None,
     storage_engine: Optional[StorageEngine] = None,
 ):
@@ -53,7 +54,7 @@ def repro(
         print("Forcing reproduction of all sub-stages ... ")
     for i, stage in enumerate(stage):
         print(f"===========    Executing stage: {stage.summary()} [{i+1}/{n_stages}]")
-        pipeline_manager.repro(stage, storage_engine=storage_engine, force=force, no_pull=no_pull)
+        pipeline_manager.repro(stage, storage_engine=storage_engine, force=force, no_pull=no_pull, only_cached_datasets=only_cached_datasets)
 
 
 def refresh_pipeline_config(

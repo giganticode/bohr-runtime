@@ -41,10 +41,11 @@ def clone(
 @bohr.command()
 @click.option("-f", "--force", is_flag=True, help="Force pipeline reproduction")
 @click.option("-P", "--no-pull", is_flag=True, help="Do not pull from remote storage")
+@click.option("-C", "--only-cached-datasets", is_flag=True, help="Do not try to retrieve datasets unless cached")
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode")
-def repro(force: bool = False, no_pull: bool = False, verbose: bool = False):
+def repro(force: bool = False, no_pull: bool = False, only_cached_datasets: bool = False, verbose: bool = False):
     with verbosity(verbose):
-        api.repro(force=force, no_pull=no_pull)
+        api.repro(force=force, no_pull=no_pull, only_cached_datasets=only_cached_datasets)
 
 
 @bohr.command()
