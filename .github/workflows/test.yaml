@@ -1,0 +1,86 @@
+name: master
+on:
+  push:
+    branches: [shared-cache]
+jobs:
+  build-docker-image:
+    runs-on: ubuntu-latest
+    env:
+      repo_token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@master
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Login to ghcr
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ghcr.io/giganticode/bohr-cml-base:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  run-tests:
+    needs: build-docker-image
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/giganticode/bohr-cml-base:latest
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: test
+      - run: |
+          ls /data/bohr-dvc-cache
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: install-dependencies
+        run: |  
+          /root/.poetry/bin/poetry env use /root/.pyenv/versions/3.8.0/bin/python
+          /root/.poetry/bin/poetry env info
+          /root/.poetry/bin/poetry run pip install Cython==0.29.23
+          export SKLEARN_NO_OPENMP=1 && /root/.poetry/bin/poetry install
+          /root/.poetry/bin/poetry run bohr -h
+      - name: unit-tests
+        run: |
+          /root/.poetry/bin/poetry run pytest --doctest-modules --ignore=test-b2b
+      - name: coverage
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+          /root/.poetry/bin/poetry run coverage run -m pytest --doctest-modules --ignore=test-b2b
+          /root/.poetry/bin/poetry run coverage xml
+          git config --global --add safe.directory /__w/bohr-runtime/bohr-runtime # to prevent dubious ownership error
+          ./cc-test-reporter after-build -t coverage.py --exit-code $?
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      - name: reproduce-bugginess
+        run: |
+          cd test-b2b/labeling
+          /root/.poetry/bin/poetry run dvc cache dir /data/bohr-dvc-cache
+          /root/.poetry/bin/poetry run bohr repro --only-cached-datasets # since this container will have no access to artifact-explorer running on ironspeed
+      - name: report-metrics-bugginess
+        run: |
+          cd test-b2b/labeling
+          /root/.poetry/bin/poetry run dvc metrics diff master
+          [ -z "$(/root/.poetry/bin/poetry run dvc metrics diff master)" ]
+      - name: cli-commands
+        run: |
+          echo "TODO: consider adding testing some cli commands here ?"
