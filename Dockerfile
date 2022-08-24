@@ -56,5 +56,7 @@ RUN $HOME/.poetry/bin/poetry env info
 RUN $HOME/.poetry/bin/poetry run pip install Cython==0.29.23
 RUN $HOME/.poetry/bin/poetry install --no-root
 
+RUN mkdir -p /data/bohr-dvc-cache
+
 RUN echo "echo \"image built on $(date)\"" >> /etc/profile
 

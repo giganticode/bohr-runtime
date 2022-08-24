@@ -40,6 +40,9 @@ jobs:
       env:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: test
+      - run: |
+          ls /data/bohr-dvc-cache
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -71,6 +74,7 @@ jobs:
       - name: reproduce-bugginess
         run: |
           cd test-b2b/labeling
+          /root/.poetry/bin/poetry run dvc cache dir /data/bohr-dvc-cache
           /root/.poetry/bin/poetry run bohr repro --only-cached-datasets # since this container will have no access to artifact-explorer running on ironspeed
       - name: report-metrics-bugginess
         run: |
