@@ -13,7 +13,7 @@ from bohrruntime.datamodel.bohrconfig import BohrConfig
 from bohrruntime.datamodel.dataset import Dataset
 from bohrruntime.datamodel.experiment import Experiment
 
-from bohrruntime.pipeline import Stage, CompoundStage
+from bohrruntime.pipeline import Stage, CompoundStage, LoadDatasetsStage
 from bohrruntime.storageengine import StorageEngine
 
 logger = logging.getLogger(__name__)
@@ -76,19 +76,23 @@ def repro(
     only_cached_datasets: bool = False,
     storage_engine: StorageEngine = None,
 ) -> None:
+    # TODO this method now contains a lot of logic, unit test is urgently needed here
+    # TODO to simplify this consider creating a pipeline manager class that would contain the current method
+    # TODO dvc_repo would be a field of this class to inject a test dependency easier
     if not storage_engine.fs.exists(".dvc"):
         init_dvc(storage_engine)
     dvc_repo = Repo()
     substages = stage.get_substage_names()
-    if not force and not no_pull:
+    load_dataset_stage_only_cache = only_cached_datasets and isinstance(stage, LoadDatasetsStage)
+    if (not force and not no_pull) or load_dataset_stage_only_cache:
         try:
             dvc_repo.pull(substages)
         except CheckoutError:
-            if only_cached_datasets:
-                raise ReproError('Reproduction failed, could not retrieved data from local or remote cache. \n'
+            if load_dataset_stage_only_cache:
+                raise ReproError('Reproduction failed, could not retrieved datasets from local or remote cache. \n'
                                  'Remove --only-cached-dataset flag to try to retieve the data from datasource.')
 
-    if not force:
+    if not force or load_dataset_stage_only_cache:
         if len(substages) > 30:
             print("Checking if any stages need to be recomputed ...")
         dvc_status = dvc_repo.status(targets=substages)
