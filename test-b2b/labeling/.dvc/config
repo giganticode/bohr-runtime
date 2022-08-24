@@ -3,7 +3,7 @@
     remote = read
     autostage = true
 ['remote "read"']
-    url = http://squirrel.inf.unibz.it:8180
+    url = http://194.37.81.5:80
 ['remote "write"']
-    url = ssh://squirrel.inf.unibz.it/data/bohr_dvc_storage
-    user = hbabii
+    url = ssh://194.37.81.5/data/bohr_dvc_storage
+    user = root
