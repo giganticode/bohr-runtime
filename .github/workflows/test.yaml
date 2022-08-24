@@ -41,7 +41,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: test
-      - run: |
+        run: |
           ls /data/bohr-dvc-cache
       - name: Checkout
         uses: actions/checkout@v2
