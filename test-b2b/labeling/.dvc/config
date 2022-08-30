@@ -3,7 +3,7 @@
     remote = read
     autostage = true
 ['remote "read"']
-    url = http://194.37.81.5:80
+    url = http://139.59.140.151
 ['remote "write"']
-    url = ssh://194.37.81.5/data/bohr_dvc_storage
-    user = root
+    url = ssh://139.59.140.151/data/dvcstorage/bohr
+    user = bohr-write-user
