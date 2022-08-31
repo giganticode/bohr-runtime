@@ -78,7 +78,7 @@ def normalize_paths(
             for path in dirs + files:
                 path = Path(path.name)
                 if path.parts[0] not in children and (
-                    predicate is None or predicate(path)
+                    predicate is None or predicate(group / path)
                 ):
                     all_children_included = False
                     break
