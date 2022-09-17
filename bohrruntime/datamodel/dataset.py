@@ -8,6 +8,9 @@ from jsonlines import jsonlines
 
 DatapointList = Union[List[Artifact], List[Tuple[Artifact, Artifact]]]
 
+"""
+Implementation of the Dataset abstraction. Does not contain data, only metadata. 
+"""
 
 @dataclass(frozen=True)
 class Dataset(ABC):

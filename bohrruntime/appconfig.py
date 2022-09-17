@@ -8,6 +8,9 @@ from fs.errors import ResourceNotFound
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.paths import create_fs
 
+"""
+This class handles saving and loading values to/from BOHR config
+"""
 
 @dataclass(frozen=True)
 class AppConfig:

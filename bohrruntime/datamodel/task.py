@@ -71,6 +71,10 @@ from bohrruntime.datamodel.model import (
 from bohrruntime.tasktypes.labeling.lfs import HeuristicApplier, SnorkelHeuristicApplier
 
 
+"""
+Implementation of TAsk, PreparedDataset, and DatasetPreparator concepts
+"""
+
 class PreparedDataset(ABC):
     def save(self, subfs: FS) -> None:
         pass

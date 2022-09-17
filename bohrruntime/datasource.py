@@ -9,6 +9,11 @@ from tqdm import tqdm
 
 from bohrruntime.datamodel.dataset import Dataset
 
+"""
+Code related to loading datasets from Artifact Explorer or from local file system. 
+When datasets are cached, this code is by-passsed. 
+"""
+
 
 class DataSource:
     def get_connection(self):

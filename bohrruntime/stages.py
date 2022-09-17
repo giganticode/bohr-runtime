@@ -1,9 +1,7 @@
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 import pandas as pd
-from bohrapi.core import Heuristic
-from bohrlabels.core import Label, OneOrManyLabels
 from tqdm import tqdm
 
 from bohrruntime.datamodel.dataset import Dataset
@@ -18,6 +16,10 @@ from bohrruntime.datasource import (
 from bohrruntime.heuristics import HeuristicURI
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.tasktypes.labeling.lfs import HeuristicApplier
+
+"""
+Implementation of stages of BOHR lifecycle without task-specific details
+"""
 
 
 def load_dataset(dataset: Dataset, storage_engine: StorageEngine) -> None:

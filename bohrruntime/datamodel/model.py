@@ -8,6 +8,10 @@ import pandas as pd
 from fs.base import FS
 from snorkel.analysis import Scorer
 
+"""
+BOHR's wrapper over snorkel's or other model
+"""
+
 
 @dataclass
 class GroundTruthLabels:

@@ -18,6 +18,10 @@ from bohrruntime.tasktypes.grouping.dataset import GroupingDataset
 from bohrruntime.tasktypes.labeling.core import LabelingTask
 from bohrruntime.util.paths import create_fs
 
+"""
+Paring of BOHR config (bohr.py file). 
+"""
+
 
 def convert_proxy_to_dataset(dataset_proxy: proxies.Dataset) -> Dataset:
     dataset_type = type(dataset_proxy).__name__

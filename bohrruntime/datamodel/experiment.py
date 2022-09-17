@@ -25,6 +25,9 @@ from bohrruntime.datamodel.task import Task
 # e.g. random or zero model, only the task determines how such model would behave
 from bohrruntime.util.paths import AbsolutePath
 
+"""
+Implementation of Experiment concept
+"""
 
 @dataclass(frozen=True)
 class Experiment:

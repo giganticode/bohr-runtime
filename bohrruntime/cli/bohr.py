@@ -11,6 +11,10 @@ from bohrruntime.cli.remote.commands import remote
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.logging import verbosity
 
+"""
+Definition of CLI commands like `bohr repro`
+"""
+
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 

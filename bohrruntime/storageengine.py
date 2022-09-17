@@ -23,6 +23,10 @@ from bohrruntime.util.paths import create_fs
 
 logger = logging.getLogger(__name__)
 
+"""
+Handles saving and loading of input and outputs of all stages to a (possibly virtual) file system*
+"""
+
 
 @dataclass
 class BohrPathStructure:

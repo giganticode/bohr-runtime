@@ -13,6 +13,10 @@ from bohrruntime.heuristics import HeuristicURI
 from bohrruntime.storageengine import StorageEngine
 from bohrruntime.util.profiler import Profiler
 
+"""
+Implementation of internal cli commands used by the pipeline manager to execute stages
+"""
+
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 

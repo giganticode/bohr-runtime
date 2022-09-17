@@ -29,6 +29,9 @@ def always_non_bubfix(commit: Commit) -> OneOrManyLabels:
     return CommitLabel.NonBugFix
 """
 
+"""
+This file contains code related to locating and loading heuristics  
+"""
 
 def get_template_heuristic() -> str:
     return TEMPLATE_HEURISTIC

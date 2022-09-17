@@ -1,5 +1,4 @@
-from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Type, Union
+from typing import List, Optional, Tuple, Union
 
 from bohrapi.artifacts import Commit
 from bohrapi.core import Artifact, ArtifactType, HeuristicObj
@@ -11,23 +10,11 @@ from bohrruntime.datamodel.experiment import Experiment
 from bohrruntime.datamodel.task import Task
 from bohrruntime.heuristics import HeuristicLoader, HeuristicURI
 from bohrruntime.storageengine import BohrPathStructure, StorageEngine
-
-# class StubTask(Task):
-#     def load_ground_truth_labels(self, func):
-#         return None
-#
-#     def get_preparator(self) -> DatasetPreparator:
-#         return None
-#
-#     def get_model_trainer(self) -> ModelTrainer:
-#         return None
-#
-#     def calculate_heuristic_output_metrics(self, heuristic_outputs: HeuristicOutputs, label_series: np.ndarray = None) -> Dict[str, Any]:
-#         return {}
-#
-#     def is_grouping_task(self) -> bool:
-#         return False
 from bohrruntime.tasktypes.labeling.core import LabelingTask
+
+"""
+Stub datamodel objects for tetsing
+"""
 
 
 class StubArtifact(Artifact):

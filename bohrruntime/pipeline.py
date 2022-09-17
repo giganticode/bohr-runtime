@@ -30,6 +30,11 @@ from bohrruntime.storageengine import StorageEngine
 from bohrruntime.tasktypes.labeling.lfs import SnorkelHeuristicApplier  # TODO!!
 from bohrruntime.util.paths import AbsolutePath, normalize_paths
 
+"""
+Implements classes for each stage of pipeline and their convertion to pipeline manager config 
+(DVC hardcoded as a pipeline manager for now)
+"""
+
 logger = logging.getLogger(__name__)
 
 

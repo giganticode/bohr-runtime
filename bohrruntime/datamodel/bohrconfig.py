@@ -6,6 +6,10 @@ from bohrruntime.datamodel.experiment import Experiment
 from bohrruntime.datamodel.task import Task
 
 
+"""
+Implementation of BohrConfig (which is parsed from bohr.py)
+"""
+
 @dataclass(frozen=True)
 class BohrConfig:
     bohr_runtime_version: str
