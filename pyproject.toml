@@ -28,7 +28,7 @@ click = "^8.1.3"
 fs = "^2.4.16"
 frozendict = "^2.3.2"
 python-Levenshtein = "^0.12.2"
-dvc = {version = "^2.0", extras = ["ssh"]}
+dvc = {version = "^3.0.0", extras = ["ssh"]}
 configobj = "^5.0.6"
 
 [tool.poetry.dev-dependencies]
