@@ -35,7 +35,7 @@ configobj = "^5.0.6"
 black = "^21.12b0"
 pre-commit = "^2.16"
 bcrypt = "*"
-pytest = "6.2"
+pytest = "9.0.2"
 coverage = "^6.4.4"
 
 [tool.poetry.scripts]
